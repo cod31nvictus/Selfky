@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Selfky Deployment Script for AWS EC2
+# Selfky Deployment Script for AWS EC2 with selfky.com domain
 # Run this script after setting up the EC2 instance
 
-echo "🚀 Deploying Selfky to AWS EC2..."
+echo "🚀 Deploying Selfky to AWS EC2 with selfky.com domain..."
 
 # Set variables
 APP_DIR="/var/www/selfky"
@@ -72,6 +72,17 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 echo "✅ Deployment complete!"
-echo "🌐 Your application should be available at: http://your-ec2-public-ip"
+echo ""
+echo "🌐 Next steps for domain setup:"
+echo "1. Go to GoDaddy DNS settings for selfky.com"
+echo "2. Add A record: @ → your-ec2-public-ip"
+echo "3. Add A record: www → your-ec2-public-ip"
+echo "4. Wait 5-10 minutes for DNS propagation"
+echo "5. Run SSL setup: ./deploy/ssl-setup.sh"
+echo ""
+echo "📝 Your application is available at:"
+echo "   HTTP: http://selfky.com (temporary)"
+echo "   HTTPS: https://selfky.com (after SSL setup)"
+echo ""
 echo "📝 To check application status: pm2 status"
 echo "📝 To view logs: pm2 logs selfky-server" 

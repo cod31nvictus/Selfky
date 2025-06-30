@@ -9,7 +9,7 @@ const app = express();
 // CORS configuration for production
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.com', 'https://www.your-domain.com'] 
+    ? ['https://selfky.com', 'https://www.selfky.com', 'http://selfky.com', 'http://www.selfky.com'] 
     : ['http://localhost:3000'],
   credentials: true
 };

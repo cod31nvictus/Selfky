@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
+    server_name selfky.com www.selfky.com;
 
     # Redirect HTTP to HTTPS (uncomment when you have SSL)
     # return 301 https://$server_name$request_uri;
