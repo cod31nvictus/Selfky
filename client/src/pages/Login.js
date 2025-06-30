@@ -22,6 +22,10 @@ export default function Login() {
         setMessage('Successfully logged in!');
         // You can store the token in localStorage here
         localStorage.setItem('token', data.token);
+        // Redirect to dashboard after successful login
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
       } else {
         setMessage(data.error || 'Login failed');
       }
@@ -36,13 +40,8 @@ export default function Login() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="size-8">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z"
-                fill="#101418"
-              ></path>
-            </svg>
+          <div className="size-24">
+            <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[#101418]">

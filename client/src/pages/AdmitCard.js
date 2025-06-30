@@ -1,0 +1,252 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const AdmitCard = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [applicationData, setApplicationData] = useState(null);
+  const [admitCardData, setAdmitCardData] = useState(null);
+
+  useEffect(() => {
+    if (location.state) {
+      setApplicationData(location.state);
+      // Generate admit card data
+      generateAdmitCard(location.state);
+    }
+  }, [location]);
+
+  const generateAdmitCard = (data) => {
+    const admitCard = {
+      applicationNumber: 'APP' + Date.now(),
+      examDate: '2025-03-15',
+      examTime: '10:00 AM - 01:00 PM',
+      examCenter: 'Selfky Institute of Pharmacy, Lucknow',
+      examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+      rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+      instructions: [
+        'Please arrive at the exam center 1 hour before the exam time',
+        'Carry this admit card and a valid photo ID proof',
+        'No electronic devices are allowed in the examination hall',
+        'Follow all COVID-19 protocols as per government guidelines',
+        'Bring your own stationery (pen, pencil, eraser)',
+        'Dress code: Formal attire'
+      ]
+    };
+    setAdmitCardData(admitCard);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownload = () => {
+    // In a real application, this would generate and download a PDF
+    alert('PDF download functionality will be implemented here');
+  };
+
+  if (!applicationData || !admitCardData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-[#101418] mb-4">No Application Data Found</h2>
+          <p className="text-[#5c728a] mb-4">Please complete the application process first.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
+      {/* Header */}
+      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden">
+        <div className="flex items-center gap-4 text-[#101418]">
+          <div className="size-20">
+            <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-[#101418] text-sm font-medium">Admit Card Generated</span>
+        </div>
+      </header>
+
+      {/* Progress Bar */}
+      <div className="bg-white border-b border-gray-200 print:hidden">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-gray-400">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                1
+              </div>
+              <span className="ml-2 font-medium">Personal Details</span>
+            </div>
+            <div className="flex-1 h-1 bg-gray-200 mx-4">
+              <div className="h-full bg-gray-200 w-full"></div>
+            </div>
+            <div className="flex items-center text-gray-400">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                2
+              </div>
+              <span className="ml-2 font-medium">Payment</span>
+            </div>
+            <div className="flex-1 h-1 bg-gray-200 mx-4">
+              <div className="h-full bg-[#101418] w-full"></div>
+            </div>
+            <div className="flex items-center text-[#101418]">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#101418] text-white">
+                3
+              </div>
+              <span className="ml-2 font-medium">Admit Card</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 py-8 md:px-8 lg:px-16">
+        <div className="max-w-4xl mx-auto">
+          {/* Success Message */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 print:hidden">
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 className="text-lg font-semibold text-green-800">Application Submitted Successfully!</h3>
+                <p className="text-green-700">Your admit card has been generated. Please review and download it.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Admit Card */}
+          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
+            {/* Header */}
+            <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
+              <div className="flex items-center justify-center mb-4">
+                <img src="/selfky-logo.png" alt="Selfky Logo" className="h-16 w-auto" />
+              </div>
+              <h1 className="text-3xl font-bold text-[#101418] mb-2">ADMIT CARD</h1>
+              <p className="text-lg text-[#5c728a]">{applicationData.courseInfo?.fullName}</p>
+            </div>
+
+            {/* Applicant Details */}
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Application Number:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.applicationNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Roll Number:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.rollNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Full Name:</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.formData?.fullName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Father's Name:</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.formData?.fathersName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Category:</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.formData?.category}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Date of Birth:</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.formData?.dateOfBirth}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-[#101418] mb-4">Examination Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Exam Date:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Exam Time:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Transaction ID:</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.transactionId}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Exam Center */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-[#101418] mb-4">Examination Center</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="font-semibold text-[#101418] mb-2">{admitCardData.examCenter}</p>
+                <p className="text-[#5c728a]">{admitCardData.examCenterAddress}</p>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-[#101418] mb-4">Important Instructions</h3>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <ul className="space-y-2 text-sm">
+                  {admitCardData.instructions.map((instruction, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-yellow-600 mr-2">•</span>
+                      <span className="text-[#5c728a]">{instruction}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Signature Section */}
+            <div className="flex justify-between items-end border-t-2 border-gray-300 pt-6">
+              <div className="text-center">
+                <div className="w-32 h-16 border-b-2 border-gray-400 mb-2"></div>
+                <p className="text-sm text-[#5c728a]">Applicant's Signature</p>
+              </div>
+              <div className="text-center">
+                <div className="w-32 h-16 border-b-2 border-gray-400 mb-2"></div>
+                <p className="text-sm text-[#5c728a]">Authorized Signature</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex justify-center gap-4 print:hidden">
+            <button
+              onClick={handlePrint}
+              className="bg-[#101418] text-white py-3 px-8 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors"
+            >
+              Print Admit Card
+            </button>
+            <button
+              onClick={handleDownload}
+              className="bg-green-600 text-white py-3 px-8 rounded-lg font-medium hover:bg-green-700 transition-colors"
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-gray-300 text-[#101418] py-3 px-8 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdmitCard; 
