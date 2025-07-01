@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function validatePassword(password) {
   const minLength = /.{8,}/;
@@ -11,52 +12,58 @@ function validatePassword(password) {
   return '';
 }
 
-export default function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [message, setMessage] = useState('');
+const Register = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
+    setLoading(true);
     setError('');
-    setIsLoading(true);
-    
-    if (password !== confirm) {
-      setError('Passwords do not match.');
-      setIsLoading(false);
+    setSuccess('');
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
       return;
     }
-    
-    const pwdError = validatePassword(password);
-    if (pwdError) {
-      setError(pwdError);
-      setIsLoading(false);
-      return;
-    }
-    
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+      const result = await register({
+        email: formData.email,
+        password: formData.password
       });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage('Account created successfully! You can now sign in.');
-        setEmail('');
-        setPassword('');
-        setConfirm('');
+      
+      if (result.success) {
+        setSuccess('Registration successful! You can now login.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } else {
-        setError(data.error || 'Registration failed');
+        setError(result.error);
       }
-    } catch {
-      setError('Network error');
+    } catch (error) {
+      setError('Registration failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -93,8 +100,8 @@ export default function Register() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-[#d4dbe2] rounded-md shadow-sm placeholder-[#5c728a] focus:outline-none focus:ring-[#101418] focus:border-[#101418] sm:text-sm"
                   placeholder="Enter your email"
                 />
@@ -112,8 +119,8 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-[#d4dbe2] rounded-md shadow-sm placeholder-[#5c728a] focus:outline-none focus:ring-[#101418] focus:border-[#101418] sm:text-sm"
                   placeholder="Create a password"
                 />
@@ -124,18 +131,18 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-[#101418]">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#101418]">
                 Confirm Password
               </label>
               <div className="mt-1">
                 <input
-                  id="confirm"
-                  name="confirm"
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
                   required
-                  value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-[#d4dbe2] rounded-md shadow-sm placeholder-[#5c728a] focus:outline-none focus:ring-[#101418] focus:border-[#101418] sm:text-sm"
                   placeholder="Confirm your password"
                 />
@@ -145,10 +152,10 @@ export default function Register() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#101418] hover:bg-[#2a2f36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101418] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>
@@ -159,9 +166,9 @@ export default function Register() {
             </div>
           )}
 
-          {message && (
+          {success && (
             <div className="mt-4 p-3 rounded-md text-sm bg-green-50 text-green-800 border border-green-200">
-              {message}
+              {success}
             </div>
           )}
 
@@ -188,4 +195,6 @@ export default function Register() {
       </div>
     </div>
   );
-} 
+};
+
+export default Register; 

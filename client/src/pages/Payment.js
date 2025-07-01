@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { applicationAPI } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { applicationId } = useParams();
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(2);
@@ -14,8 +15,41 @@ const Payment = () => {
     // Get payment data from location state (passed from application form)
     if (location.state) {
       setPaymentData(location.state);
+    } else if (applicationId) {
+      // Load application data from API if applicationId is provided
+      loadApplicationData();
     }
-  }, [location]);
+  }, [location, applicationId]);
+
+  const loadApplicationData = async () => {
+    try {
+      setLoading(true);
+      const application = await applicationAPI.getApplication(applicationId);
+      
+      // Convert application data to payment data format
+      const paymentDataFromAPI = {
+        applicationId: application._id,
+        applicationNumber: application.applicationNumber,
+        courseType: application.courseType,
+        courseInfo: {
+          name: application.courseType === 'bpharm' ? 'BPharm (Ay.) 2025' : 'MPharm (Ay.) 2025',
+          fullName: application.courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025'
+        },
+        formData: {
+          fullName: application.personalDetails.fullName,
+          category: application.personalDetails.category
+        },
+        feeAmount: application.payment.amount
+      };
+      
+      setPaymentData(paymentDataFromAPI);
+    } catch (error) {
+      console.error('Error loading application data:', error);
+      alert('Failed to load application data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePaymentSimulation = async (status) => {
     setLoading(true);
@@ -70,10 +104,11 @@ const Payment = () => {
   };
 
   const handleStepClick = (step) => {
-    // Allow navigation to completed steps or current step
-    if (completedSteps.includes(step) || step === currentStep) {
+    // Only allow navigation to current step or next step
+    // Don't allow going back to completed steps for editing
+    if (step === currentStep || step === currentStep + 1) {
       if (step === 1) {
-        // Navigate back to application form
+        // Navigate back to application form (only if current step is 1)
         navigate('/apply/' + paymentData?.courseType, {
           state: { 
             formData: paymentData?.formData,
@@ -127,8 +162,8 @@ const Payment = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div 
-              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
-              onClick={() => handleStepClick(1)}
+              className={`flex items-center ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
+              onClick={() => isStepCompleted(1) ? null : handleStepClick(1)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
                 {isStepCompleted(1) ? '✓' : '1'}

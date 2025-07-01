@@ -1,7 +1,117 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { applicationAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  // Refresh applications when component comes into focus
+  useEffect(() => {
+    const handleFocus = () => {
+      loadApplications();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      const response = await applicationAPI.getMyApplications();
+      setApplications(response);
+    } catch (error) {
+      console.error('Error loading applications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getApplicationStatus = (courseType) => {
+    const application = applications.find(app => app.courseType === courseType);
+    if (!application) return null;
+    
+    switch (application.payment.status) {
+      case 'pending':
+        return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
+      case 'completed':
+        return { status: 'completed', text: 'Payment Completed', color: 'green' };
+      case 'failed':
+        return { status: 'failed', text: 'Payment Failed', color: 'red' };
+      case 'cancelled':
+        return { status: 'cancelled', text: 'Payment Cancelled', color: 'gray' };
+      default:
+        return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
+    }
+  };
+
+  const getApplicationButton = (courseType) => {
+    const application = applications.find(app => app.courseType === courseType);
+    const status = getApplicationStatus(courseType);
+
+    if (!application) {
+      return (
+        <Link to={`/apply/${courseType}`}>
+          <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
+            Apply Now
+          </button>
+        </Link>
+      );
+    }
+
+    if (status?.status === 'completed') {
+      return (
+        <div className="space-y-2">
+          <div className="text-center">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
+              {status.text}
+            </span>
+          </div>
+          <button 
+            onClick={() => navigate(`/admit-card/${application._id}`)}
+            className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200"
+          >
+            View Admit Card
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        <div className="text-center">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
+            {status.text}
+          </span>
+        </div>
+        <button 
+          onClick={() => navigate(`/payment/${application._id}`)}
+          className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200"
+        >
+          Complete Payment
+        </button>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#101418] mx-auto"></div>
+          <p className="mt-4 text-[#5c728a]">Loading your applications...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       {/* Header */}
@@ -15,8 +125,8 @@ const Dashboard = () => {
           <span className="text-[#101418] text-sm font-medium">Welcome back!</span>
           <button 
             onClick={() => {
-              localStorage.removeItem('token');
-              window.location.href = '/';
+              logout();
+              navigate('/');
             }}
             className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#eaedf1] text-[#101418] text-sm font-medium hover:bg-[#d4dbe2] transition-colors"
           >
@@ -80,11 +190,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <Link to="/apply/bpharm">
-                  <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
-                    Apply Now
-                  </button>
-                </Link>
+                {getApplicationButton('bpharm')}
               </div>
             </div>
 
@@ -130,11 +236,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <Link to="/apply/mpharm">
-                  <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
-                    Apply Now
-                  </button>
-                </Link>
+                {getApplicationButton('mpharm')}
               </div>
             </div>
           </div>

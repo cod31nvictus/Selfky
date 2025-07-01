@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Landing from './pages/Landing';
@@ -12,19 +14,58 @@ import AdmitCard from './pages/AdmitCard';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/apply/:courseType" element={<ApplicationForm />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/payment/failure" element={<PaymentFailure />} />
-        <Route path="/payment/cancel" element={<PaymentCancel />} />
-        <Route path="/admit-card" element={<AdmitCard />} />
-        <Route path="/" element={<Landing />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/home" element={<Landing />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/apply/:courseType" element={
+            <ProtectedRoute>
+              <ApplicationForm />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment" element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment/:applicationId" element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment/failure" element={
+            <ProtectedRoute>
+              <PaymentFailure />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment/cancel" element={
+            <ProtectedRoute>
+              <PaymentCancel />
+            </ProtectedRoute>
+          } />
+          <Route path="/admit-card" element={
+            <ProtectedRoute>
+              <AdmitCard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admit-card/:applicationId" element={
+            <ProtectedRoute>
+              <AdmitCard />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
