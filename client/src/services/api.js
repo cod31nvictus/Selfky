@@ -5,6 +5,11 @@ const getAuthToken = () => {
   return localStorage.getItem('token');
 };
 
+// Helper function to get admin token
+const getAdminToken = () => {
+  return localStorage.getItem('adminToken');
+};
+
 // Helper function to make API calls
 const apiCall = async (endpoint, options = {}) => {
   const token = getAuthToken();
@@ -29,6 +34,40 @@ const apiCall = async (endpoint, options = {}) => {
     return data;
   } catch (error) {
     console.error('API Error:', error);
+    throw error;
+  }
+};
+
+// Helper function to make admin API calls
+const adminApiCall = async (endpoint, options = {}) => {
+  const adminToken = getAdminToken();
+  
+  if (!adminToken) {
+    throw new Error('Admin token not found. Please login again.');
+  }
+  
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': adminToken,
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  try {
+    console.log('Admin API Call:', `${API_BASE_URL}${endpoint}`, { adminToken: adminToken.substring(0, 10) + '...' });
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Admin API Error Response:', data);
+      throw new Error(data.error || 'Admin API request failed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Admin API Error:', error);
     throw error;
   }
 };
@@ -99,6 +138,80 @@ export const authAPI = {
     }),
 };
 
+// Admin API functions
+export const adminAPI = {
+  // Get all applications
+  getApplications: () => adminApiCall('/admin/applications'),
+
+  // Get all applicants (users)
+  getApplicants: () => adminApiCall('/admin/applicants'),
+
+  // Update application status
+  updateApplicationStatus: (applicationId, status) => 
+    adminApiCall(`/admin/applications/${applicationId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  // Reset user password
+  resetUserPassword: (userId, newPassword, confirmPassword) => 
+    adminApiCall(`/admin/applicants/${userId}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword, confirmPassword }),
+    }),
+
+  // Get specific application for admin
+  getApplication: (applicationId) => adminApiCall(`/admin/applications/${applicationId}`),
+
+  // Get admit card for application (admin)
+  getAdmitCard: (applicationId) => adminApiCall(`/admin/admit-card/${applicationId}`),
+
+  // Create application for user (admin)
+  createApplicationForUser: (userId, formData) => {
+    const adminToken = getAdminToken();
+    
+    const data = new FormData();
+    data.append('userId', userId);
+    data.append('courseType', formData.get('courseType'));
+    data.append('fullName', formData.get('fullName'));
+    data.append('fathersName', formData.get('fathersName'));
+    data.append('category', formData.get('category'));
+    data.append('dateOfBirth', formData.get('dateOfBirth'));
+    if (formData.get('photo')) data.append('photo', formData.get('photo'));
+    if (formData.get('signature')) data.append('signature', formData.get('signature'));
+
+    return fetch(`${API_BASE_URL}/admin/applications`, {
+      method: 'POST',
+      headers: {
+        'X-Admin-Token': adminToken,
+      },
+      body: data,
+    }).then(response => response.json());
+  },
+
+  // Update application (admin)
+  updateApplication: (applicationId, formData) => {
+    const adminToken = getAdminToken();
+    
+    const data = new FormData();
+    data.append('courseType', formData.get('courseType'));
+    data.append('fullName', formData.get('fullName'));
+    data.append('fathersName', formData.get('fathersName'));
+    data.append('category', formData.get('category'));
+    data.append('dateOfBirth', formData.get('dateOfBirth'));
+    if (formData.get('photo')) data.append('photo', formData.get('photo'));
+    if (formData.get('signature')) data.append('signature', formData.get('signature'));
+
+    return fetch(`${API_BASE_URL}/admin/applications/${applicationId}`, {
+      method: 'PUT',
+      headers: {
+        'X-Admin-Token': adminToken,
+      },
+      body: data,
+    }).then(response => response.json());
+  },
+};
+
 // Utility functions
 export const uploadFile = async (file) => {
   // This would be used if you want to upload files separately
@@ -119,5 +232,6 @@ export const uploadFile = async (file) => {
 export default {
   applicationAPI,
   authAPI,
+  adminAPI,
   uploadFile,
 }; 
