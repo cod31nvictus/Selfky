@@ -16,6 +16,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -36,7 +39,10 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 // API routes
 const authRoutes = require('./routes/auth');
+const applicationRoutes = require('./routes/applications');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {

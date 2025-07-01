@@ -1,38 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { applicationAPI } from '../services/api';
 
 const AdmitCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [applicationData, setApplicationData] = useState(null);
   const [admitCardData, setAdmitCardData] = useState(null);
+  const [currentStep, setCurrentStep] = useState(3);
+  const [completedSteps, setCompletedSteps] = useState([1, 2]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (location.state) {
       setApplicationData(location.state);
+      if (location.state.completedSteps) {
+        setCompletedSteps(location.state.completedSteps);
+      }
       // Generate admit card data
       generateAdmitCard(location.state);
     }
   }, [location]);
 
-  const generateAdmitCard = (data) => {
-    const admitCard = {
-      applicationNumber: 'APP' + Date.now(),
-      examDate: '2025-03-15',
-      examTime: '10:00 AM - 01:00 PM',
-      examCenter: 'Selfky Institute of Pharmacy, Lucknow',
-      examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
-      rollNumber: 'RN' + Math.floor(Math.random() * 10000),
-      instructions: [
-        'Please arrive at the exam center 1 hour before the exam time',
-        'Carry this admit card and a valid photo ID proof',
-        'No electronic devices are allowed in the examination hall',
-        'Follow all COVID-19 protocols as per government guidelines',
-        'Bring your own stationery (pen, pencil, eraser)',
-        'Dress code: Formal attire'
-      ]
-    };
-    setAdmitCardData(admitCard);
+  const generateAdmitCard = async (data) => {
+    setLoading(true);
+    try {
+      // If we have an application ID, generate admit card in database
+      if (data.applicationId) {
+        const response = await applicationAPI.generateAdmitCard(data.applicationId);
+        setAdmitCardData({
+          applicationNumber: response.applicationNumber,
+          examDate: response.admitCard.examDate,
+          examTime: response.admitCard.examTime,
+          examCenter: response.admitCard.examCenter,
+          examCenterAddress: response.admitCard.examCenterAddress,
+          rollNumber: response.admitCard.rollNumber,
+          instructions: [
+            'Please arrive at the exam center 1 hour before the exam time',
+            'Carry this admit card and a valid photo ID proof',
+            'No electronic devices are allowed in the examination hall',
+            'Follow all COVID-19 protocols as per government guidelines',
+            'Bring your own stationery (pen, pencil, eraser)',
+            'Dress code: Formal attire'
+          ]
+        });
+      } else {
+        // Fallback to client-side generation (for testing)
+        const admitCard = {
+          applicationNumber: data.applicationNumber || 'APP' + Date.now(),
+          examDate: '2025-03-15',
+          examTime: '10:00 AM - 01:00 PM',
+          examCenter: 'Selfky Institute of Pharmacy, Lucknow',
+          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+          rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+          instructions: [
+            'Please arrive at the exam center 1 hour before the exam time',
+            'Carry this admit card and a valid photo ID proof',
+            'No electronic devices are allowed in the examination hall',
+            'Follow all COVID-19 protocols as per government guidelines',
+            'Bring your own stationery (pen, pencil, eraser)',
+            'Dress code: Formal attire'
+          ]
+        };
+        setAdmitCardData(admitCard);
+      }
+    } catch (error) {
+      console.error('Error generating admit card:', error);
+      alert('Failed to generate admit card. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePrint = () => {
@@ -42,6 +79,33 @@ const AdmitCard = () => {
   const handleDownload = () => {
     // In a real application, this would generate and download a PDF
     alert('PDF download functionality will be implemented here');
+  };
+
+  const handleStepClick = (step) => {
+    // Allow navigation to completed steps or current step
+    if (completedSteps.includes(step) || step === currentStep) {
+      if (step === 1) {
+        // Navigate back to application form
+        navigate('/apply/' + applicationData?.courseType, {
+          state: { 
+            formData: applicationData?.formData,
+            completedSteps: completedSteps,
+            applicationId: applicationData?.applicationId
+          }
+        });
+      } else if (step === 2) {
+        // Navigate back to payment page
+        navigate('/payment', {
+          state: applicationData
+        });
+      } else {
+        setCurrentStep(step);
+      }
+    }
+  };
+
+  const isStepCompleted = (step) => {
+    return completedSteps.includes(step);
   };
 
   if (!applicationData || !admitCardData) {
@@ -56,6 +120,18 @@ const AdmitCard = () => {
           >
             Go to Dashboard
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#101418] mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-[#101418] mb-2">Generating Admit Card...</h2>
+          <p className="text-[#5c728a]">Please wait while we generate your admit card.</p>
         </div>
       </div>
     );
@@ -79,26 +155,35 @@ const AdmitCard = () => {
       <div className="bg-white border-b border-gray-200 print:hidden">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-gray-400">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
-                1
+            <div 
+              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
+              onClick={() => handleStepClick(1)}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
+                {isStepCompleted(1) ? '✓' : '1'}
               </div>
               <span className="ml-2 font-medium">Personal Details</span>
             </div>
             <div className="flex-1 h-1 bg-gray-200 mx-4">
-              <div className="h-full bg-gray-200 w-full"></div>
+              <div className={`h-full transition-all duration-300 ${isStepCompleted(1) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
             </div>
-            <div className="flex items-center text-gray-400">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
-                2
+            <div 
+              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(2) ? 'text-green-600' : 'text-gray-400'}`}
+              onClick={() => handleStepClick(2)}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(2) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
+                {isStepCompleted(2) ? '✓' : '2'}
               </div>
               <span className="ml-2 font-medium">Payment</span>
             </div>
             <div className="flex-1 h-1 bg-gray-200 mx-4">
-              <div className="h-full bg-[#101418] w-full"></div>
+              <div className={`h-full transition-all duration-300 ${isStepCompleted(2) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
             </div>
-            <div className="flex items-center text-[#101418]">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#101418] text-white">
+            <div 
+              className={`flex items-center cursor-pointer transition-colors ${currentStep === 3 ? 'text-[#101418]' : 'text-gray-400'}`}
+              onClick={() => handleStepClick(3)}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 3 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
                 3
               </div>
               <span className="ml-2 font-medium">Admit Card</span>
