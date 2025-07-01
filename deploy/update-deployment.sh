@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# Update Deployment Script for Selfky
-# Run this when you want to deploy updates
+# Selfky Deployment Update Script
+# Supports: Admin panel, admit card, file uploads, payment, and all recent features
+# Usage: Run this script on your EC2 instance to deploy the latest code from GitHub
 
-echo "🚀 Starting deployment update..."
+set -e
+
+echo "🚀 Starting deployment update for Selfky..."
 
 # Navigate to project directory
 cd /home/ubuntu/Selfky
 
 # Pull latest changes
-echo "📥 Pulling latest changes from Git..."
+echo "📥 Pulling latest changes from GitHub..."
 git pull origin main
+
+echo "🔎 Last commit deployed:"
+git log -1 --oneline
 
 # Install backend dependencies
 echo "📦 Installing backend dependencies..."
@@ -26,12 +32,12 @@ npm install
 echo "🔨 Building frontend..."
 npm run build
 
-# Restart backend
-echo "🔄 Restarting backend..."
+# Restart backend (using pm2, process name: selfky-backend)
+echo "🔄 Restarting backend server..."
 cd ../server
-pm2 restart selfky-backend
+pm2 restart selfky-backend || pm2 start server.js --name selfky-backend
 
-# Reload Nginx
+# Reload Nginx for static/frontend updates
 echo "🔄 Reloading Nginx..."
 sudo systemctl reload nginx
 
