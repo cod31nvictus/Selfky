@@ -6,22 +6,25 @@
 echo "🚀 Deploying Selfky to AWS EC2 with selfky.com domain..."
 
 # Set variables
-APP_DIR="/var/www/selfky"
+APP_DIR="/home/ubuntu/Selfky"
+WEB_DIR="/var/www/selfky"
 REPO_URL="https://github.com/cod31nvictus/Selfky.git"
 
 # Create application directory
 echo "📁 Creating application directory..."
-sudo mkdir -p $APP_DIR
-sudo chown ubuntu:ubuntu $APP_DIR
+cd /home/ubuntu
+sudo mkdir -p $WEB_DIR
+sudo chown ubuntu:ubuntu $WEB_DIR
 
 # Clone repository
 echo "📥 Cloning repository..."
-cd $APP_DIR
-git clone $REPO_URL .
+git clone $REPO_URL Selfky
+cd Selfky
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm run install-all
+cd server && npm install && cd ..
+cd client && npm install && cd ..
 
 # Create environment file
 echo "🔧 Setting up environment variables..."
@@ -38,12 +41,23 @@ cd client
 npm run build
 cd ..
 
+# Copy build files to web directory with proper permissions
+echo "📁 Setting up web directory..."
+sudo cp -r client/build/* $WEB_DIR/
+sudo chown -R www-data:www-data $WEB_DIR
+
+# Create uploads directory with proper permissions
+echo "📁 Setting up uploads directory..."
+mkdir -p server/uploads
+sudo chown -R www-data:www-data server/uploads
+sudo chmod -R 755 server/uploads
+
 # Set up PM2 ecosystem
 echo "⚙️ Setting up PM2..."
 cat > ecosystem.config.js << EOF
 module.exports = {
   apps: [{
-    name: 'selfky-server',
+    name: 'selfky-backend',
     script: 'server/server.js',
     instances: 1,
     autorestart: true,
@@ -66,10 +80,10 @@ pm2 startup
 # Configure Nginx
 echo "🔧 Configuring Nginx..."
 sudo cp deploy/nginx-config /etc/nginx/sites-available/selfky
-sudo ln -s /etc/nginx/sites-available/selfky /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/selfky /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
-sudo systemctl reload nginx
+sudo systemctl restart nginx
 
 echo "✅ Deployment complete!"
 echo ""
@@ -78,11 +92,11 @@ echo "1. Go to GoDaddy DNS settings for selfky.com"
 echo "2. Add A record: @ → your-ec2-public-ip"
 echo "3. Add A record: www → your-ec2-public-ip"
 echo "4. Wait 5-10 minutes for DNS propagation"
-echo "5. Run SSL setup: ./deploy/ssl-setup.sh"
+echo "5. Run SSL setup: sudo certbot --nginx -d selfky.com -d www.selfky.com"
 echo ""
 echo "📝 Your application is available at:"
 echo "   HTTP: http://selfky.com (temporary)"
 echo "   HTTPS: https://selfky.com (after SSL setup)"
 echo ""
 echo "📝 To check application status: pm2 status"
-echo "📝 To view logs: pm2 logs selfky-server" 
+echo "📝 To view logs: pm2 logs selfky-backend" 

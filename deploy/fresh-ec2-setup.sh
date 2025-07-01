@@ -41,7 +41,7 @@ sudo apt install git -y
 # Clone the repository
 echo "📥 Cloning Selfky repository..."
 cd /home/ubuntu
-git clone https://github.com/your-username/Selfky.git
+git clone https://github.com/cod31nvictus/Selfky.git
 cd Selfky
 
 # Install backend dependencies
@@ -58,6 +58,12 @@ npm install
 echo "🔨 Building frontend..."
 npm run build
 
+# Create proper web directory and copy files
+echo "📁 Setting up web directory..."
+sudo mkdir -p /var/www/selfky
+sudo cp -r build/* /var/www/selfky/
+sudo chown -R www-data:www-data /var/www/selfky
+
 # Create environment file for backend
 echo "🔧 Creating backend environment file..."
 cd ../server
@@ -68,25 +74,33 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 NODE_ENV=production
 EOF
 
-# Create uploads directory
+# Create uploads directory with proper permissions
 echo "📁 Creating uploads directory..."
 mkdir -p uploads
+sudo chown -R www-data:www-data uploads
+sudo chmod -R 755 uploads
 
 # Start backend with PM2
 echo "🚀 Starting backend with PM2..."
 pm2 start server.js --name "selfky-backend"
 
-# Configure Nginx
+# Configure Nginx with proper paths and SSL support
 echo "🔧 Configuring Nginx..."
 sudo tee /etc/nginx/sites-available/selfky << EOF
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
+    listen 443 ssl;
+    server_name selfky.com www.selfky.com;
+
+    # SSL configuration (will be added by Certbot)
+    # ssl_certificate /etc/letsencrypt/live/selfky.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/selfky.com/privkey.pem;
 
     # Frontend
     location / {
-        root /home/ubuntu/Selfky/client/build;
+        root /var/www/selfky;
         try_files \$uri \$uri/ /index.html;
+        index index.html;
     }
 
     # Backend API
@@ -109,9 +123,9 @@ server {
 }
 EOF
 
-# Enable the site
+# Enable the site and remove default
 sudo ln -s /etc/nginx/sites-available/selfky /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default
+sudo rm -f /etc/nginx/sites-enabled/default
 
 # Test Nginx configuration
 sudo nginx -t
@@ -128,6 +142,7 @@ echo "✅ Fresh EC2 setup completed!"
 echo "🌐 Your application should be accessible at: http://your-ec2-ip"
 echo "📝 Next steps:"
 echo "   1. Update the Nginx config with your actual domain"
-echo "   2. Set up SSL certificate"
+echo "   2. Set up SSL certificate with Certbot"
 echo "   3. Update JWT_SECRET in .env file"
-echo "   4. Configure your domain DNS to point to this EC2 instance" 
+echo "   4. Configure your domain DNS to point to this EC2 instance"
+echo "   5. Run: sudo certbot --nginx -d selfky.com -d www.selfky.com" 
