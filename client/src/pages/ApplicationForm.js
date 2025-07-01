@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { applicationAPI } from '../services/api';
 
 const ApplicationForm = () => {
   const { courseType } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState([]);
   const [formData, setFormData] = useState({
     fullName: '',
     fathersName: '',
@@ -13,6 +16,21 @@ const ApplicationForm = () => {
     photo: null,
     signature: null
   });
+  const [loading, setLoading] = useState(false);
+  const [applicationId, setApplicationId] = useState(null);
+
+  useEffect(() => {
+    // Check if we're returning from payment page with completed steps
+    if (location.state?.completedSteps) {
+      setCompletedSteps(location.state.completedSteps);
+    }
+    if (location.state?.formData) {
+      setFormData(location.state.formData);
+    }
+    if (location.state?.applicationId) {
+      setApplicationId(location.state.applicationId);
+    }
+  }, [location]);
 
   // Fee structure
   const feeStructure = {
@@ -59,31 +77,66 @@ const ApplicationForm = () => {
     }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 1) {
       // Validate form data
       if (!formData.fullName || !formData.fathersName || !formData.dateOfBirth || !formData.photo || !formData.signature) {
         alert('Please fill all required fields and upload both photo and signature');
         return;
       }
-      // Navigate to payment page with form data
-      navigate('/payment', {
-        state: {
-          formData: formData,
-          courseInfo: courseInfo[courseType],
-          feeAmount: getApplicationFee(),
+
+      setLoading(true);
+      try {
+        // Prepare data for API
+        const apiData = {
+          ...formData,
           courseType: courseType
-        }
-      });
+        };
+
+        // Create application in database
+        const response = await applicationAPI.createApplication(apiData);
+        
+        // Mark step as completed
+        setCompletedSteps(prev => [...prev, 1]);
+        setApplicationId(response._id);
+
+        // Navigate to payment page with form data and application ID
+        navigate('/payment', {
+          state: {
+            formData: formData,
+            courseInfo: courseInfo[courseType],
+            feeAmount: getApplicationFee(),
+            courseType: courseType,
+            applicationId: response._id,
+            applicationNumber: response.applicationNumber
+          }
+        });
+      } catch (error) {
+        console.error('Error creating application:', error);
+        alert('Failed to create application. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleBack = () => {
-    setCurrentStep(currentStep - 1);
+  const handleStepClick = (step) => {
+    // Allow navigation to completed steps or current step
+    if (completedSteps.includes(step) || step === currentStep) {
+      setCurrentStep(step);
+    }
   };
 
   const getApplicationFee = () => {
     return feeStructure[courseType][formData.category];
+  };
+
+  const isStepCompleted = (step) => {
+    return completedSteps.includes(step);
+  };
+
+  const isStepEditable = (step) => {
+    return step === currentStep || isStepCompleted(step);
   };
 
   const renderStep1 = () => (
@@ -105,6 +158,7 @@ const ApplicationForm = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
               placeholder="Enter your full name"
               required
+              disabled={!isStepEditable(1) || loading}
             />
           </div>
 
@@ -121,6 +175,7 @@ const ApplicationForm = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
               placeholder="Enter your father's name"
               required
+              disabled={!isStepEditable(1) || loading}
             />
           </div>
 
@@ -135,6 +190,7 @@ const ApplicationForm = () => {
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
               required
+              disabled={!isStepEditable(1) || loading}
             >
               <option value="General">General</option>
               <option value="OBC">OBC</option>
@@ -156,6 +212,7 @@ const ApplicationForm = () => {
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
               required
+              disabled={!isStepEditable(1) || loading}
             />
           </div>
 
@@ -166,7 +223,7 @@ const ApplicationForm = () => {
               <label className="block text-sm font-medium text-[#101418] mb-2">
                 Passport Size Photo *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors">
+              <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
                 <input
                   type="file"
                   name="photo"
@@ -175,8 +232,9 @@ const ApplicationForm = () => {
                   className="hidden"
                   id="photo-upload"
                   required
+                  disabled={!isStepEditable(1) || loading}
                 />
-                <label htmlFor="photo-upload" className="cursor-pointer">
+                <label htmlFor="photo-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
                   <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -192,7 +250,7 @@ const ApplicationForm = () => {
               <label className="block text-sm font-medium text-[#101418] mb-2">
                 Signature *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors">
+              <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
                 <input
                   type="file"
                   name="signature"
@@ -201,8 +259,9 @@ const ApplicationForm = () => {
                   className="hidden"
                   id="signature-upload"
                   required
+                  disabled={!isStepEditable(1) || loading}
                 />
-                <label htmlFor="signature-upload" className="cursor-pointer">
+                <label htmlFor="signature-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
                   <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -227,9 +286,10 @@ const ApplicationForm = () => {
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            className="bg-[#101418] text-white py-3 px-8 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors"
+            disabled={loading}
+            className="bg-[#101418] text-white py-3 px-8 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Proceed to Payment
+            {loading ? 'Saving...' : 'Proceed to Payment'}
           </button>
         </div>
       </div>
@@ -258,12 +318,33 @@ const ApplicationForm = () => {
       {/* Progress Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center text-[#101418]">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#101418] text-white">
-                1
+          <div className="flex items-center justify-between">
+            <div 
+              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(1) ? 'text-green-600' : currentStep === 1 ? 'text-[#101418]' : 'text-gray-400'}`}
+              onClick={() => handleStepClick(1)}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : currentStep === 1 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
+                {isStepCompleted(1) ? '✓' : '1'}
               </div>
               <span className="ml-2 font-medium">Personal Details</span>
+            </div>
+            <div className="flex-1 h-1 bg-gray-200 mx-4">
+              <div className={`h-full transition-all duration-300 ${isStepCompleted(1) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
+            </div>
+            <div className="flex items-center text-gray-400">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                2
+              </div>
+              <span className="ml-2 font-medium">Payment</span>
+            </div>
+            <div className="flex-1 h-1 bg-gray-200 mx-4">
+              <div className="h-full bg-gray-200 w-0"></div>
+            </div>
+            <div className="flex items-center text-gray-400">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
+                3
+              </div>
+              <span className="ml-2 font-medium">Admit Card</span>
             </div>
           </div>
         </div>
