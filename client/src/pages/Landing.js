@@ -1,7 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Landing = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#101418] mx-auto"></div>
+          <p className="mt-4 text-[#5c728a]">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-gray-50 group/design-root overflow-x-hidden" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       <div className="layout-container flex h-full grow flex-col">
@@ -17,16 +32,29 @@ const Landing = () => {
               <a className="text-[#101418] text-sm font-medium leading-normal" href="#contact">Contact Us</a>
             </div>
             <div className="flex gap-2">
-              <Link to="/login">
-                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#101418] text-sm font-bold leading-normal tracking-[0.015em]">
-                  <span className="truncate">Log In</span>
-                </button>
-              </Link>
-              <Link to="/register">
-                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#eaedf1] text-[#101418] text-sm font-bold leading-normal tracking-[0.015em]">
-                  <span className="truncate">Sign Up</span>
-                </button>
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <button 
+                    onClick={() => navigate('/dashboard')}
+                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#101418] text-sm font-bold leading-normal tracking-[0.015em]"
+                  >
+                    <span className="truncate">Dashboard</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#101418] text-sm font-bold leading-normal tracking-[0.015em]">
+                      <span className="truncate">Log In</span>
+                    </button>
+                  </Link>
+                  <Link to="/register">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#eaedf1] text-[#101418] text-sm font-bold leading-normal tracking-[0.015em]">
+                      <span className="truncate">Sign Up</span>
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -49,16 +77,27 @@ const Landing = () => {
               </h2>
             </div>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/login">
-                <button className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 md:h-14 md:px-8 bg-[#dce7f3] text-[#101418] text-base font-bold leading-normal tracking-[0.015em] md:text-lg hover:bg-[#c5d8e8] transition-colors">
-                  <span className="truncate">Log In</span>
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => navigate('/dashboard')}
+                  className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 md:h-14 md:px-8 bg-[#dce7f3] text-[#101418] text-base font-bold leading-normal tracking-[0.015em] md:text-lg hover:bg-[#c5d8e8] transition-colors"
+                >
+                  <span className="truncate">Go to Dashboard</span>
                 </button>
-              </Link>
-              <Link to="/register">
-                <button className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 md:h-14 md:px-8 bg-[#eaedf1] text-[#101418] text-base font-bold leading-normal tracking-[0.015em] md:text-lg hover:bg-[#d4dbe2] transition-colors">
-                  <span className="truncate">Sign Up</span>
-                </button>
-              </Link>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <button className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 md:h-14 md:px-8 bg-[#dce7f3] text-[#101418] text-base font-bold leading-normal tracking-[0.015em] md:text-lg hover:bg-[#c5d8e8] transition-colors">
+                      <span className="truncate">Log In</span>
+                    </button>
+                  </Link>
+                  <Link to="/register">
+                    <button className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 md:h-14 md:px-8 bg-[#eaedf1] text-[#101418] text-base font-bold leading-normal tracking-[0.015em] md:text-lg hover:bg-[#d4dbe2] transition-colors">
+                      <span className="truncate">Sign Up</span>
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

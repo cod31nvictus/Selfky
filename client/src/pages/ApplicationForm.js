@@ -18,6 +18,11 @@ const ApplicationForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
+  const [existingApplication, setExistingApplication] = useState(null);
+
+  useEffect(() => {
+    checkExistingApplication();
+  }, [courseType]);
 
   useEffect(() => {
     // Check if we're returning from payment page with completed steps
@@ -31,6 +36,52 @@ const ApplicationForm = () => {
       setApplicationId(location.state.applicationId);
     }
   }, [location]);
+
+  const checkExistingApplication = async () => {
+    try {
+      const applications = await applicationAPI.getMyApplications();
+      const existing = applications.find(app => app.courseType === courseType);
+      
+      if (existing) {
+        setExistingApplication(existing);
+        setApplicationId(existing._id);
+        
+        // Load existing data
+        if (existing.personalDetails) {
+          setFormData({
+            fullName: existing.personalDetails.fullName || '',
+            fathersName: existing.personalDetails.fathersName || '',
+            category: existing.personalDetails.category || 'General',
+            dateOfBirth: existing.personalDetails.dateOfBirth ? new Date(existing.personalDetails.dateOfBirth).toISOString().split('T')[0] : '',
+            photo: null, // We can't load files from server, but we can show they exist
+            signature: null
+          });
+        }
+
+        // Set completed steps based on application status
+        const steps = [1]; // Step 1 is always completed if application exists
+        if (existing.payment?.status === 'completed') {
+          steps.push(2, 3);
+        } else if (existing.status === 'submitted' || existing.status === 'payment_pending') {
+          steps.push(2);
+        }
+        setCompletedSteps(steps);
+
+        // If payment is completed, redirect to admit card
+        if (existing.payment?.status === 'completed') {
+          navigate(`/admit-card/${existing._id}`);
+          return;
+        }
+
+        // If application exists but payment is pending, go to payment step
+        if (existing.status === 'submitted' || existing.status === 'payment_pending') {
+          setCurrentStep(2);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing application:', error);
+    }
+  };
 
   // Fee structure
   const feeStructure = {
@@ -121,8 +172,9 @@ const ApplicationForm = () => {
   };
 
   const handleStepClick = (step) => {
-    // Allow navigation to completed steps or current step
-    if (completedSteps.includes(step) || step === currentStep) {
+    // Only allow navigation to current step or next step
+    // Don't allow going back to completed steps for editing
+    if (step === currentStep || step === currentStep + 1) {
       setCurrentStep(step);
     }
   };
@@ -136,7 +188,8 @@ const ApplicationForm = () => {
   };
 
   const isStepEditable = (step) => {
-    return step === currentStep || isStepCompleted(step);
+    // Only allow editing the current step, not completed steps
+    return step === currentStep;
   };
 
   const renderStep1 = () => (
@@ -239,7 +292,8 @@ const ApplicationForm = () => {
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <p className="mt-2 text-sm text-gray-600">
-                    {formData.photo ? formData.photo.name : 'Click to upload photo'}
+                    {formData.photo ? formData.photo.name : 
+                     (existingApplication?.documents?.photo ? 'Photo uploaded ✓' : 'Click to upload photo')}
                   </p>
                 </label>
               </div>
@@ -266,7 +320,8 @@ const ApplicationForm = () => {
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <p className="mt-2 text-sm text-gray-600">
-                    {formData.signature ? formData.signature.name : 'Click to upload signature'}
+                    {formData.signature ? formData.signature.name : 
+                     (existingApplication?.documents?.signature ? 'Signature uploaded ✓' : 'Click to upload signature')}
                   </p>
                 </label>
               </div>
@@ -320,8 +375,8 @@ const ApplicationForm = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div 
-              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(1) ? 'text-green-600' : currentStep === 1 ? 'text-[#101418]' : 'text-gray-400'}`}
-              onClick={() => handleStepClick(1)}
+              className={`flex items-center ${isStepCompleted(1) ? 'text-green-600' : currentStep === 1 ? 'text-[#101418] cursor-pointer' : 'text-gray-400'}`}
+              onClick={() => isStepCompleted(1) ? null : handleStepClick(1)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : currentStep === 1 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
                 {isStepCompleted(1) ? '✓' : '1'}
@@ -331,18 +386,18 @@ const ApplicationForm = () => {
             <div className="flex-1 h-1 bg-gray-200 mx-4">
               <div className={`h-full transition-all duration-300 ${isStepCompleted(1) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
             </div>
-            <div className="flex items-center text-gray-400">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
-                2
+            <div className={`flex items-center ${isStepCompleted(2) ? 'text-green-600' : currentStep === 2 ? 'text-[#101418] cursor-pointer' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(2) ? 'bg-green-600 text-white' : currentStep === 2 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
+                {isStepCompleted(2) ? '✓' : '2'}
               </div>
               <span className="ml-2 font-medium">Payment</span>
             </div>
             <div className="flex-1 h-1 bg-gray-200 mx-4">
-              <div className="h-full bg-gray-200 w-0"></div>
+              <div className={`h-full transition-all duration-300 ${isStepCompleted(2) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
             </div>
-            <div className="flex items-center text-gray-400">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
-                3
+            <div className={`flex items-center ${isStepCompleted(3) ? 'text-green-600' : currentStep === 3 ? 'text-[#101418] cursor-pointer' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(3) ? 'bg-green-600 text-white' : currentStep === 3 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
+                {isStepCompleted(3) ? '✓' : '3'}
               </div>
               <span className="ml-2 font-medium">Admit Card</span>
             </div>

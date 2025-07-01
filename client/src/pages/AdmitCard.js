@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { applicationAPI } from '../services/api';
 
 const AdmitCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { applicationId } = useParams();
   const [applicationData, setApplicationData] = useState(null);
   const [admitCardData, setAdmitCardData] = useState(null);
   const [currentStep, setCurrentStep] = useState(3);
@@ -19,8 +20,42 @@ const AdmitCard = () => {
       }
       // Generate admit card data
       generateAdmitCard(location.state);
+    } else if (applicationId) {
+      // Load application data from API if applicationId is provided
+      loadApplicationData();
     }
-  }, [location]);
+  }, [location, applicationId]);
+
+  const loadApplicationData = async () => {
+    try {
+      setLoading(true);
+      const application = await applicationAPI.getApplication(applicationId);
+      
+      // Convert application data to the format expected by generateAdmitCard
+      const applicationDataFromAPI = {
+        applicationId: application._id,
+        applicationNumber: application.applicationNumber,
+        courseType: application.courseType,
+        formData: {
+          fullName: application.personalDetails.fullName,
+          category: application.personalDetails.category
+        },
+        courseInfo: {
+          name: application.courseType === 'bpharm' ? 'BPharm (Ay.) 2025' : 'MPharm (Ay.) 2025',
+          fullName: application.courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025'
+        }
+      };
+      
+      setApplicationData(applicationDataFromAPI);
+      setCompletedSteps([1, 2, 3]);
+      generateAdmitCard(applicationDataFromAPI);
+    } catch (error) {
+      console.error('Error loading application data:', error);
+      alert('Failed to load application data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateAdmitCard = async (data) => {
     setLoading(true);
@@ -82,10 +117,11 @@ const AdmitCard = () => {
   };
 
   const handleStepClick = (step) => {
-    // Allow navigation to completed steps or current step
-    if (completedSteps.includes(step) || step === currentStep) {
+    // Only allow navigation to current step or next step
+    // Don't allow going back to completed steps for editing
+    if (step === currentStep || step === currentStep + 1) {
       if (step === 1) {
-        // Navigate back to application form
+        // Navigate back to application form (only if current step is 1)
         navigate('/apply/' + applicationData?.courseType, {
           state: { 
             formData: applicationData?.formData,
@@ -94,7 +130,7 @@ const AdmitCard = () => {
           }
         });
       } else if (step === 2) {
-        // Navigate back to payment page
+        // Navigate back to payment page (only if current step is 2)
         navigate('/payment', {
           state: applicationData
         });
@@ -156,8 +192,8 @@ const AdmitCard = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div 
-              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
-              onClick={() => handleStepClick(1)}
+              className={`flex items-center ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
+              onClick={() => isStepCompleted(1) ? null : handleStepClick(1)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
                 {isStepCompleted(1) ? '✓' : '1'}
@@ -168,8 +204,8 @@ const AdmitCard = () => {
               <div className={`h-full transition-all duration-300 ${isStepCompleted(1) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
             </div>
             <div 
-              className={`flex items-center cursor-pointer transition-colors ${isStepCompleted(2) ? 'text-green-600' : 'text-gray-400'}`}
-              onClick={() => handleStepClick(2)}
+              className={`flex items-center ${isStepCompleted(2) ? 'text-green-600' : 'text-gray-400'}`}
+              onClick={() => isStepCompleted(2) ? null : handleStepClick(2)}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(2) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
                 {isStepCompleted(2) ? '✓' : '2'}

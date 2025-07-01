@@ -1,38 +1,48 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const Login = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the page user was trying to access
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setIsLoading(true);
+    setLoading(true);
+    setError('');
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage('Successfully logged in!');
-        // You can store the token in localStorage here
-        localStorage.setItem('token', data.token);
-        // Redirect to dashboard after successful login
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+      const result = await login(formData);
+      
+      if (result.success) {
+        // Redirect to the page they were trying to access, or dashboard
+        navigate(from, { replace: true });
       } else {
-        setMessage(data.error || 'Login failed');
+        setError(result.error);
       }
-    } catch {
-      setMessage('Network error');
+    } catch (error) {
+      setError('Login failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -69,8 +79,8 @@ export default function Login() {
                   type="email"
                   autoComplete="email"
                   required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-[#d4dbe2] rounded-md shadow-sm placeholder-[#5c728a] focus:outline-none focus:ring-[#101418] focus:border-[#101418] sm:text-sm"
                   placeholder="Enter your email"
                 />
@@ -88,8 +98,8 @@ export default function Login() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   className="appearance-none block w-full px-3 py-2 border border-[#d4dbe2] rounded-md shadow-sm placeholder-[#5c728a] focus:outline-none focus:ring-[#101418] focus:border-[#101418] sm:text-sm"
                   placeholder="Enter your password"
                 />
@@ -99,21 +109,21 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#101418] hover:bg-[#2a2f36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#101418] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {loading ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
           </form>
 
-          {message && (
+          {error && (
             <div className={`mt-4 p-3 rounded-md text-sm ${
-              message.includes('Successfully') 
+              error.includes('Successfully') 
                 ? 'bg-green-50 text-green-800 border border-green-200' 
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
-              {message}
+              {error}
             </div>
           )}
 
@@ -140,4 +150,6 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+};
+
+export default Login; 
