@@ -161,4 +161,192 @@ sudo tail -f /var/log/nginx/error.log
 After successful deployment:
 - **Production URL:** https://selfky.com
 - **API Health Check:** https://selfky.com/api/health
-- **Admin Access:** https://selfky.com/admin (when implemented) 
+- **Admin Access:** https://selfky.com/admin (when implemented)
+
+# Selfky Deployment Scripts
+
+This directory contains deployment scripts for the Selfky application. Each script is designed for different scenarios and provides different levels of reliability and speed.
+
+## Available Scripts
+
+### 1. `robust-deployment.sh` (Recommended)
+**Use this for:**
+- Regular deployments
+- When you want maximum reliability
+- When you've made significant changes
+- Production deployments
+
+**Features:**
+- ✅ Comprehensive error handling
+- ✅ Multiple fallback strategies for dependency installation
+- ✅ Automatic hanging process cleanup
+- ✅ System resource monitoring
+- ✅ Build backup before deployment
+- ✅ Dependency conflict resolution (ajv, etc.)
+- ✅ Colored output with timestamps
+- ✅ Deployment verification
+- ✅ Support for npm, yarn, and pnpm
+
+**Usage:**
+```bash
+chmod +x deploy/robust-deployment.sh
+./deploy/robust-deployment.sh
+```
+
+### 2. `update-deployment.sh` (Legacy Wrapper)
+**Use this for:**
+- Backward compatibility
+- When you want to use the robust script but prefer the old name
+
+**Features:**
+- 🔄 Wrapper that calls the robust deployment script
+- 📋 Provides information about the robust script
+
+**Usage:**
+```bash
+chmod +x deploy/update-deployment.sh
+./deploy/update-deployment.sh
+```
+
+### 3. `quick-deploy.sh` (Emergency)
+**Use this for:**
+- Emergency deployments
+- When you need speed over reliability
+- When node_modules already exist
+- Minor changes that don't affect dependencies
+
+**Features:**
+- ⚡ Fast deployment (skips dependency installation if node_modules exist)
+- 🔄 Minimal error handling
+- 📦 Only installs dependencies if missing
+
+**Usage:**
+```bash
+chmod +x deploy/quick-deploy.sh
+./deploy/quick-deploy.sh
+```
+
+### 4. `simple-deploy.sh` (Basic)
+**Use this for:**
+- Simple deployments
+- When you want minimal complexity
+- Testing deployments
+
+**Features:**
+- 📦 Basic dependency checking
+- 🔨 Simple build process
+- 🔄 Standard restart procedures
+
+**Usage:**
+```bash
+chmod +x deploy/simple-deploy.sh
+./deploy/simple-deploy.sh
+```
+
+## Common Issues and Solutions
+
+### Issue: npm install hangs
+**Solution:** The robust deployment script automatically handles this by:
+- Killing hanging processes
+- Using multiple package managers (npm, yarn, pnpm)
+- Setting timeouts
+- Using legacy peer deps
+
+### Issue: ajv module not found
+**Solution:** The robust script automatically fixes this by installing the correct ajv version.
+
+### Issue: Build fails due to dependencies
+**Solution:** The robust script tries multiple strategies:
+1. Standard npm install
+2. npm install with force
+3. yarn install
+4. pnpm install
+
+### Issue: Backend won't start
+**Solution:** The robust script:
+- Checks PM2 installation
+- Provides detailed error logs
+- Verifies backend is responding
+
+## Prerequisites
+
+Before running any deployment script, ensure:
+
+1. **SSH access** to your EC2 instance
+2. **Git repository** cloned to `/home/ubuntu/Selfky`
+3. **Node.js and npm** installed
+4. **PM2** installed globally (`npm install -g pm2`)
+5. **Nginx** configured and running
+6. **MongoDB** running and accessible
+
+## Manual Deployment Steps
+
+If scripts fail, you can deploy manually:
+
+```bash
+# 1. Connect to server
+ssh -i your-key.pem ubuntu@your-server-ip
+
+# 2. Navigate to project
+cd /home/ubuntu/Selfky
+
+# 3. Pull latest changes
+git pull origin main
+
+# 4. Install backend dependencies
+cd server
+npm install
+
+# 5. Install frontend dependencies
+cd ../client
+npm install --legacy-peer-deps
+
+# 6. Build frontend
+npm run build
+
+# 7. Restart backend
+cd ../server
+pm2 restart selfky-backend
+
+# 8. Reload Nginx
+sudo systemctl reload nginx
+```
+
+## Troubleshooting
+
+### Check if deployment was successful:
+```bash
+# Check backend status
+pm2 status
+
+# Check Nginx status
+sudo systemctl status nginx
+
+# Test API
+curl http://localhost:5000/api/health
+
+# Test frontend
+curl http://localhost
+```
+
+### If deployment fails:
+1. Check the error messages in the script output
+2. Look at PM2 logs: `pm2 logs selfky-backend`
+3. Check Nginx logs: `sudo tail -f /var/log/nginx/error.log`
+4. Verify system resources: `free -h` and `df -h`
+
+## Best Practices
+
+1. **Always use the robust deployment script** for production deployments
+2. **Test deployments** on a staging environment first
+3. **Monitor system resources** before deploying
+4. **Keep backups** of working builds
+5. **Document any custom configurations** you make
+
+## Support
+
+If you encounter issues:
+1. Check the script output for error messages
+2. Review the troubleshooting section above
+3. Check system logs for additional information
+4. Consider running the manual deployment steps 
