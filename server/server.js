@@ -40,9 +40,11 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // API routes
 const authRoutes = require('./routes/auth');
 const applicationRoutes = require('./routes/applications');
+const adminRoutes = require('./routes/admin');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
