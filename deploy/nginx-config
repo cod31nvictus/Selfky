@@ -1,11 +1,18 @@
 server {
     listen 80;
+    listen 443 ssl;
     server_name selfky.com www.selfky.com;
 
-    # Redirect HTTP to HTTPS (uncomment when you have SSL)
-    # return 301 https://$server_name$request_uri;
+    # SSL configuration (uncomment after running Certbot)
+    # ssl_certificate /etc/letsencrypt/live/selfky.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/selfky.com/privkey.pem;
 
-    # Proxy to Node.js app
+    # Redirect HTTP to HTTPS (uncomment when you have SSL)
+    # if ($scheme != "https") {
+    #     return 301 https://$server_name$request_uri;
+    # }
+
+    # Backend API
     location /api {
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
@@ -18,10 +25,16 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
+    # File uploads
+    location /uploads {
+        alias /home/ubuntu/Selfky/server/uploads;
+    }
+
     # Serve React static files
     location / {
-        root /var/www/selfky/client/build;
+        root /var/www/selfky;
         try_files $uri $uri/ /index.html;
+        index index.html;
     }
 
     # Security headers
