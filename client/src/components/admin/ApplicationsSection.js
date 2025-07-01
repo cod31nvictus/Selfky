@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../services/api';
 
 const ApplicationsSection = () => {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [activeTab, setActiveTab] = useState('bpharm');
@@ -11,8 +13,10 @@ const ApplicationsSection = () => {
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
-    { value: 'form_pending', label: 'Application Form Pending' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'submitted', label: 'Submitted' },
     { value: 'payment_pending', label: 'Payment Pending' },
+    { value: 'payment_completed', label: 'Payment Completed' },
     { value: 'admit_card_generated', label: 'Admit Card Generated' }
   ];
 
@@ -27,8 +31,8 @@ const ApplicationsSection = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/applications');
-      setApplications(response.data);
+      const response = await adminAPI.getApplications();
+      setApplications(response);
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
@@ -39,8 +43,8 @@ const ApplicationsSection = () => {
   const filterApplications = () => {
     let filtered = applications.filter(app => {
       // Filter by course
-      if (activeTab === 'bpharm' && app.course !== 'BPharm') return false;
-      if (activeTab === 'mpharm' && app.course !== 'MPharm') return false;
+      if (activeTab === 'bpharm' && app.courseType !== 'bpharm') return false;
+      if (activeTab === 'mpharm' && app.courseType !== 'mpharm') return false;
       
       // Filter by status
       if (statusFilter !== 'all' && app.status !== statusFilter) return false;
@@ -51,7 +55,7 @@ const ApplicationsSection = () => {
         return (
           app.applicationNumber?.toLowerCase().includes(searchLower) ||
           app.personalDetails?.fullName?.toLowerCase().includes(searchLower) ||
-          app.personalDetails?.email?.toLowerCase().includes(searchLower) ||
+          app.userId?.email?.toLowerCase().includes(searchLower) ||
           app.personalDetails?.phone?.includes(searchTerm)
         );
       }
@@ -64,10 +68,14 @@ const ApplicationsSection = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'form_pending':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'submitted':
+        return 'bg-blue-100 text-blue-800';
       case 'payment_pending':
         return 'bg-orange-100 text-orange-800';
+      case 'payment_completed':
+        return 'bg-green-100 text-green-800';
       case 'admit_card_generated':
         return 'bg-green-100 text-green-800';
       default:
@@ -77,10 +85,14 @@ const ApplicationsSection = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'form_pending':
-        return 'Application Form Pending';
+      case 'draft':
+        return 'Draft';
+      case 'submitted':
+        return 'Submitted';
       case 'payment_pending':
         return 'Payment Pending';
+      case 'payment_completed':
+        return 'Payment Completed';
       case 'admit_card_generated':
         return 'Admit Card Generated';
       default:
@@ -171,7 +183,7 @@ const ApplicationsSection = () => {
       <div className="mt-4">
         <p className="text-sm text-gray-600">
           Showing {filteredApplications.length} of {applications.filter(app => 
-            activeTab === 'bpharm' ? app.course === 'BPharm' : app.course === 'MPharm'
+            activeTab === 'bpharm' ? app.courseType === 'bpharm' : app.courseType === 'mpharm'
           ).length} {activeTab === 'bpharm' ? 'BPharm' : 'MPharm'} applications
         </p>
       </div>
@@ -226,14 +238,14 @@ const ApplicationsSection = () => {
                               {application.personalDetails?.fullName || 'N/A'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {application.course}
+                              {application.courseType === 'bpharm' ? 'BPharm' : 'MPharm'}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {application.personalDetails?.email || 'N/A'}
+                          {application.userId?.email || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">
                           {application.personalDetails?.phone || 'N/A'}
@@ -249,19 +261,11 @@ const ApplicationsSection = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => window.open(`/application/${application._id}`, '_blank')}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                          onClick={() => navigate(`/admin/applicant/${application.userId._id}`)}
+                          className="text-indigo-600 hover:text-indigo-900"
                         >
                           View Details
                         </button>
-                        {application.status === 'admit_card_generated' && (
-                          <button
-                            onClick={() => window.open(`/admin/admit-card/${application._id}`, '_blank')}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            View Admit Card
-                          </button>
-                        )}
                       </td>
                     </tr>
                   ))}

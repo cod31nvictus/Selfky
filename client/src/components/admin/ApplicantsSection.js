@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import { adminAPI } from '../../services/api';
 
 const ApplicantsSection = () => {
   const [applicants, setApplicants] = useState([]);
@@ -7,6 +7,11 @@ const ApplicantsSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [resetLoading, setResetLoading] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     fetchApplicants();
@@ -23,8 +28,8 @@ const ApplicantsSection = () => {
   const fetchApplicants = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/applicants');
-      setApplicants(response.data);
+      const response = await adminAPI.getApplicants();
+      setApplicants(response);
     } catch (error) {
       console.error('Error fetching applicants:', error);
     } finally {
@@ -32,17 +37,53 @@ const ApplicantsSection = () => {
     }
   };
 
-  const handleResetPassword = async (userId) => {
+  const handleResetPassword = (user) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setShowPasswordModal(true);
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!newPassword || !confirmPassword) {
+      setPasswordError('Both password fields are required');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+
     try {
-      setResetLoading(userId);
-      await api.post(`/admin/reset-password/${userId}`);
-      alert('Password reset email sent successfully!');
+      setResetLoading(selectedUser._id);
+      await adminAPI.resetUserPassword(selectedUser._id, newPassword, confirmPassword);
+      alert('Password updated successfully!');
+      setShowPasswordModal(false);
+      setSelectedUser(null);
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
     } catch (error) {
-      console.error('Error resetting password:', error);
-      alert('Failed to reset password. Please try again.');
+      console.error('Error updating password:', error);
+      setPasswordError(error.message || 'Failed to update password. Please try again.');
     } finally {
       setResetLoading(null);
     }
+  };
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setSelectedUser(null);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
   };
 
   const getStatusColor = (status) => {
@@ -150,11 +191,10 @@ const ApplicantsSection = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => handleResetPassword(applicant._id)}
-                          disabled={resetLoading === applicant._id}
-                          className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => handleResetPassword(applicant)}
+                          className="text-indigo-600 hover:text-indigo-900"
                         >
-                          {resetLoading === applicant._id ? 'Sending...' : 'Reset Password'}
+                          Reset Password
                         </button>
                       </td>
                     </tr>
@@ -169,6 +209,69 @@ const ApplicantsSection = () => {
       {filteredApplicants.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-500">No applicants found.</p>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Reset Password for {selectedUser?.email}
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter new password"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                
+                {passwordError && (
+                  <div className="text-red-600 text-sm">
+                    {passwordError}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={closePasswordModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordSubmit}
+                  disabled={resetLoading === selectedUser?._id}
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resetLoading === selectedUser?._id ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fileUpload = require('express-fileupload');
 
 const app = express();
 
@@ -15,6 +16,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(fileUpload({
+  createParentPath: true,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+}));
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

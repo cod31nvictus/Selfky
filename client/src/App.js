@@ -15,6 +15,8 @@ import PaymentCancel from './pages/PaymentCancel';
 import AdmitCard from './pages/AdmitCard';
 import AdminLogin from './pages/AdminLogin';
 import AdminPanel from './pages/AdminPanel';
+import AdminApplicantDashboard from './pages/AdminApplicantDashboard';
+import AdminApplicationForm from './pages/AdminApplicationForm';
 
 function App() {
   return (
@@ -77,8 +79,31 @@ function App() {
               </ProtectedAdminRoute>
             } />
             
-            {/* Admin Admit Card View (no authentication required) */}
-            <Route path="/admin/admit-card/:applicationId" element={<AdmitCard />} />
+            {/* Admin Applicant Dashboard */}
+            <Route path="/admin/applicant/:userId" element={
+              <ProtectedAdminRoute>
+                <AdminApplicantDashboard />
+              </ProtectedAdminRoute>
+            } />
+            
+            {/* Admin Application Form */}
+            <Route path="/admin/application-form/:userId/:courseType" element={
+              <ProtectedAdminRoute>
+                <AdminApplicationForm />
+              </ProtectedAdminRoute>
+            } />
+            <Route path="/admin/application-form/:userId/:applicationId" element={
+              <ProtectedAdminRoute>
+                <AdminApplicationForm />
+              </ProtectedAdminRoute>
+            } />
+            
+            {/* Admin Admit Card View */}
+            <Route path="/admin/admit-card/:applicationId" element={
+              <ProtectedAdminRoute>
+                <AdmitCard />
+              </ProtectedAdminRoute>
+            } />
           </Routes>
         </Router>
       </AdminAuthProvider>

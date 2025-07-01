@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { applicationAPI } from '../services/api';
+import { applicationAPI, adminAPI } from '../services/api';
 
 const AdmitCard = () => {
   const navigate = useNavigate();
@@ -14,9 +14,22 @@ const AdmitCard = () => {
   const [isAdminView, setIsAdminView] = useState(false);
 
   useEffect(() => {
-    // Check if this is an admin view (no location state and no auth token)
-    const isAdmin = location.pathname.startsWith('/admin/') || (!location.state && !localStorage.getItem('token'));
+    // Check if this is an admin view (path starts with /admin/ and has admin token)
+    const adminToken = localStorage.getItem('adminToken');
+    const isAdmin = location.pathname.startsWith('/admin/') && adminToken;
+    console.log('Admin view detection:', {
+      pathname: location.pathname,
+      adminToken: adminToken ? 'Present' : 'Missing',
+      isAdmin: isAdmin
+    });
     setIsAdminView(isAdmin);
+
+    // If trying to access admin route without admin token, redirect to admin login
+    if (location.pathname.startsWith('/admin/') && !adminToken) {
+      console.log('Redirecting to admin login - no admin token');
+      navigate('/admin/login');
+      return;
+    }
 
     if (location.state) {
       setApplicationData(location.state);
@@ -29,24 +42,55 @@ const AdmitCard = () => {
       // Load application data from API if applicationId is provided
       loadApplicationData();
     }
-  }, [location, applicationId]);
+  }, [location, applicationId, navigate]);
 
   const loadApplicationData = async () => {
     try {
       setLoading(true);
       
+      console.log('Loading application data for ID:', applicationId);
+      
+      // Check admin view directly here instead of relying on state
+      const adminToken = localStorage.getItem('adminToken');
+      const isAdmin = location.pathname.startsWith('/admin/') && adminToken;
+      console.log('Admin view detection in loadApplicationData:', {
+        pathname: location.pathname,
+        adminToken: adminToken ? 'Present' : 'Missing',
+        isAdmin: isAdmin
+      });
+      
       let application;
-      if (isAdminView) {
-        // For admin view, use admin API endpoint
-        const response = await fetch(`/api/admin/application/${applicationId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch application');
+      let admitCardData;
+      
+      if (isAdmin) {
+        // For admin view, use admin admit card API endpoint
+        console.log('Using admin API to fetch admit card data');
+        try {
+          admitCardData = await adminAPI.getAdmitCard(applicationId);
+          console.log('Admin admit card data received:', admitCardData);
+          
+          // Convert to application data format
+          application = {
+            _id: applicationId,
+            applicationNumber: admitCardData.applicationNumber,
+            courseType: admitCardData.courseType === 'B.Pharm' ? 'bpharm' : 'mpharm',
+            personalDetails: {
+              fullName: admitCardData.fullName,
+              category: admitCardData.category
+            }
+          };
+        } catch (adminError) {
+          console.error('Admin admit card API failed, trying regular admin API:', adminError);
+          // Fallback to regular admin API
+          application = await adminAPI.getApplication(applicationId);
         }
-        application = await response.json();
       } else {
         // For user view, use regular API endpoint
+        console.log('Using user API to fetch application');
         application = await applicationAPI.getApplication(applicationId);
       }
+      
+      console.log('Application data received:', application);
       
       // Convert application data to the format expected by generateAdmitCard
       const applicationDataFromAPI = {
@@ -65,7 +109,29 @@ const AdmitCard = () => {
       
       setApplicationData(applicationDataFromAPI);
       setCompletedSteps([1, 2, 3]);
-      generateAdmitCard(applicationDataFromAPI);
+      
+      // If we have admit card data from admin API, use it directly
+      if (admitCardData) {
+        setAdmitCardData({
+          applicationNumber: admitCardData.applicationNumber,
+          examDate: admitCardData.examDate,
+          examTime: admitCardData.examTime,
+          examCenter: admitCardData.examCenter,
+          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+          rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+          instructions: [
+            'Please arrive at the exam center 1 hour before the exam time',
+            'Carry this admit card and a valid photo ID proof',
+            'No electronic devices are allowed in the examination hall',
+            'Follow all COVID-19 protocols as per government guidelines',
+            'Bring your own stationery (pen, pencil, eraser)',
+            'Dress code: Formal attire'
+          ]
+        });
+        setLoading(false);
+      } else {
+        generateAdmitCard(applicationDataFromAPI);
+      }
     } catch (error) {
       console.error('Error loading application data:', error);
       // Don't show alert, just set loading to false
