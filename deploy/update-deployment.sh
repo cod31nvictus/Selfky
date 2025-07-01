@@ -21,16 +21,33 @@ git log -1 --oneline
 # Install backend dependencies
 echo "📦 Installing backend dependencies..."
 cd server
-npm install
+npm install --no-audit --no-fund --silent
 
-# Install frontend dependencies
+# Install frontend dependencies with timeout and retry
 echo "📦 Installing frontend dependencies..."
 cd ../client
-npm install
+
+# Clear npm cache and set timeout
+npm cache clean --force
+export NPM_CONFIG_TIMEOUT=300000  # 5 minutes timeout
+
+# Try npm install with different strategies
+echo "Attempting npm install..."
+if ! timeout 600 npm install --no-audit --no-fund --silent; then
+    echo "First attempt failed, trying with legacy peer deps..."
+    if ! timeout 600 npm install --no-audit --no-fund --legacy-peer-deps --silent; then
+        echo "Second attempt failed, trying with force..."
+        timeout 600 npm install --no-audit --no-fund --force --silent
+    fi
+fi
 
 # Build frontend
 echo "🔨 Building frontend..."
-npm run build
+if ! timeout 300 npm run build; then
+    echo "Build failed, trying with legacy peer deps..."
+    npm install --legacy-peer-deps --silent
+    timeout 300 npm run build
+fi
 
 # Restart backend (using pm2, process name: selfky-backend)
 echo "🔄 Restarting backend server..."
