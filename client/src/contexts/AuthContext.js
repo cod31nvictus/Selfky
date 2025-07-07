@@ -29,9 +29,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Verify token by making a request to a protected endpoint
-      // We'll use the my-applications endpoint since it requires authentication
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/applications/my-applications`, {
+      // Get user profile data
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -39,8 +38,9 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
+        const data = await response.json();
         setIsAuthenticated(true);
-        setUser({ token }); // We could decode the token to get user info if needed
+        setUser({ token, ...data.user });
       } else {
         // Token is invalid, clear it
         localStorage.removeItem('token');
@@ -60,10 +60,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
-      const { token } = response;
+      const { token, user } = response;
       
       localStorage.setItem('token', token);
-      setUser({ token });
+      setUser({ token, ...user });
       setIsAuthenticated(true);
       
       return { success: true };
