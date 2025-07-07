@@ -3,7 +3,6 @@ const router = express.Router();
 const Application = require('../models/Application');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
@@ -24,35 +23,6 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'), false);
-    }
-  }
-});
 
 // Generate unique application number
 const generateApplicationNumber = async (courseType) => {
@@ -104,10 +74,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create new application (Step 1: Personal Details)
-router.post('/', authenticateToken, upload.fields([
-  { name: 'photo', maxCount: 1 },
-  { name: 'signature', maxCount: 1 }
-]), async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { courseType, fullName, fathersName, category, dateOfBirth } = req.body;
 
@@ -120,6 +87,33 @@ router.post('/', authenticateToken, upload.fields([
     if (!req.files || !req.files.photo || !req.files.signature) {
       return res.status(400).json({ error: 'Photo and signature are required' });
     }
+
+    // Validate file types
+    const photo = req.files.photo;
+    const signature = req.files.signature;
+
+    if (!photo.mimetype.startsWith('image/') || !signature.mimetype.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only image files are allowed' });
+    }
+
+    // Create uploads directory if it doesn't exist
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Generate unique filenames
+    const photoExt = path.extname(photo.name);
+    const signatureExt = path.extname(signature.name);
+    const photoFilename = `photo-${Date.now()}-${Math.round(Math.random() * 1E9)}${photoExt}`;
+    const signatureFilename = `signature-${Date.now()}-${Math.round(Math.random() * 1E9)}${signatureExt}`;
+
+    // Save files
+    const photoPath = path.join(uploadDir, photoFilename);
+    const signaturePath = path.join(uploadDir, signatureFilename);
+
+    await photo.mv(photoPath);
+    await signature.mv(signaturePath);
 
     // Generate unique application number
     const applicationNumber = await generateApplicationNumber(courseType);
@@ -136,8 +130,8 @@ router.post('/', authenticateToken, upload.fields([
         dateOfBirth: new Date(dateOfBirth)
       },
       documents: {
-        photo: req.files.photo[0].path,
-        signature: req.files.signature[0].path
+        photo: photoPath,
+        signature: signaturePath
       },
       payment: {
         amount: category === 'General' 
