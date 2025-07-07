@@ -31,10 +31,12 @@ router.post('/create-order', async (req, res) => {
     const order = await razorpay.orders.create(options);
 
     // Track payment attempt in Payment model
-    if (notes && notes.applicationId) {
+    if (notes && notes.applicationId && notes.userId) {
       try {
         const application = await Application.findById(notes.applicationId);
-        if (application) {
+        const user = await User.findById(notes.userId);
+        
+        if (application && user) {
           // Create payment record
           const paymentRecord = new Payment({
             applicationId: notes.applicationId,
@@ -51,11 +53,15 @@ router.post('/create-order', async (req, res) => {
           // Update application status
           application.status = 'payment_pending';
           await application.save();
+        } else {
+          console.error('Application or User not found:', { applicationId: notes.applicationId, userId: notes.userId });
         }
       } catch (dbError) {
         console.error('Error recording payment attempt:', dbError);
         // Don't fail the payment order creation if DB update fails
       }
+    } else {
+      console.error('Missing required fields for payment tracking:', { notes });
     }
 
     res.json({
