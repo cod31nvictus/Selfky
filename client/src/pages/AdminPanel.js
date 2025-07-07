@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ApplicantsSection from '../components/admin/ApplicantsSection';
 import ApplicationsSection from '../components/admin/ApplicationsSection';
+import TransactionsSection from '../components/admin/TransactionsSection';
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('applications');
@@ -20,6 +21,8 @@ const AdminPanel = () => {
         return <ApplicantsSection />;
       case 'applications':
         return <ApplicationsSection />;
+      case 'transactions':
+        return <TransactionsSection />;
       default:
         return <ApplicationsSection />;
     }
@@ -79,6 +82,16 @@ const AdminPanel = () => {
               }`}
             >
               Applicants
+            </button>
+            <button
+              onClick={() => setActiveSection('transactions')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeSection === 'transactions'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Transactions
             </button>
           </div>
         </div>

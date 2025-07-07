@@ -1,263 +1,234 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { applicationAPI } from '../services/api';
 
 const Payment = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [amount] = useState(500); // Fixed application fee
   const navigate = useNavigate();
   const location = useLocation();
-  const { applicationId } = useParams();
-  const [paymentData, setPaymentData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(2);
-  const [completedSteps, setCompletedSteps] = useState([1]);
+  const params = useParams();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    // Get payment data from location state (passed from application form)
-    if (location.state) {
-      setPaymentData(location.state);
-    } else if (applicationId) {
-      // Load application data from API if applicationId is provided
-      loadApplicationData();
-    }
-  }, [location, applicationId]);
+  const applicationId = location.state?.applicationId || params?.applicationId;
 
-  const loadApplicationData = async () => {
+  const verifyPayment = useCallback(async (response) => {
     try {
       setLoading(true);
-      const application = await applicationAPI.getApplication(applicationId);
-      
-      // Convert application data to payment data format
-      const paymentDataFromAPI = {
-        applicationId: application._id,
-        applicationNumber: application.applicationNumber,
-        courseType: application.courseType,
-        courseInfo: {
-          name: application.courseType === 'bpharm' ? 'BPharm (Ay.) 2025' : 'MPharm (Ay.) 2025',
-          fullName: application.courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025'
+      setError('');
+
+      const verifyResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/payment/verify-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        formData: {
-          fullName: application.personalDetails.fullName,
-          category: application.personalDetails.category
-        },
-        feeAmount: application.payment.amount
-      };
-      
-      setPaymentData(paymentDataFromAPI);
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+          applicationId: applicationId
+        })
+      });
+
+      const data = await verifyResponse.json();
+
+      if (!verifyResponse.ok) {
+        throw new Error(data.error || 'Payment verification failed');
+      }
+
+      // Update application payment status
+      await applicationAPI.updatePaymentStatus(applicationId, {
+        paymentId: response.razorpay_payment_id,
+        status: 'completed'
+      });
+
+      // Redirect to success page
+      navigate('/payment-success', {
+        state: {
+          paymentId: response.razorpay_payment_id,
+          applicationId: applicationId
+        }
+      });
     } catch (error) {
-      console.error('Error loading application data:', error);
-      alert('Failed to load application data. Please try again.');
+      console.error('Error verifying payment:', error);
+      setError(error.message || 'Payment verification failed');
+      navigate('/payment-failure', {
+        state: {
+          error: error.message,
+          applicationId: applicationId
+        }
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId, navigate]);
 
-  const handlePaymentSimulation = async (status) => {
-    setLoading(true);
-    
+  const createOrder = useCallback(async () => {
     try {
-      // Simulate payment processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update payment status in database
-      if (paymentData.applicationId) {
-        await applicationAPI.updatePaymentStatus(paymentData.applicationId, {
-          status: status === 'success' ? 'completed' : status === 'failure' ? 'failed' : 'cancelled',
-          transactionId: status === 'success' ? 'TXN' + Date.now() : null
-        });
-      }
-      
-      setLoading(false);
-      
-      if (status === 'success') {
-        // Mark payment step as completed
-        setCompletedSteps(prev => [...prev, 2]);
-        // Redirect to admit card generation (step 3)
-        navigate('/admit-card', { 
-          state: { 
-            ...paymentData, 
-            paymentStatus: 'success',
-            transactionId: 'TXN' + Date.now(),
-            completedSteps: [1, 2]
-          } 
-        });
-      } else if (status === 'failure') {
-        navigate('/payment/failure', { 
-          state: { 
-            ...paymentData, 
-            paymentStatus: 'failed',
-            errorMessage: 'Payment failed due to insufficient funds'
-          } 
-        });
-      } else if (status === 'cancel') {
-        navigate('/payment/cancel', { 
-          state: { 
-            ...paymentData, 
-            paymentStatus: 'cancelled'
-          } 
-        });
-      }
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-      setLoading(false);
-      alert('Failed to update payment status. Please try again.');
-    }
-  };
+      setLoading(true);
+      setError('');
 
-  const handleStepClick = (step) => {
-    // Only allow navigation to current step or next step
-    // Don't allow going back to completed steps for editing
-    if (step === currentStep || step === currentStep + 1) {
-      if (step === 1) {
-        // Navigate back to application form (only if current step is 1)
-        navigate('/apply/' + paymentData?.courseType, {
-          state: { 
-            formData: paymentData?.formData,
-            completedSteps: completedSteps,
-            applicationId: paymentData?.applicationId
+      const apiUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/payment/create-order`;
+      console.log('Payment API URL:', apiUrl);
+      console.log('Environment variable:', process.env.REACT_APP_API_URL);
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          amount: amount,
+          currency: 'INR',
+          receipt: `app_${applicationId}_${Date.now().toString().slice(-8)}`,
+          notes: {
+            applicationId: applicationId,
+            userId: user._id
           }
-        });
-      } else {
-        setCurrentStep(step);
+        })
+      });
+
+      console.log('Payment request body:', {
+        amount: amount,
+        currency: 'INR',
+        receipt: `app_${applicationId}_${Date.now()}`,
+        notes: {
+          applicationId: applicationId,
+          userId: user._id
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create payment order');
       }
+
+      // Initialize Razorpay directly here
+      const options = {
+        key: 'rzp_live_JNqhifD5U57fhJ', // Live Razorpay key
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: 'Selfky',
+        description: 'Application Fee',
+        order_id: data.order.id,
+        handler: function (response) {
+          verifyPayment(response);
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone || ''
+        },
+        theme: {
+          color: '#3B82F6'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Error creating order:', error);
+      setError(error.message || 'Failed to create payment order');
+    } finally {
+      setLoading(false);
     }
+  }, [applicationId, user._id, amount, user.name, user.email, user.phone, verifyPayment]);
+
+  const handleRetry = () => {
+    setError('');
+    createOrder();
   };
 
-  const isStepCompleted = (step) => {
-    return completedSteps.includes(step);
+  const handleCancel = () => {
+    navigate('/dashboard');
   };
 
-  if (!paymentData) {
+  useEffect(() => {
+    console.log('Payment component - applicationId:', applicationId);
+    console.log('Payment component - location.state:', location.state);
+    console.log('Payment component - params:', params);
+    
+    if (!applicationId) {
+      setError('No application found. Please submit an application first.');
+      return;
+    }
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    createOrder();
+  }, [applicationId, user, navigate, location.state, params, createOrder]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-[#101418] mb-4">No Payment Data Found</h2>
-          <p className="text-[#5c728a] mb-4">Please start the application process from the dashboard.</p>
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors"
-          >
-            Go to Dashboard
-          </button>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Processing Payment</h2>
+            <p className="mt-2 text-gray-600">Please wait while we process your payment...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
-      {/* Header */}
-      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white">
-        <div className="flex items-center gap-4 text-[#101418]">
-          <div className="size-20">
-            <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+            <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
           </div>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Payment Required</h2>
+          <p className="mt-2 text-gray-600">Complete your application by paying the application fee</p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-[#101418] text-sm font-medium">Payment Gateway</span>
-        </div>
-      </header>
 
-      {/* Progress Bar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div 
-              className={`flex items-center ${isStepCompleted(1) ? 'text-green-600' : 'text-gray-400'}`}
-              onClick={() => isStepCompleted(1) ? null : handleStepClick(1)}
-            >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isStepCompleted(1) ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
-                {isStepCompleted(1) ? '✓' : '1'}
-              </div>
-              <span className="ml-2 font-medium">Personal Details</span>
-            </div>
-            <div className="flex-1 h-1 bg-gray-200 mx-4">
-              <div className={`h-full transition-all duration-300 ${isStepCompleted(1) ? 'bg-green-600 w-full' : 'bg-gray-200 w-0'}`}></div>
-            </div>
-            <div 
-              className={`flex items-center cursor-pointer transition-colors ${currentStep === 2 ? 'text-[#101418]' : 'text-gray-400'}`}
-              onClick={() => handleStepClick(2)}
-            >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 2 ? 'bg-[#101418] text-white' : 'bg-gray-200'}`}>
-                2
-              </div>
-              <span className="ml-2 font-medium">Payment</span>
-            </div>
-            <div className="flex-1 h-1 bg-gray-200 mx-4">
-              <div className="h-full bg-gray-200 w-0"></div>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200">
-                3
-              </div>
-              <span className="ml-2 font-medium">Admit Card</span>
+        <div className="mt-6">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Application Fee:</span>
+              <span className="text-lg font-semibold text-gray-900">₹{amount}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="px-4 py-8 md:px-8 lg:px-16">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-[#101418] mb-6">Payment Gateway</h2>
-            
-            {/* Payment Information */}
-            <div className="space-y-6 mb-8">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-[#101418] mb-2">Payment Details</h3>
-                <div className="space-y-2 text-sm text-[#5c728a]">
-                  <p><strong>Application Number:</strong> {paymentData.applicationNumber}</p>
-                  <p><strong>Course:</strong> {paymentData.courseInfo?.fullName}</p>
-                  <p><strong>Applicant:</strong> {paymentData.formData?.fullName}</p>
-                  <p><strong>Category:</strong> {paymentData.formData?.category}</p>
-                  <p><strong>Amount:</strong> ₹{paymentData.feeAmount}</p>
+          {error && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
                 </div>
               </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-[#101418] mb-2">Payment Simulation</h3>
-                <p className="text-sm text-[#5c728a] mb-4">
-                  This is a simulation of the payment gateway. Click any button below to simulate different payment scenarios.
-                </p>
-              </div>
             </div>
+          )}
 
-            {/* Payment Simulation Buttons */}
-            <div className="space-y-4">
-              <button
-                onClick={() => handlePaymentSimulation('success')}
-                disabled={loading}
-                className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Processing...' : 'Simulate Payment Success'}
-              </button>
-
-              <button
-                onClick={() => handlePaymentSimulation('failure')}
-                disabled={loading}
-                className="w-full bg-red-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Processing...' : 'Simulate Payment Failure'}
-              </button>
-
-              <button
-                onClick={() => handlePaymentSimulation('cancel')}
-                disabled={loading}
-                className="w-full bg-yellow-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Processing...' : 'Simulate Payment Cancellation'}
-              </button>
-            </div>
-
-            {/* Back Button */}
-            <div className="mt-8 text-center">
-              <button
-                onClick={() => navigate(-1)}
-                className="bg-gray-300 text-[#101418] py-3 px-6 rounded-lg font-medium hover:bg-gray-400 transition-colors"
-              >
-                Back to Application
-              </button>
-            </div>
+          <div className="mt-6 flex space-x-3">
+            <button
+              onClick={handleRetry}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Retry Payment
+            </button>
+            <button
+              onClick={handleCancel}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>

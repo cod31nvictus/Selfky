@@ -4,85 +4,102 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const PaymentFailure = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const paymentData = location.state;
+  const { error, applicationId } = location.state || {};
+
+  const handleRetry = () => {
+    navigate('/payment', {
+      state: { applicationId }
+    });
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
-      {/* Header */}
-      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white">
-        <div className="flex items-center gap-4 text-[#101418]">
-          <div className="size-20">
-            <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </div>
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Payment Failed</h2>
+          <p className="mt-2 text-gray-600">
+            We couldn't process your payment. Please try again or contact support if the problem persists.
+          </p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-[#101418] text-sm font-medium">Payment Failed</span>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="px-4 py-8 md:px-8 lg:px-16">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            {/* Failure Icon */}
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <div className="mt-6">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-[#101418] mb-2">Payment Failed</h2>
-              <p className="text-[#5c728a]">We're sorry, but your payment could not be processed.</p>
-            </div>
-
-            {/* Error Details */}
-            {paymentData && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-red-800 mb-2">Error Details</h3>
-                <div className="space-y-2 text-sm">
-                  <p><strong>Course:</strong> {paymentData.courseInfo?.fullName}</p>
-                  <p><strong>Applicant:</strong> {paymentData.formData?.fullName}</p>
-                  <p><strong>Amount:</strong> ₹{paymentData.feeAmount}</p>
-                  <p><strong>Error:</strong> {paymentData.errorMessage || 'Payment processing failed'}</p>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Payment Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>
+                    {error || 'An error occurred while processing your payment. Please try again.'}
+                  </p>
                 </div>
               </div>
-            )}
-
-            {/* Possible Reasons */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-[#101418] mb-2">Possible Reasons</h3>
-              <ul className="space-y-2 text-sm text-[#5c728a]">
-                <li>• Insufficient funds in your account</li>
-                <li>• Incorrect card details</li>
-                <li>• Network connectivity issues</li>
-                <li>• Bank server temporarily unavailable</li>
-                <li>• Transaction timeout</li>
-              </ul>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-4">
-              <button
-                onClick={() => navigate('/payment', { state: paymentData })}
-                className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors"
-              >
-                Try Payment Again
-              </button>
-              
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="w-full bg-gray-300 text-[#101418] py-3 px-6 rounded-lg font-medium hover:bg-gray-400 transition-colors"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-
-            {/* Support Information */}
-            <div className="mt-8 text-center">
-              <p className="text-sm text-[#5c728a] mb-2">Need help? Contact our support team</p>
-              <p className="text-sm text-[#101418] font-medium">support@selfky.com | +91-1234567890</p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  What you can do:
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Check your internet connection</li>
+                    <li>Verify your payment details</li>
+                    <li>Try using a different payment method</li>
+                    <li>Contact support if the issue persists</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex space-x-3">
+          <button
+            onClick={handleRetry}
+            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={handleDashboard}
+            className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-xs text-gray-500">
+            Need help? Contact support at{' '}
+            <a href="mailto:support@selfky.com" className="text-blue-600 hover:text-blue-500">
+              support@selfky.com
+            </a>
+          </p>
         </div>
       </div>
     </div>

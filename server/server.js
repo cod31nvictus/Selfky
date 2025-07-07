@@ -48,10 +48,19 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 const authRoutes = require('./routes/auth');
 const applicationRoutes = require('./routes/applications');
 const adminRoutes = require('./routes/admin');
+const paymentRoutes = require('./routes/payment');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
+
+// Start scheduled tasks in production
+if (process.env.NODE_ENV === 'production') {
+  const { startScheduledTasks } = require('./scheduledTasks');
+  startScheduledTasks();
+  console.log('Scheduled tasks started');
+}
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {

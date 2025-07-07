@@ -210,6 +210,11 @@ export const adminAPI = {
       body: data,
     }).then(response => response.json());
   },
+
+  // Payment-related functions
+  getPayments: () => adminApiCall('/payment/admin/payments'),
+  
+  getPaymentStatistics: () => adminApiCall('/payment/admin/statistics'),
 };
 
 // Utility functions
