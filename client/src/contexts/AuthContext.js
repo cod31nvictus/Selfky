@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
       // Verify token by making a request to a protected endpoint
       // We'll use the my-applications endpoint since it requires authentication
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://selfky.com/api'}/applications/my-applications`, {
+      const response = await fetch(`https://selfky.com/api/applications/my-applications`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
