@@ -5,9 +5,11 @@ A full-stack web application for managing course applications with user authenti
 ## 🚀 Features
 
 - **User Authentication**: Register and login with JWT tokens
+- **Password Reset**: Secure email-based password reset flow
 - **Multi-step Application Form**: Guided application process
 - **Document Upload**: Photo and document management
 - **Payment Integration**: Secure payment processing
+- **Email Notifications**: Application status and payment confirmations
 - **PDF Generation**: Admit cards and invigilator sheets
 - **Admin Panel**: Application management and oversight
 
@@ -74,6 +76,12 @@ A full-stack web application for managing course applications with user authenti
    JWT_SECRET=your_jwt_secret_key_here
    MONGO_URI=mongodb://localhost:27017/selfky
    PORT=5000
+   
+   # Email Configuration (for password reset and notifications)
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=your-app-password
+   FRONTEND_URL=http://localhost:3000
    ```
 
 4. **Start the application**
@@ -94,21 +102,38 @@ A full-stack web application for managing course applications with user authenti
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
+### Email Setup (Optional but Recommended)
+
+For password reset and email notifications to work:
+
+1. **Configure Email Settings**
+   - Update the email configuration in `server/.env`
+   - See `EMAIL_SETUP.md` for detailed instructions
+
+2. **Test Email Functionality**
+   - Go to `/forgot-password` to test password reset
+   - Submit an application to test email notifications
+
 ## 📋 Current Progress
 
 ### ✅ Completed
 - [x] Project setup and folder structure
 - [x] MongoDB connection and User model
 - [x] User registration and login with JWT
+- [x] Password reset functionality with email
+- [x] Email notifications for applications and payments
 - [x] React frontend with authentication UI
 - [x] Basic routing and navigation
+- [x] Multi-step application form
+- [x] Document upload functionality
+- [x] Payment gateway integration
+- [x] PDF generation
+- [x] Admin panel
 
 ### 🚧 In Progress
-- [ ] Multi-step application form
-- [ ] Document upload functionality
-- [ ] Payment gateway integration
-- [ ] PDF generation
-- [ ] Admin panel
+- [ ] Advanced admin features (bulk operations, reporting)
+- [ ] Performance optimizations
+- [ ] Comprehensive testing
 
 ## 🔧 Development
 
@@ -116,6 +141,9 @@ A full-stack web application for managing course applications with user authenti
 
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+- `POST /api/auth/verify-reset-token` - Verify reset token
 - `GET /api/health` - Health check
 
 ### Available Scripts

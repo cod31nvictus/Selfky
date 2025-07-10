@@ -91,12 +91,20 @@ const Dashboard = () => {
             {status.text}
           </span>
         </div>
-        <button 
-          onClick={() => navigate(`/payment/${application._id}`)}
-          className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200"
-        >
-          Complete Payment
-        </button>
+        <div className="space-y-2">
+          <button 
+            onClick={() => navigate(`/application/${application._id}`)}
+            className="w-full bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 text-sm"
+          >
+            View Application
+          </button>
+          <button 
+            onClick={() => navigate(`/payment/${application._id}`)}
+            className="w-full bg-[#101418] text-white py-2 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200 text-sm"
+          >
+            Complete Payment
+          </button>
+        </div>
       </div>
     );
   };

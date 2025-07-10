@@ -9,10 +9,50 @@ const ApplicationForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [formData, setFormData] = useState({
+    // Personal Details
     fullName: '',
     fathersName: '',
-    category: 'General',
+    aadharNumber: '',
     dateOfBirth: '',
+    sex: '',
+    nationality: 'Indian',
+    
+    // Contact Details
+    correspondenceAddress: '',
+    permanentAddress: '',
+    correspondencePhone: '',
+    
+    // Education Details
+    qualifyingExam: '',
+    qualifyingExamStatus: 'passed', // passed or appearing
+    qualifyingBoard: '',
+    qualifyingYear: '',
+    qualifyingSubjects: '',
+    qualifyingMarksObtained: '',
+    qualifyingMaxMarks: '',
+    qualifyingPercentage: '',
+    
+    // High School Details
+    highSchoolBoard: '',
+    highSchoolYear: '',
+    highSchoolSubjects: '',
+    highSchoolMarksObtained: '',
+    highSchoolMaxMarks: '',
+    highSchoolPercentage: '',
+    
+    // Intermediate/Equivalent Exam Details
+    intermediateSubjects: {
+      physics: { marksObtained: '', maxMarks: '', percentage: '' },
+      chemistry: { marksObtained: '', maxMarks: '', percentage: '' },
+      biology: { marksObtained: '', maxMarks: '', percentage: '' },
+      zoology: { marksObtained: '', maxMarks: '', percentage: '' },
+      botany: { marksObtained: '', maxMarks: '', percentage: '' },
+      english: { marksObtained: '', maxMarks: '', percentage: '' }
+    },
+    
+    // Application Details
+    placeOfApplication: '',
+    category: 'General',
     photo: null,
     signature: null
   });
@@ -48,14 +88,44 @@ const ApplicationForm = () => {
         
         // Load existing data
         if (existing.personalDetails) {
-          setFormData({
+          setFormData(prev => ({
+            ...prev,
             fullName: existing.personalDetails.fullName || '',
             fathersName: existing.personalDetails.fathersName || '',
-            category: existing.personalDetails.category || 'General',
+            aadharNumber: existing.personalDetails.aadharNumber || '',
             dateOfBirth: existing.personalDetails.dateOfBirth ? new Date(existing.personalDetails.dateOfBirth).toISOString().split('T')[0] : '',
+            sex: existing.personalDetails.sex || '',
+            nationality: existing.personalDetails.nationality || 'Indian',
+            correspondenceAddress: existing.personalDetails.correspondenceAddress || '',
+            permanentAddress: existing.personalDetails.permanentAddress || '',
+            correspondencePhone: existing.personalDetails.correspondencePhone || '',
+            qualifyingExam: existing.personalDetails.qualifyingExam || '',
+            qualifyingExamStatus: existing.personalDetails.qualifyingExamStatus || 'passed',
+            qualifyingBoard: existing.personalDetails.qualifyingBoard || '',
+            qualifyingYear: existing.personalDetails.qualifyingYear || '',
+            qualifyingSubjects: existing.personalDetails.qualifyingSubjects || '',
+            qualifyingMarksObtained: existing.personalDetails.qualifyingMarksObtained || '',
+            qualifyingMaxMarks: existing.personalDetails.qualifyingMaxMarks || '',
+            qualifyingPercentage: existing.personalDetails.qualifyingPercentage || '',
+            highSchoolBoard: existing.personalDetails.highSchoolBoard || '',
+            highSchoolYear: existing.personalDetails.highSchoolYear || '',
+            highSchoolSubjects: existing.personalDetails.highSchoolSubjects || '',
+            highSchoolMarksObtained: existing.personalDetails.highSchoolMarksObtained || '',
+            highSchoolMaxMarks: existing.personalDetails.highSchoolMaxMarks || '',
+            highSchoolPercentage: existing.personalDetails.highSchoolPercentage || '',
+            intermediateSubjects: existing.personalDetails.intermediateSubjects || {
+              physics: { marksObtained: '', maxMarks: '', percentage: '' },
+              chemistry: { marksObtained: '', maxMarks: '', percentage: '' },
+              biology: { marksObtained: '', maxMarks: '', percentage: '' },
+              zoology: { marksObtained: '', maxMarks: '', percentage: '' },
+              botany: { marksObtained: '', maxMarks: '', percentage: '' },
+              english: { marksObtained: '', maxMarks: '', percentage: '' }
+            },
+            placeOfApplication: existing.personalDetails.placeOfApplication || '',
+            category: existing.personalDetails.category || 'General',
             photo: null, // We can't load files from server, but we can show they exist
             signature: null
-          });
+          }));
         }
 
         // Set completed steps based on application status
@@ -131,8 +201,21 @@ const ApplicationForm = () => {
   const handleNext = async () => {
     if (currentStep === 1) {
       // Validate form data
-      if (!formData.fullName || !formData.fathersName || !formData.dateOfBirth || !formData.photo || !formData.signature) {
+      if (!formData.fullName || !formData.fathersName || !formData.aadharNumber || !formData.dateOfBirth || 
+          !formData.sex || !formData.nationality || !formData.correspondenceAddress || !formData.permanentAddress || 
+          !formData.correspondencePhone || !formData.qualifyingExam || !formData.qualifyingBoard || 
+          !formData.qualifyingYear || !formData.qualifyingSubjects || !formData.qualifyingMarksObtained || 
+          !formData.qualifyingMaxMarks || !formData.qualifyingPercentage || !formData.highSchoolBoard || 
+          !formData.highSchoolYear || !formData.highSchoolSubjects || !formData.highSchoolMarksObtained || 
+          !formData.highSchoolMaxMarks || !formData.highSchoolPercentage || !formData.placeOfApplication || 
+          !formData.photo || !formData.signature) {
         alert('Please fill all required fields and upload both photo and signature');
+        return;
+      }
+
+      // Validate phone number format
+      if (!/^\d{10}$/.test(formData.correspondencePhone)) {
+        alert('Please enter a valid 10-digit phone number');
         return;
       }
 
@@ -192,138 +275,614 @@ const ApplicationForm = () => {
     return step === currentStep;
   };
 
+  const handleIntermediateSubjectChange = (subject, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      intermediateSubjects: {
+        ...prev.intermediateSubjects,
+        [subject]: {
+          ...prev.intermediateSubjects[subject],
+          [field]: value
+        }
+      }
+    }));
+  };
+
   const renderStep1 = () => (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-[#101418] mb-6">Personal Details</h2>
+        <h2 className="text-2xl font-bold text-[#101418] mb-6">Application Form</h2>
         
-        <div className="space-y-6">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-[#101418] mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-              placeholder="Enter your full name"
-              required
-              disabled={!isStepEditable(1) || loading}
-            />
+        <div className="space-y-8">
+          {/* Personal Details Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">Personal Details</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter your full name"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Father's/Husband's Name */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Father's/Husband's Name *
+                </label>
+                <input
+                  type="text"
+                  name="fathersName"
+                  value={formData.fathersName}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter father's or husband's name"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Aadhar Number */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  12 Digit Aadhar Number *
+                </label>
+                <input
+                  type="text"
+                  name="aadharNumber"
+                  value={formData.aadharNumber}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter 12 digit Aadhar number"
+                  maxLength="12"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Date of Birth *
+                </label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Sex */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Sex *
+                </label>
+                <select
+                  name="sex"
+                  value={formData.sex}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                >
+                  <option value="">Select Sex</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Nationality */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Nationality *
+                </label>
+                <select
+                  name="nationality"
+                  value={formData.nationality}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                >
+                  <option value="Indian">Indian</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Category *
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                >
+                  <option value="General">General</option>
+                  <option value="OBC">OBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                  <option value="PH">PH</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          {/* Father's Name */}
-          <div>
-            <label className="block text-sm font-medium text-[#101418] mb-2">
-              Father's Name *
-            </label>
-            <input
-              type="text"
-              name="fathersName"
-              value={formData.fathersName}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-              placeholder="Enter your father's name"
-              required
-              disabled={!isStepEditable(1) || loading}
-            />
+          {/* Contact Details Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">Contact Details</h3>
+            <div className="space-y-6">
+              {/* Correspondence Address */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Address for Correspondence *
+                </label>
+                <textarea
+                  name="correspondenceAddress"
+                  value={formData.correspondenceAddress}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter your correspondence address"
+                  rows="3"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Permanent Address */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Permanent Address *
+                </label>
+                <textarea
+                  name="permanentAddress"
+                  value={formData.permanentAddress}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter your permanent address"
+                  rows="3"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              <div>
+                {/* Correspondence Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    Correspondence Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    name="correspondencePhone"
+                    value={formData.correspondencePhone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                    placeholder="Enter 10-digit phone number"
+                    pattern="[0-9]{10}"
+                    maxLength="10"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Enter exactly 10 digits</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-[#101418] mb-2">
-              Category *
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-              required
-              disabled={!isStepEditable(1) || loading}
-            >
-              <option value="General">General</option>
-              <option value="OBC">OBC</option>
-              <option value="SC">SC</option>
-              <option value="ST">ST</option>
-              <option value="PH">PH</option>
-            </select>
+          {/* Qualifying Examination Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">Qualifying Examination (I.Sc./10+2 equivalent)</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Qualifying Exam */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Qualifying Examination *
+                </label>
+                <input
+                  type="text"
+                  name="qualifyingExam"
+                  value={formData.qualifyingExam}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="e.g., I.Sc., 10+2, etc."
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Exam Status */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Status *
+                </label>
+                <select
+                  name="qualifyingExamStatus"
+                  value={formData.qualifyingExamStatus}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                >
+                  <option value="passed">Passed</option>
+                  <option value="appearing">Appearing</option>
+                </select>
+              </div>
+
+              {/* Board */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Board *
+                </label>
+                <input
+                  type="text"
+                  name="qualifyingBoard"
+                  value={formData.qualifyingBoard}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter board name"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Year of Passing */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Year of Passing *
+                </label>
+                <input
+                  type="number"
+                  name="qualifyingYear"
+                  value={formData.qualifyingYear}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="e.g., 2023"
+                  min="1990"
+                  max="2030"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Subjects */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Subjects *
+                </label>
+                <input
+                  type="text"
+                  name="qualifyingSubjects"
+                  value={formData.qualifyingSubjects}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter subjects"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Marks Obtained */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Marks Obtained *
+                </label>
+                <input
+                  type="number"
+                  name="qualifyingMarksObtained"
+                  value={formData.qualifyingMarksObtained}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter marks obtained"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Max Marks */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Maximum Marks *
+                </label>
+                <input
+                  type="number"
+                  name="qualifyingMaxMarks"
+                  value={formData.qualifyingMaxMarks}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter maximum marks"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* Percentage */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Percentage *
+                </label>
+                <input
+                  type="number"
+                  name="qualifyingPercentage"
+                  value={formData.qualifyingPercentage}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter percentage"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Date of Birth */}
-          <div>
-            <label className="block text-sm font-medium text-[#101418] mb-2">
-              Date of Birth *
-            </label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={formData.dateOfBirth}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-              required
-              disabled={!isStepEditable(1) || loading}
-            />
+          {/* High School Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">High School Details</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* High School Board */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  High School Board *
+                </label>
+                <input
+                  type="text"
+                  name="highSchoolBoard"
+                  value={formData.highSchoolBoard}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter board name"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* High School Year */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Year of Passing *
+                </label>
+                <input
+                  type="number"
+                  name="highSchoolYear"
+                  value={formData.highSchoolYear}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="e.g., 2021"
+                  min="1990"
+                  max="2030"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* High School Subjects */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Subjects *
+                </label>
+                <input
+                  type="text"
+                  name="highSchoolSubjects"
+                  value={formData.highSchoolSubjects}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter subjects"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* High School Marks Obtained */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Marks Obtained *
+                </label>
+                <input
+                  type="number"
+                  name="highSchoolMarksObtained"
+                  value={formData.highSchoolMarksObtained}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter marks obtained"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* High School Max Marks */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Maximum Marks *
+                </label>
+                <input
+                  type="number"
+                  name="highSchoolMaxMarks"
+                  value={formData.highSchoolMaxMarks}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter maximum marks"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
+              {/* High School Percentage */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Percentage *
+                </label>
+                <input
+                  type="number"
+                  name="highSchoolPercentage"
+                  value={formData.highSchoolPercentage}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter percentage"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Intermediate/Equivalent Exam Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">Marks Details for Intermediate or Equivalent Exam</h3>
+            <div className="space-y-4">
+              {Object.entries(formData.intermediateSubjects).map(([subject, marks]) => (
+                <div key={subject} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Marks Obtained
+                      </label>
+                      <input
+                        type="number"
+                        value={marks.marksObtained}
+                        onChange={(e) => handleIntermediateSubjectChange(subject, 'marksObtained', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Marks obtained"
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Maximum Marks
+                      </label>
+                      <input
+                        type="number"
+                        value={marks.maxMarks}
+                        onChange={(e) => handleIntermediateSubjectChange(subject, 'maxMarks', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Maximum marks"
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Percentage
+                      </label>
+                      <input
+                        type="number"
+                        value={marks.percentage}
+                        onChange={(e) => handleIntermediateSubjectChange(subject, 'percentage', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Percentage"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Place of Application */}
+          <div className="border-b border-gray-200 pb-6">
+            <div>
+              <label className="block text-sm font-medium text-[#101418] mb-2">
+                Place of Application *
+              </label>
+              <input
+                type="text"
+                name="placeOfApplication"
+                value={formData.placeOfApplication}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                placeholder="Enter place of application"
+                required
+                disabled={!isStepEditable(1) || loading}
+              />
+            </div>
           </div>
 
           {/* File Uploads */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Photo Upload */}
-            <div>
-              <label className="block text-sm font-medium text-[#101418] mb-2">
-                Passport Size Photo *
-              </label>
-              <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                <input
-                  type="file"
-                  name="photo"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                  id="photo-upload"
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-                <label htmlFor="photo-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <p className="mt-2 text-sm text-gray-600">
-                    {formData.photo ? formData.photo.name : 
-                     (existingApplication?.documents?.photo ? 'Photo uploaded ✓' : 'Click to upload photo')}
-                  </p>
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-4">Documents</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Photo Upload */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Passport Size Photo *
                 </label>
+                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                  <input
+                    type="file"
+                    name="photo"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                    id="photo-upload"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  <label htmlFor="photo-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <p className="mt-2 text-sm text-gray-600">
+                      {formData.photo ? formData.photo.name : 
+                       (existingApplication?.documents?.photo ? 'Photo uploaded ✓' : 'Click to upload photo')}
+                    </p>
+                  </label>
+                </div>
               </div>
-            </div>
 
-            {/* Signature Upload */}
-            <div>
-              <label className="block text-sm font-medium text-[#101418] mb-2">
-                Signature *
-              </label>
-              <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                <input
-                  type="file"
-                  name="signature"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                  id="signature-upload"
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-                <label htmlFor="signature-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <p className="mt-2 text-sm text-gray-600">
-                    {formData.signature ? formData.signature.name : 
-                     (existingApplication?.documents?.signature ? 'Signature uploaded ✓' : 'Click to upload signature')}
-                  </p>
+              {/* Signature Upload */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Signature *
                 </label>
+                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                  <input
+                    type="file"
+                    name="signature"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                    id="signature-upload"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  <label htmlFor="signature-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <p className="mt-2 text-sm text-gray-600">
+                      {formData.signature ? formData.signature.name : 
+                       (existingApplication?.documents?.signature ? 'Signature uploaded ✓' : 'Click to upload signature')}
+                    </p>
+                  </label>
+                </div>
               </div>
             </div>
           </div>

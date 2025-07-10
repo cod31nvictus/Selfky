@@ -5,6 +5,8 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const emailService = require('../utils/emailService');
+const PDFGenerator = require('../utils/pdfGenerator');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -130,8 +132,8 @@ router.post('/', authenticateToken, async (req, res) => {
         dateOfBirth: new Date(dateOfBirth)
       },
       documents: {
-        photo: photoPath,
-        signature: signaturePath
+        photo: photoFilename,
+        signature: signatureFilename
       },
       payment: {
         amount: category === 'General' 
@@ -143,6 +145,22 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     await application.save();
+
+    // Send application submitted email
+    try {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        await emailService.sendApplicationSubmittedEmail(
+          user.email,
+          application.applicationNumber,
+          application.courseType,
+          user.name || user.email
+        );
+      }
+    } catch (emailError) {
+      console.error('Error sending application submitted email:', emailError);
+      // Don't fail the application creation if email fails
+    }
 
     res.status(201).json(application);
   } catch (error) {
@@ -201,18 +219,72 @@ router.post('/:id/admit-card', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Payment must be completed to generate admit card' });
     }
 
-    // Generate roll number
-    const rollNumber = 'RN' + Math.floor(Math.random() * 10000);
-    
-    // Update admit card details
-    application.admitCard.rollNumber = rollNumber;
-    application.status = 'admit_card_generated';
+    // Generate roll number if not already generated
+    if (!application.admitCard.rollNumber) {
+      const year = '25';
+      const coursePrefix = application.courseType === 'bpharm' ? 'BPH' : 'MPH';
+      const rollNumber = `${coursePrefix}${year}${application.applicationNumber.slice(-4)}`;
+      application.admitCard.rollNumber = rollNumber;
+      application.status = 'admit_card_generated';
+      await application.save();
 
-    await application.save();
+      // Send admit card ready email
+      try {
+        const user = await User.findById(application.userId);
+        if (user) {
+          await emailService.sendAdmitCardReadyEmail(
+            user.email,
+            application.applicationNumber,
+            application.courseType,
+            user.name || user.email
+          );
+        }
+      } catch (emailError) {
+        console.error('Error sending admit card ready email:', emailError);
+        // Don't fail the admit card generation if email fails
+      }
+    }
 
     res.json(application);
   } catch (error) {
     res.status(500).json({ error: 'Failed to generate admit card' });
+  }
+});
+
+// Download admit card PDF
+router.get('/:id/admit-card-pdf', authenticateToken, async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (application.payment.status !== 'completed') {
+      return res.status(400).json({ error: 'Payment must be completed to download admit card' });
+    }
+
+    // Generate PDF
+    const pdfGenerator = new PDFGenerator();
+    const pdfResult = await pdfGenerator.generateAdmitCard(application, application.admitCard);
+
+    if (pdfResult.success) {
+      // Send file
+      res.download(pdfResult.filepath, pdfResult.filename, (err) => {
+        // Clean up file after download
+        fs.unlink(pdfResult.filepath, (unlinkErr) => {
+          if (unlinkErr) console.error('Error deleting PDF file:', unlinkErr);
+        });
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: 'Failed to generate PDF' });
   }
 });
 
