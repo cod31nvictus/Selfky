@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { applicationAPI, adminAPI } from '../services/api';
 
@@ -13,38 +13,7 @@ const AdmitCard = () => {
   const [loading, setLoading] = useState(false);
   const [isAdminView, setIsAdminView] = useState(false);
 
-  useEffect(() => {
-    // Check if this is an admin view (path starts with /admin/ and has admin token)
-    const adminToken = localStorage.getItem('adminToken');
-    const isAdmin = location.pathname.startsWith('/admin/') && adminToken;
-    console.log('Admin view detection:', {
-      pathname: location.pathname,
-      adminToken: adminToken ? 'Present' : 'Missing',
-      isAdmin: isAdmin
-    });
-    setIsAdminView(isAdmin);
-
-    // If trying to access admin route without admin token, redirect to admin login
-    if (location.pathname.startsWith('/admin/') && !adminToken) {
-      console.log('Redirecting to admin login - no admin token');
-      navigate('/admin/login');
-      return;
-    }
-
-    if (location.state) {
-      setApplicationData(location.state);
-      if (location.state.completedSteps) {
-        setCompletedSteps(location.state.completedSteps);
-      }
-      // Generate admit card data
-      generateAdmitCard(location.state);
-    } else if (applicationId) {
-      // Load application data from API if applicationId is provided
-      loadApplicationData();
-    }
-  }, [location, applicationId, navigate]);
-
-  const loadApplicationData = async () => {
+  const loadApplicationData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -99,7 +68,13 @@ const AdmitCard = () => {
         courseType: application.courseType,
         formData: {
           fullName: application.personalDetails?.fullName || 'N/A',
-          category: application.personalDetails?.category || 'N/A'
+          fathersName: application.personalDetails?.fathersName || 'N/A',
+          category: application.personalDetails?.category || 'N/A',
+          dateOfBirth: application.personalDetails?.dateOfBirth || 'N/A'
+        },
+        documents: {
+          photo: application.documents?.photo || null,
+          signature: application.documents?.signature || null
         },
         courseInfo: {
           name: application.courseType === 'bpharm' ? 'BPharm (Ay.) 2025' : 'MPharm (Ay.) 2025',
@@ -137,9 +112,9 @@ const AdmitCard = () => {
       // Don't show alert, just set loading to false
       setLoading(false);
     }
-  };
+  }, [applicationId, location.pathname, navigate]);
 
-  const generateAdmitCard = async (data) => {
+  const generateAdmitCard = useCallback(async (data) => {
     setLoading(true);
     let admitCardGenerated = false;
     
@@ -214,15 +189,72 @@ const AdmitCard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Check if this is an admin view (path starts with /admin/ and has admin token)
+    const adminToken = localStorage.getItem('adminToken');
+    const isAdmin = location.pathname.startsWith('/admin/') && adminToken;
+    console.log('Admin view detection:', {
+      pathname: location.pathname,
+      adminToken: adminToken ? 'Present' : 'Missing',
+      isAdmin: isAdmin
+    });
+    setIsAdminView(isAdmin);
+
+    // If trying to access admin route without admin token, redirect to admin login
+    if (location.pathname.startsWith('/admin/') && !adminToken) {
+      console.log('Redirecting to admin login - no admin token');
+      navigate('/admin/login');
+      return;
+    }
+
+    if (location.state) {
+      setApplicationData(location.state);
+      if (location.state.completedSteps) {
+        setCompletedSteps(location.state.completedSteps);
+      }
+      // Generate admit card data
+      generateAdmitCard(location.state);
+    } else if (applicationId) {
+      // Load application data from API if applicationId is provided
+      loadApplicationData();
+    }
+  }, [location, applicationId, navigate, loadApplicationData, generateAdmitCard]);
+
+
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleDownload = () => {
-    // In a real application, this would generate and download a PDF
-    alert('PDF download functionality will be implemented here');
+  const handleDownload = async () => {
+    try {
+      if (!applicationData?.applicationId) {
+        alert('Application data not available');
+        return;
+      }
+
+      const response = await applicationAPI.downloadAdmitCardPDF(applicationData.applicationId);
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `admit-card-${applicationData.applicationNumber}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to download PDF');
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF');
+    }
   };
 
   const handleStepClick = (step) => {
@@ -290,9 +322,9 @@ const AdmitCard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
+    <div className="bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       {/* Header */}
-      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden">
+      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden sticky top-0 z-10">
         <div className="flex items-center gap-4 text-[#101418]">
           <div className="size-20">
             <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
@@ -307,7 +339,7 @@ const AdmitCard = () => {
 
       {/* Progress Bar - Only show for user view */}
       {!isAdminView && (
-        <div className="bg-white border-b border-gray-200 print:hidden">
+        <div className="bg-white border-b border-gray-200 print:hidden sticky top-20 z-10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div 
@@ -349,7 +381,7 @@ const AdmitCard = () => {
       )}
 
       {/* Main Content */}
-      <div className="px-4 py-8 md:px-8 lg:px-16">
+      <div className="px-4 py-8 md:px-8 lg:px-16 pb-20">
         <div className="max-w-4xl mx-auto">
           {/* Success Message */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 print:hidden">
@@ -375,7 +407,7 @@ const AdmitCard = () => {
               <p className="text-lg text-[#5c728a]">{applicationData.courseInfo?.fullName}</p>
             </div>
 
-            {/* Applicant Details */}
+            {/* Applicant Details and Examination Details */}
             <div className="grid md:grid-cols-2 gap-8 mb-8">
               <div>
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Details</h3>
@@ -421,6 +453,49 @@ const AdmitCard = () => {
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Transaction ID:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.transactionId}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Photo and Signature Section */}
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Photo</h3>
+                <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
+                  {applicationData.documents?.photo ? (
+                    <img 
+                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${applicationData.documents.photo.includes('/') ? applicationData.documents.photo.split('/').pop() : applicationData.documents.photo}`}
+                      alt="Applicant Photo"
+                      className="w-32 h-40 object-cover rounded border-2 border-gray-300 shadow-md"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="w-32 h-40 bg-gray-200 rounded border-2 border-gray-300 flex items-center justify-center" style={{ display: applicationData.documents?.photo ? 'none' : 'flex' }}>
+                    <span className="text-gray-500 text-sm">No Photo</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Signature</h3>
+                <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
+                  {applicationData.documents?.signature ? (
+                    <img 
+                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${applicationData.documents.signature.includes('/') ? applicationData.documents.signature.split('/').pop() : applicationData.documents.signature}`}
+                      alt="Applicant Signature"
+                      className="w-32 h-16 object-contain border-2 border-gray-300 rounded shadow-md"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="w-32 h-16 bg-gray-200 border-2 border-gray-300 rounded flex items-center justify-center" style={{ display: applicationData.documents?.signature ? 'none' : 'flex' }}>
+                    <span className="text-gray-500 text-sm">No Signature</span>
                   </div>
                 </div>
               </div>
@@ -483,6 +558,30 @@ const AdmitCard = () => {
             >
               Back to Dashboard
             </button>
+          </div>
+
+          {/* Floating Action Button for Mobile */}
+          <div className="fixed bottom-6 right-6 print:hidden md:hidden">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleDownload}
+                className="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors"
+                title="Download PDF"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </button>
+              <button
+                onClick={handlePrint}
+                className="bg-[#101418] text-white p-4 rounded-full shadow-lg hover:bg-[#2a2f36] transition-colors"
+                title="Print Admit Card"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

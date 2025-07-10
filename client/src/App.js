@@ -6,6 +6,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import ApplicationForm from './pages/ApplicationForm';
@@ -17,6 +19,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminPanel from './pages/AdminPanel';
 import AdminApplicantDashboard from './pages/AdminApplicantDashboard';
 import AdminApplicationForm from './pages/AdminApplicationForm';
+import ApplicationView from './pages/ApplicationView';
 
 function App() {
   return (
@@ -26,6 +29,8 @@ function App() {
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<Landing />} />
             <Route path="/home" element={<Landing />} />
             
@@ -103,6 +108,13 @@ function App() {
               <ProtectedAdminRoute>
                 <AdmitCard />
               </ProtectedAdminRoute>
+            } />
+            
+            {/* Application View */}
+            <Route path="/application/:applicationId" element={
+              <ProtectedRoute>
+                <ApplicationView />
+              </ProtectedRoute>
             } />
           </Routes>
         </Router>

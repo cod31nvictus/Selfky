@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const Application = require('../models/Application');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const emailService = require('../utils/emailService');
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -122,6 +123,23 @@ router.post('/verify-payment', async (req, res) => {
         if (application) {
           application.status = 'payment_completed';
           await application.save();
+
+          // Send payment completed email
+          try {
+            const user = await User.findById(application.userId);
+            if (user) {
+              await emailService.sendPaymentCompletedEmail(
+                user.email,
+                application.applicationNumber,
+                application.courseType,
+                user.name || user.email,
+                application.payment.amount
+              );
+            }
+          } catch (emailError) {
+            console.error('Error sending payment completed email:', emailError);
+            // Don't fail the payment verification if email fails
+          }
         }
 
         if (!paymentRecord) {

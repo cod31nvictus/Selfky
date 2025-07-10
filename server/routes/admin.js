@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const Application = require('../models/Application');
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const PDFGenerator = require('../utils/pdfGenerator');
+const fs = require('fs');
 
 // Middleware to check if admin
 const isAdmin = (req, res, next) => {
@@ -322,6 +325,116 @@ router.get('/admit-card/:applicationId', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error generating admit card:', error);
     res.status(500).json({ error: 'Failed to generate admit card' });
+  }
+});
+
+// Generate invigilator sheet PDF
+router.get('/invigilator-sheet-pdf', isAdmin, async (req, res) => {
+  try {
+    // Get all applications with completed payments
+    const applications = await Application.find({
+      'payment.status': 'completed'
+    }).populate('userId', 'name email');
+
+    if (applications.length === 0) {
+      return res.status(404).json({ error: 'No completed applications found' });
+    }
+
+    // Generate PDF
+    const pdfGenerator = new PDFGenerator();
+    const pdfResult = await pdfGenerator.generateInvigilatorSheet(applications);
+
+    if (pdfResult.success) {
+      // Send file
+      res.download(pdfResult.filepath, pdfResult.filename, (err) => {
+        // Clean up file after download
+        fs.unlink(pdfResult.filepath, (unlinkErr) => {
+          if (unlinkErr) console.error('Error deleting PDF file:', unlinkErr);
+        });
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+  } catch (error) {
+    console.error('Error generating invigilator sheet:', error);
+    res.status(500).json({ error: 'Failed to generate invigilator sheet' });
+  }
+});
+
+// Get dashboard analytics
+router.get('/analytics', isAdmin, async (req, res) => {
+  try {
+    // Total applications
+    const totalApplications = await Application.countDocuments();
+    
+    // Applications by status
+    const applicationsByStatus = await Application.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Applications by course type
+    const applicationsByCourse = await Application.aggregate([
+      {
+        $group: {
+          _id: '$courseType',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Applications by category
+    const applicationsByCategory = await Application.aggregate([
+      {
+        $group: {
+          _id: '$personalDetails.category',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Payment statistics
+    const paymentStats = await Application.aggregate([
+      {
+        $group: {
+          _id: '$payment.status',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$payment.amount' }
+        }
+      }
+    ]);
+
+    // Recent applications (last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentApplications = await Application.countDocuments({
+      createdAt: { $gte: sevenDaysAgo }
+    });
+
+    // Monthly applications
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+    
+    const monthlyApplications = await Application.countDocuments({
+      createdAt: { $gte: currentMonth }
+    });
+
+    res.json({
+      totalApplications,
+      applicationsByStatus,
+      applicationsByCourse,
+      applicationsByCategory,
+      paymentStats,
+      recentApplications,
+      monthlyApplications
+    });
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    res.status(500).json({ error: 'Failed to get analytics' });
   }
 });
 

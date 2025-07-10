@@ -79,6 +79,9 @@ export const applicationAPI = {
 
   // Get specific application
   getApplication: (id) => apiCall(`/applications/${id}`),
+  
+  // Get application by ID (for viewing)
+  getApplicationById: (id) => apiCall(`/applications/${id}`),
 
   // Create new application
   createApplication: async (formData) => {
@@ -121,6 +124,17 @@ export const applicationAPI = {
     apiCall(`/applications/${applicationId}/admit-card`, {
       method: 'POST',
     }),
+
+  // Download admit card PDF
+  downloadAdmitCardPDF: (applicationId) => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/applications/${applicationId}/admit-card-pdf`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
 };
 
 // Auth API functions
@@ -135,6 +149,24 @@ export const authAPI = {
     apiCall('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
+    }),
+
+  forgotPassword: (email) => 
+    apiCall('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token, newPassword) => 
+    apiCall('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    }),
+
+  verifyResetToken: (token) => 
+    apiCall('/auth/verify-reset-token', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     }),
 };
 
@@ -215,6 +247,20 @@ export const adminAPI = {
   getPayments: () => adminApiCall('/payment/admin/payments'),
   
   getPaymentStatistics: () => adminApiCall('/payment/admin/statistics'),
+
+  // Analytics
+  getAnalytics: () => adminApiCall('/admin/analytics'),
+
+  // Download invigilator sheet PDF
+  downloadInvigilatorSheet: () => {
+    const adminToken = getAdminToken();
+    return fetch(`${API_BASE_URL}/admin/invigilator-sheet-pdf`, {
+      method: 'GET',
+      headers: {
+        'X-Admin-Token': adminToken
+      }
+    });
+  },
 };
 
 // Utility functions
