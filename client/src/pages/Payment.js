@@ -4,13 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { applicationAPI } from '../services/api';
 
 const Payment = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [amount] = useState(500); // Fixed application fee
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
   const { user } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [amount] = useState(location.state?.feeAmount || 1); // Use fee from ApplicationForm or default to ₹1
 
   const applicationId = location.state?.applicationId || params?.applicationId;
 

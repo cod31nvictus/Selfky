@@ -300,3 +300,13 @@ Cannot read properties of undefined (reading 'fetch')
 Cannot read properties of undefined (reading 'fetch')
 [ERROR] 2025-07-17T15:50:00.228Z: Razorpay API health check failed:
 Cannot read properties of undefined (reading 'fetch')
+[ERROR] 2025-07-17T16:00:00.232Z: Razorpay API health check failed:
+Cannot read properties of undefined (reading 'fetch')
+[ERROR] 2025-07-17T16:10:00.618Z: Razorpay API health check failed:
+Cannot read properties of undefined (reading 'fetch')
+[ERROR] 2025-07-17T16:20:00.905Z: Razorpay API health check failed:
+Cannot read properties of undefined (reading 'fetch')
+[ERROR] 2025-07-17T16:30:01.001Z: Razorpay API health check failed:
+Cannot read properties of undefined (reading 'fetch')
+[ERROR] 2025-07-17T16:40:00.911Z: Razorpay API health check failed:
+Cannot read properties of undefined (reading 'fetch')
