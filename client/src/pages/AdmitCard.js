@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { applicationAPI, adminAPI } from '../services/api';
 
@@ -13,7 +13,7 @@ const AdmitCard = () => {
   const [loading, setLoading] = useState(false);
   const [isAdminView, setIsAdminView] = useState(false);
 
-  const loadApplicationData = useCallback(async () => {
+  const loadApplicationData = async () => {
     try {
       setLoading(true);
       
@@ -112,9 +112,9 @@ const AdmitCard = () => {
       // Don't show alert, just set loading to false
       setLoading(false);
     }
-  }, [applicationId, location.pathname, navigate]);
+  };
 
-  const generateAdmitCard = useCallback(async (data) => {
+  const generateAdmitCard = async (data) => {
     setLoading(true);
     let admitCardGenerated = false;
     
@@ -189,7 +189,7 @@ const AdmitCard = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     // Check if this is an admin view (path starts with /admin/ and has admin token)
@@ -220,7 +220,7 @@ const AdmitCard = () => {
       // Load application data from API if applicationId is provided
       loadApplicationData();
     }
-  }, [location, applicationId, navigate, loadApplicationData, generateAdmitCard]);
+  }, [location, applicationId, navigate]);
 
 
 
