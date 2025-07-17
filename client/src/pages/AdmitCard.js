@@ -401,7 +401,7 @@ const AdmitCard = () => {
             {/* Header */}
             <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
               <div className="flex items-center justify-center mb-4">
-                <img src="/selfky-logo.png" alt="Selfky Logo" className="h-16 w-auto" />
+                <img src="/bhu-logo.png" alt="BHU Logo" className="h-16 w-auto" />
               </div>
               <h1 className="text-3xl font-bold text-[#101418] mb-2">ADMIT CARD</h1>
               <p className="text-lg text-[#5c728a]">{applicationData.courseInfo?.fullName}</p>
@@ -416,10 +416,7 @@ const AdmitCard = () => {
                     <span className="font-medium text-[#5c728a]">Application Number:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.applicationNumber}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Roll Number:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.rollNumber}</span>
-                  </div>
+
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Full Name:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.formData?.fullName}</span>
@@ -434,7 +431,7 @@ const AdmitCard = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Date of Birth:</span>
-                    <span className="font-semibold text-[#101418]">{applicationData.formData?.dateOfBirth}</span>
+                    <span className="font-semibold text-[#101418]">{applicationData.formData?.dateOfBirth ? new Date(applicationData.formData.dateOfBirth).toLocaleDateString('en-GB') : ''}</span>
                   </div>
                 </div>
               </div>
@@ -444,16 +441,13 @@ const AdmitCard = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Exam Date:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.examDate}</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examDate ? new Date(admitCardData.examDate).toLocaleDateString('en-GB') : ''}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Exam Time:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Transaction ID:</span>
-                    <span className="font-semibold text-[#101418]">{applicationData.transactionId}</span>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -534,6 +528,14 @@ const AdmitCard = () => {
               <div className="text-center">
                 <div className="w-32 h-16 border-b-2 border-gray-400 mb-2"></div>
                 <p className="text-sm text-[#5c728a]">Authorized Signature</p>
+              </div>
+            </div>
+
+            {/* Powered by Selfky */}
+            <div className="text-center mt-6 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-xs text-gray-500">Powered by</span>
+                <img src="/selfky-logo.png" alt="Selfky Logo" className="h-4 w-auto" />
               </div>
             </div>
           </div>
