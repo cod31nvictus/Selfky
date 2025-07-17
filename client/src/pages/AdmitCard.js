@@ -92,7 +92,7 @@ const AdmitCard = () => {
           examDate: admitCardData.examDate,
           examTime: admitCardData.examTime,
           examCenter: admitCardData.examCenter,
-          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+          examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
           rollNumber: 'RN' + Math.floor(Math.random() * 10000),
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
@@ -127,8 +127,8 @@ const AdmitCard = () => {
             applicationNumber: response.applicationNumber,
             examDate: response.admitCard?.examDate || '2025-03-15',
             examTime: response.admitCard?.examTime || '10:00 AM - 01:00 PM',
-            examCenter: response.admitCard?.examCenter || 'Selfky Institute of Pharmacy, Lucknow',
-            examCenterAddress: response.admitCard?.examCenterAddress || '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+            examCenter: response.admitCard?.examCenter || 'Banaras Hindu University, Varanasi',
+            examCenterAddress: response.admitCard?.examCenterAddress || 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
             rollNumber: response.admitCard?.rollNumber || 'RN' + Math.floor(Math.random() * 10000),
             instructions: [
               'Please arrive at the exam center 1 hour before the exam time',
@@ -152,8 +152,8 @@ const AdmitCard = () => {
           applicationNumber: data.applicationNumber || 'APP' + Date.now(),
           examDate: '2025-03-15',
           examTime: '10:00 AM - 01:00 PM',
-          examCenter: 'Selfky Institute of Pharmacy, Lucknow',
-          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+          examCenter: 'Banaras Hindu University, Varanasi',
+          examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
           rollNumber: 'RN' + Math.floor(Math.random() * 10000),
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
@@ -173,8 +173,8 @@ const AdmitCard = () => {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
         examDate: '2025-03-15',
         examTime: '10:00 AM - 01:00 PM',
-        examCenter: 'Selfky Institute of Pharmacy, Lucknow',
-        examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
+                  examCenter: 'Banaras Hindu University, Varanasi',
+        examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
         rollNumber: 'RN' + Math.floor(Math.random() * 10000),
         instructions: [
           'Please arrive at the exam center 1 hour before the exam time',
