@@ -67,7 +67,7 @@ const sendEmail = async (to, subject, htmlContent, textContent = '') => {
   const fromEmail = process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com';
 
   const mailOptions = {
-    from: `"Selfky Institute" <${fromEmail}>`,
+    from: `"Selfky" <${fromEmail}>`,
     to: to,
     subject: subject,
     html: htmlContent,

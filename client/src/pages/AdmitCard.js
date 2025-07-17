@@ -322,7 +322,7 @@ const AdmitCard = () => {
   }
 
   return (
-    <div className="bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
+    <div className="bg-gray-50 min-h-screen" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       {/* Header */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden sticky top-0 z-10">
         <div className="flex items-center gap-4 text-[#101418]">
@@ -339,7 +339,7 @@ const AdmitCard = () => {
 
       {/* Progress Bar - Only show for user view */}
       {!isAdminView && (
-        <div className="bg-white border-b border-gray-200 print:hidden sticky top-20 z-10">
+        <div className="bg-white border-b border-gray-200 print:hidden sticky top-16 z-10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div 
@@ -381,7 +381,7 @@ const AdmitCard = () => {
       )}
 
       {/* Main Content */}
-      <div className="px-4 py-8 md:px-8 lg:px-16 pb-20">
+      <div className="px-4 py-8 md:px-8 lg:px-16 pb-32 overflow-y-auto" style={{ minHeight: 'calc(100vh - 120px)' }}>
         <div className="max-w-4xl mx-auto">
           {/* Success Message */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 print:hidden">
@@ -561,7 +561,7 @@ const AdmitCard = () => {
           </div>
 
           {/* Floating Action Button for Mobile */}
-          <div className="fixed bottom-6 right-6 print:hidden md:hidden">
+          <div className="fixed bottom-6 right-6 print:hidden md:hidden z-50">
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleDownload}

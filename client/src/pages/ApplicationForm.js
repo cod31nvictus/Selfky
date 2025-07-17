@@ -59,6 +59,8 @@ const ApplicationForm = () => {
   const [loading, setLoading] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
   const [existingApplication, setExistingApplication] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   useEffect(() => {
     checkExistingApplication();
@@ -153,21 +155,21 @@ const ApplicationForm = () => {
     }
   };
 
-  // Fee structure
+  // Fee structure - Set to ₹1 for testing
   const feeStructure = {
     bpharm: {
-      General: 1000,
-      OBC: 800,
-      SC: 800,
-      ST: 800,
-      PH: 800
+      General: 1,
+      OBC: 1,
+      SC: 1,
+      ST: 1,
+      PH: 1
     },
     mpharm: {
-      General: 1200,
-      OBC: 1000,
-      SC: 1000,
-      ST: 1000,
-      PH: 1000
+      General: 1,
+      OBC: 1,
+      SC: 1,
+      ST: 1,
+      PH: 1
     }
   };
 
@@ -182,11 +184,96 @@ const ApplicationForm = () => {
     }
   };
 
+  // Validation functions
+  const validateAadhar = (aadhar) => {
+    if (!aadhar) return 'Aadhar number is required';
+    if (!/^\d{12}$/.test(aadhar)) return 'Aadhar number must be exactly 12 digits';
+    return '';
+  };
+
+  const validateDateOfBirth = (dob) => {
+    if (!dob) return 'Date of birth is required';
+    const date = new Date(dob);
+    const minDate = new Date('1950-01-01');
+    const maxDate = new Date('2025-01-01');
+    if (date < minDate || date > maxDate) {
+      return 'Date of birth must be between 1st Jan 1950 and 1st Jan 2025';
+    }
+    return '';
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone) return 'Phone number is required';
+    if (!/^\d{10}$/.test(phone)) return 'Phone number must be exactly 10 digits';
+    return '';
+  };
+
+  const validateYear = (year) => {
+    if (!year) return 'Year is required';
+    const yearNum = parseInt(year);
+    if (yearNum < 1950 || yearNum > 2030) {
+      return 'Year must be between 1950 and 2030';
+    }
+    return '';
+  };
+
+  const validatePlaceOfApplication = (place) => {
+    if (!place) return 'Place of application is required';
+    if (/^\d+$/.test(place)) return 'Place of application cannot contain only numbers';
+    return '';
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'aadharNumber':
+        return validateAadhar(value);
+      case 'dateOfBirth':
+        return validateDateOfBirth(value);
+      case 'correspondencePhone':
+        return validatePhone(value);
+      case 'qualifyingYear':
+      case 'highSchoolYear':
+        return validateYear(value);
+      case 'placeOfApplication':
+        return validatePlaceOfApplication(value);
+      default:
+        return '';
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Update form data
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+
+    // Validate field if touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    
+    // Mark field as touched
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+
+    // Validate field
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }));
   };
 
@@ -210,12 +297,58 @@ const ApplicationForm = () => {
     }
   };
 
+  const validateStep1 = () => {
+    const newErrors = {};
+    
+    // Required fields validation
+    const requiredFields = ['fullName', 'fathersName', 'aadharNumber', 'dateOfBirth', 'sex', 'correspondenceAddress', 'permanentAddress', 'correspondencePhone', 'qualifyingExamStatus', 'qualifyingBoard', 'qualifyingYear', 'qualifyingSubjects', 'highSchoolBoard', 'highSchoolYear', 'highSchoolSubjects', 'placeOfApplication', 'category'];
+    
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} is required`;
+      }
+    });
+
+    // Conditional validation for qualifying exam marks (only if status is 'passed')
+    if (formData.qualifyingExamStatus === 'passed') {
+      if (!formData.qualifyingMarksObtained) newErrors.qualifyingMarksObtained = 'Marks obtained is required';
+      if (!formData.qualifyingMaxMarks) newErrors.qualifyingMaxMarks = 'Maximum marks is required';
+      if (!formData.qualifyingPercentage) newErrors.qualifyingPercentage = 'Percentage is required';
+    }
+
+    // High school marks validation
+    if (!formData.highSchoolMarksObtained) newErrors.highSchoolMarksObtained = 'High school marks obtained is required';
+    if (!formData.highSchoolMaxMarks) newErrors.highSchoolMaxMarks = 'High school maximum marks is required';
+    if (!formData.highSchoolPercentage) newErrors.highSchoolPercentage = 'High school percentage is required';
+
+    // File validation
+    if (!formData.photo) newErrors.photo = 'Photo is required';
+    if (!formData.signature) newErrors.signature = 'Signature is required';
+
+    // Custom field validations
+    Object.keys(formData).forEach(field => {
+      if (formData[field] && validateField(field, formData[field])) {
+        newErrors[field] = validateField(field, formData[field]);
+      }
+    });
+
+    return newErrors;
+  };
+
   const handleNext = async () => {
     if (currentStep === 1) {
-      // Validate form data - only check fields that backend expects
-      if (!formData.fullName || !formData.fathersName || !formData.dateOfBirth || 
-          !formData.category || !formData.photo || !formData.signature) {
-        alert('Please fill all required fields and upload both photo and signature');
+      // Validate all fields for step 1
+      const stepErrors = validateStep1();
+      
+      if (Object.keys(stepErrors).length > 0) {
+        setErrors(stepErrors);
+        // Mark all fields as touched to show errors
+        const touchedFields = {};
+        Object.keys(stepErrors).forEach(field => {
+          touchedFields[field] = true;
+        });
+        setTouched(prev => ({ ...prev, ...touchedFields }));
+        alert('Please correct the errors before proceeding.');
         return;
       }
 
@@ -355,12 +488,20 @@ const ApplicationForm = () => {
                   name="aadharNumber"
                   value={formData.aadharNumber}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                    touched.aadharNumber && errors.aadharNumber 
+                      ? 'border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="Enter 12 digit Aadhar number"
                   maxLength="12"
                   required
                   disabled={!isStepEditable(1) || loading}
                 />
+                {touched.aadharNumber && errors.aadharNumber && (
+                  <p className="text-red-500 text-sm mt-1">{errors.aadharNumber}</p>
+                )}
               </div>
 
               {/* Date of Birth */}
@@ -373,10 +514,18 @@ const ApplicationForm = () => {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                    touched.dateOfBirth && errors.dateOfBirth 
+                      ? 'border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   required
                   disabled={!isStepEditable(1) || loading}
                 />
+                {touched.dateOfBirth && errors.dateOfBirth && (
+                  <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+                )}
               </div>
 
               {/* Sex */}
@@ -489,14 +638,24 @@ const ApplicationForm = () => {
                     name="correspondencePhone"
                     value={formData.correspondencePhone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                      touched.correspondencePhone && errors.correspondencePhone 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    }`}
                     placeholder="Enter 10-digit phone number"
                     pattern="[0-9]{10}"
                     maxLength="10"
                     required
                     disabled={!isStepEditable(1) || loading}
                   />
-                  <p className="text-sm text-gray-500 mt-1">Enter exactly 10 digits</p>
+                  {touched.correspondencePhone && errors.correspondencePhone && (
+                    <p className="text-red-500 text-sm mt-1">{errors.correspondencePhone}</p>
+                  )}
+                  {!touched.correspondencePhone && !errors.correspondencePhone && (
+                    <p className="text-sm text-gray-500 mt-1">Enter exactly 10 digits</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -506,22 +665,6 @@ const ApplicationForm = () => {
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-lg font-semibold text-[#101418] mb-4">Qualifying Examination (I.Sc./10+2 equivalent)</h3>
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Qualifying Exam */}
-              <div>
-                <label className="block text-sm font-medium text-[#101418] mb-2">
-                  Qualifying Examination *
-                </label>
-                <input
-                  type="text"
-                  name="qualifyingExam"
-                  value={formData.qualifyingExam}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-                  placeholder="e.g., I.Sc., 10+2, etc."
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-              </div>
 
               {/* Exam Status */}
               <div>
@@ -568,13 +711,21 @@ const ApplicationForm = () => {
                   name="qualifyingYear"
                   value={formData.qualifyingYear}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                    touched.qualifyingYear && errors.qualifyingYear 
+                      ? 'border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="e.g., 2023"
-                  min="1990"
+                  min="1950"
                   max="2030"
                   required
                   disabled={!isStepEditable(1) || loading}
                 />
+                {touched.qualifyingYear && errors.qualifyingYear && (
+                  <p className="text-red-500 text-sm mt-1">{errors.qualifyingYear}</p>
+                )}
               </div>
 
               {/* Subjects */}
@@ -594,59 +745,89 @@ const ApplicationForm = () => {
                 />
               </div>
 
-              {/* Marks Obtained */}
-              <div>
-                <label className="block text-sm font-medium text-[#101418] mb-2">
-                  Marks Obtained *
-                </label>
-                <input
-                  type="number"
-                  name="qualifyingMarksObtained"
-                  value={formData.qualifyingMarksObtained}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-                  placeholder="Enter marks obtained"
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-              </div>
+              {/* Marks Obtained - Only show if status is 'passed' */}
+              {formData.qualifyingExamStatus === 'passed' && (
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    Marks Obtained *
+                  </label>
+                  <input
+                    type="number"
+                    name="qualifyingMarksObtained"
+                    value={formData.qualifyingMarksObtained}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                      touched.qualifyingMarksObtained && errors.qualifyingMarksObtained 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="Enter marks obtained"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  {touched.qualifyingMarksObtained && errors.qualifyingMarksObtained && (
+                    <p className="text-red-500 text-sm mt-1">{errors.qualifyingMarksObtained}</p>
+                  )}
+                </div>
+              )}
 
-              {/* Max Marks */}
-              <div>
-                <label className="block text-sm font-medium text-[#101418] mb-2">
-                  Maximum Marks *
-                </label>
-                <input
-                  type="number"
-                  name="qualifyingMaxMarks"
-                  value={formData.qualifyingMaxMarks}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-                  placeholder="Enter maximum marks"
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-              </div>
+              {/* Max Marks - Only show if status is 'passed' */}
+              {formData.qualifyingExamStatus === 'passed' && (
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    Maximum Marks *
+                  </label>
+                  <input
+                    type="number"
+                    name="qualifyingMaxMarks"
+                    value={formData.qualifyingMaxMarks}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                      touched.qualifyingMaxMarks && errors.qualifyingMaxMarks 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="Enter maximum marks"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  {touched.qualifyingMaxMarks && errors.qualifyingMaxMarks && (
+                    <p className="text-red-500 text-sm mt-1">{errors.qualifyingMaxMarks}</p>
+                  )}
+                </div>
+              )}
 
-              {/* Percentage */}
-              <div>
-                <label className="block text-sm font-medium text-[#101418] mb-2">
-                  Percentage *
-                </label>
-                <input
-                  type="number"
-                  name="qualifyingPercentage"
-                  value={formData.qualifyingPercentage}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-                  placeholder="Enter percentage"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  required
-                  disabled={!isStepEditable(1) || loading}
-                />
-              </div>
+              {/* Percentage - Only show if status is 'passed' */}
+              {formData.qualifyingExamStatus === 'passed' && (
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    Percentage *
+                  </label>
+                  <input
+                    type="number"
+                    name="qualifyingPercentage"
+                    value={formData.qualifyingPercentage}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                      touched.qualifyingPercentage && errors.qualifyingPercentage 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="Enter percentage"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    required
+                    disabled={!isStepEditable(1) || loading}
+                  />
+                  {touched.qualifyingPercentage && errors.qualifyingPercentage && (
+                    <p className="text-red-500 text-sm mt-1">{errors.qualifyingPercentage}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -681,13 +862,21 @@ const ApplicationForm = () => {
                   name="highSchoolYear"
                   value={formData.highSchoolYear}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                    touched.highSchoolYear && errors.highSchoolYear 
+                      ? 'border-red-500' 
+                      : 'border-gray-300'
+                  }`}
                   placeholder="e.g., 2021"
-                  min="1990"
+                  min="1950"
                   max="2030"
                   required
                   disabled={!isStepEditable(1) || loading}
                 />
+                {touched.highSchoolYear && errors.highSchoolYear && (
+                  <p className="text-red-500 text-sm mt-1">{errors.highSchoolYear}</p>
+                )}
               </div>
 
               {/* High School Subjects */}
@@ -830,11 +1019,19 @@ const ApplicationForm = () => {
                 name="placeOfApplication"
                 value={formData.placeOfApplication}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                onBlur={handleBlur}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent ${
+                  touched.placeOfApplication && errors.placeOfApplication 
+                    ? 'border-red-500' 
+                    : 'border-gray-300'
+                }`}
                 placeholder="Enter place of application"
                 required
                 disabled={!isStepEditable(1) || loading}
               />
+              {touched.placeOfApplication && errors.placeOfApplication && (
+                <p className="text-red-500 text-sm mt-1">{errors.placeOfApplication}</p>
+              )}
             </div>
           </div>
 

@@ -12,6 +12,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import ApplicationForm from './pages/ApplicationForm';
 import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import PaymentCancel from './pages/PaymentCancel';
 import AdmitCard from './pages/AdmitCard';
@@ -63,6 +64,11 @@ function App() {
             <Route path="/payment/cancel" element={
               <ProtectedRoute>
                 <PaymentCancel />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-success" element={
+              <ProtectedRoute>
+                <PaymentSuccess />
               </ProtectedRoute>
             } />
             <Route path="/admit-card" element={
