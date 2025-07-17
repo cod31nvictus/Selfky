@@ -3,16 +3,28 @@ const Razorpay = require('razorpay');
 const Application = require('./models/Application');
 const logger = require('./utils/logger');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay only if credentials are available
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+  logger.info('Razorpay initialized successfully');
+} else {
+  logger.warn('Razorpay credentials not found. Payment features will be disabled.');
+}
 
 // Payment polling task - runs every 5 minutes
 const paymentPollingTask = cron.schedule('*/5 * * * *', async () => {
   try {
     logger.info('Starting payment polling task...');
+    
+    // Skip if Razorpay is not initialized
+    if (!razorpay) {
+      logger.info('Skipping payment polling - Razorpay not configured');
+      return;
+    }
     
     // Find applications with pending payments
     const pendingApplications = await Application.find({
@@ -79,7 +91,7 @@ const cleanupTask = cron.schedule('0 2 * * *', async () => {
     for (const application of oldPendingApplications) {
       try {
         // Check if payment exists in Razorpay
-        if (application.paymentId) {
+        if (application.paymentId && razorpay) {
           const payment = await razorpay.payments.fetch(application.paymentId);
           
           if (payment.status === 'captured') {
@@ -150,12 +162,16 @@ const healthCheckTask = cron.schedule('*/10 * * * *', async () => {
     const dbStatus = await Application.db.db.admin().ping();
     logger.info('Database health check:', dbStatus);
     
-    // Check Razorpay API
-    try {
-      const account = await razorpay.account.fetch();
-      logger.info('Razorpay API health check: OK');
-    } catch (error) {
-      logger.error('Razorpay API health check failed:', error.message);
+    // Check Razorpay API only if initialized
+    if (razorpay) {
+      try {
+        const account = await razorpay.account.fetch();
+        logger.info('Razorpay API health check: OK');
+      } catch (error) {
+        logger.error('Razorpay API health check failed:', error.message);
+      }
+    } else {
+      logger.info('Razorpay API health check: Skipped (not configured)');
     }
     
   } catch (error) {
@@ -186,6 +202,10 @@ const stopScheduledTasks = () => {
 // Manual payment status check
 const checkPaymentStatus = async (paymentId) => {
   try {
+    if (!razorpay) {
+      logger.warn('Razorpay not configured, cannot check payment status');
+      return null;
+    }
     const payment = await razorpay.payments.fetch(paymentId);
     return payment.status;
   } catch (error) {
@@ -202,7 +222,7 @@ const cleanupApplication = async (applicationId) => {
       throw new Error('Application not found');
     }
     
-    if (application.paymentId) {
+    if (application.paymentId && razorpay) {
       const paymentStatus = await checkPaymentStatus(application.paymentId);
       
       if (paymentStatus === 'captured') {

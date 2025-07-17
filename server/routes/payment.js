@@ -7,15 +7,24 @@ const User = require('../models/User');
 const Payment = require('../models/Payment');
 const emailService = require('../utils/emailService');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay only if credentials are available
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+} else {
+  console.warn('Razorpay credentials not found. Payment features will be disabled.');
+}
 
 // Create payment order
 router.post('/create-order', async (req, res) => {
   try {
+    if (!razorpay) {
+      return res.status(503).json({ error: 'Payment service is not configured. Please contact administrator.' });
+    }
+
     const { amount, currency = 'INR', receipt, notes } = req.body;
 
     if (!amount || !receipt) {
@@ -165,6 +174,10 @@ router.post('/verify-payment', async (req, res) => {
 router.get('/status/:paymentId', async (req, res) => {
   try {
     const { paymentId } = req.params;
+
+    if (!razorpay) {
+      return res.status(503).json({ error: 'Payment service is not configured. Please contact administrator.' });
+    }
 
     const payment = await razorpay.payments.fetch(paymentId);
 

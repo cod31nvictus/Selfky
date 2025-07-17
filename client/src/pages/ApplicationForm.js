@@ -200,31 +200,24 @@ const ApplicationForm = () => {
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      // Validate form data
-      if (!formData.fullName || !formData.fathersName || !formData.aadharNumber || !formData.dateOfBirth || 
-          !formData.sex || !formData.nationality || !formData.correspondenceAddress || !formData.permanentAddress || 
-          !formData.correspondencePhone || !formData.qualifyingExam || !formData.qualifyingBoard || 
-          !formData.qualifyingYear || !formData.qualifyingSubjects || !formData.qualifyingMarksObtained || 
-          !formData.qualifyingMaxMarks || !formData.qualifyingPercentage || !formData.highSchoolBoard || 
-          !formData.highSchoolYear || !formData.highSchoolSubjects || !formData.highSchoolMarksObtained || 
-          !formData.highSchoolMaxMarks || !formData.highSchoolPercentage || !formData.placeOfApplication || 
-          !formData.photo || !formData.signature) {
+      // Validate form data - only check fields that backend expects
+      if (!formData.fullName || !formData.fathersName || !formData.dateOfBirth || 
+          !formData.category || !formData.photo || !formData.signature) {
         alert('Please fill all required fields and upload both photo and signature');
-        return;
-      }
-
-      // Validate phone number format
-      if (!/^\d{10}$/.test(formData.correspondencePhone)) {
-        alert('Please enter a valid 10-digit phone number');
         return;
       }
 
       setLoading(true);
       try {
-        // Prepare data for API
+        // Prepare data for API - only send fields that backend expects
         const apiData = {
-          ...formData,
-          courseType: courseType
+          courseType: courseType,
+          fullName: formData.fullName,
+          fathersName: formData.fathersName,
+          category: formData.category,
+          dateOfBirth: formData.dateOfBirth,
+          photo: formData.photo,
+          signature: formData.signature
         };
 
         // Create application in database
