@@ -1,32 +1,88 @@
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
 
 // Email configuration
-const createTransporter = () => {
-  if (process.env.EMAIL_SERVICE === 'smtp') {
-    // Amazon SES or custom SMTP
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: process.env.EMAIL_SECURE === 'true',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  } else {
-    // Gmail or other services
-    return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
+const emailConfig = {
+  // Gmail SMTP Configuration (Primary)
+  gmail: {
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.GMAIL_USER || 'teamselfky@gmail.com',
+      pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password
+    }
+  },
+  // Amazon SES Configuration (Fallback - requires production access)
+  ses: {
+    host: 'email-smtp.eu-north-1.amazonaws.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD
+    }
   }
 };
 
-const transporter = createTransporter();
+// Create transporter based on available configuration
+const createTransporter = () => {
+  // Try Gmail first, then SES as fallback
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    console.log('Using Gmail SMTP for email service');
+    return nodemailer.createTransport(emailConfig.gmail);
+  } else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    console.log('Using Amazon SES for email service');
+    return nodemailer.createTransport(emailConfig.ses);
+  } else {
+    console.warn('No email configuration found. Email service will be disabled.');
+    return null;
+  }
+};
+
+// Verify email configuration
+const verifyEmailConfig = async () => {
+  const transporter = createTransporter();
+  if (!transporter) {
+    return { success: false, message: 'No email configuration found' };
+  }
+
+  try {
+    await transporter.verify();
+    return { success: true, message: 'Email configuration verified successfully' };
+  } catch (error) {
+    return { success: false, message: `Email configuration failed: ${error.message}` };
+  }
+};
+
+// Send email function
+const sendEmail = async (to, subject, htmlContent, textContent = '') => {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.error('Email service not configured');
+    return { success: false, message: 'Email service not configured' };
+  }
+
+  const fromEmail = process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com';
+
+  const mailOptions = {
+    from: `"Selfky Institute" <${fromEmail}>`,
+    to: to,
+    subject: subject,
+    html: htmlContent,
+    text: textContent
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 // Email templates
 const emailTemplates = {
@@ -230,19 +286,18 @@ const emailService = {
   // Send password reset email
   async sendPasswordResetEmail(email, resetToken, userName) {
     try {
-      const resetLink = `${process.env.FRONTEND_URL || 'https://selfky.com'}/reset-password?token=${resetToken}`;
+      const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
       const template = emailTemplates.passwordReset(resetLink, userName);
       
       const mailOptions = {
-        from: `"Selfky" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"Selfky Institute" <${process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com'}>`,
         to: email,
         subject: template.subject,
         html: template.html
       };
 
-      const result = await transporter.sendMail(mailOptions);
-      console.log('Password reset email sent:', result.messageId);
-      return { success: true, messageId: result.messageId };
+      const result = await sendEmail(email, template.subject, template.html);
+      return result;
     } catch (error) {
       console.error('Error sending password reset email:', error);
       return { success: false, error: error.message };
@@ -255,15 +310,14 @@ const emailService = {
       const template = emailTemplates.applicationSubmitted(applicationNumber, courseType, userName);
       
       const mailOptions = {
-        from: `"Selfky" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"Selfky Institute" <${process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com'}>`,
         to: email,
         subject: template.subject,
         html: template.html
       };
 
-      const result = await transporter.sendMail(mailOptions);
-      console.log('Application submitted email sent:', result.messageId);
-      return { success: true, messageId: result.messageId };
+      const result = await sendEmail(email, template.subject, template.html);
+      return result;
     } catch (error) {
       console.error('Error sending application submitted email:', error);
       return { success: false, error: error.message };
@@ -276,15 +330,14 @@ const emailService = {
       const template = emailTemplates.paymentCompleted(applicationNumber, courseType, userName, amount);
       
       const mailOptions = {
-        from: `"Selfky" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"Selfky Institute" <${process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com'}>`,
         to: email,
         subject: template.subject,
         html: template.html
       };
 
-      const result = await transporter.sendMail(mailOptions);
-      console.log('Payment completed email sent:', result.messageId);
-      return { success: true, messageId: result.messageId };
+      const result = await sendEmail(email, template.subject, template.html);
+      return result;
     } catch (error) {
       console.error('Error sending payment completed email:', error);
       return { success: false, error: error.message };
@@ -297,15 +350,14 @@ const emailService = {
       const template = emailTemplates.admitCardReady(applicationNumber, courseType, userName);
       
       const mailOptions = {
-        from: `"Selfky" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"Selfky Institute" <${process.env.EMAIL_FROM || process.env.GMAIL_USER || 'teamselfky@gmail.com'}>`,
         to: email,
         subject: template.subject,
         html: template.html
       };
 
-      const result = await transporter.sendMail(mailOptions);
-      console.log('Admit card ready email sent:', result.messageId);
-      return { success: true, messageId: result.messageId };
+      const result = await sendEmail(email, template.subject, template.html);
+      return result;
     } catch (error) {
       console.error('Error sending admit card ready email:', error);
       return { success: false, error: error.message };
@@ -314,19 +366,14 @@ const emailService = {
 
   // Generate reset token
   generateResetToken() {
+    const crypto = require('crypto');
     return crypto.randomBytes(32).toString('hex');
   },
 
   // Verify email configuration
   async verifyEmailConfig() {
-    try {
-      await transporter.verify();
-      console.log('Email configuration verified successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('Email configuration verification failed:', error);
-      return { success: false, error: error.message };
-    }
+    const result = await verifyEmailConfig();
+    return result;
   }
 };
 
