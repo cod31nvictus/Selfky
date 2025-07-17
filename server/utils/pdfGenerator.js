@@ -29,129 +29,100 @@ class PDFGenerator {
 
         this.doc.pipe(stream);
 
-        // Add BHU logo at the top
-        const bhuLogoPath = path.join(__dirname, '../uploads', 'bhu-logo.png');
-        if (fs.existsSync(bhuLogoPath)) {
-          this.doc
-            .image(bhuLogoPath, 50, 50, { width: 80, height: 80 })
-            .moveDown(0.5);
-        }
-
-        // Header
+        // Header Section
         this.doc
           .fontSize(24)
           .font('Helvetica-Bold')
-          .text('SELFKY INSTITUTE OF PHARMACY', { align: 'center' })
+          .text('BANARAS HINDU UNIVERSITY', { align: 'center' })
           .moveDown(0.5);
 
         this.doc
-          .fontSize(16)
-          .font('Helvetica')
+          .fontSize(18)
+          .font('Helvetica-Bold')
           .text('ADMIT CARD', { align: 'center' })
+          .moveDown(0.5);
+
+        // Course name
+        const courseName = applicationData.courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025';
+        this.doc
+          .fontSize(14)
+          .font('Helvetica')
+          .text(courseName, { align: 'center' })
           .moveDown(2);
 
-        // Add photo if available
-        if (applicationData.documents && applicationData.documents.photo) {
-          try {
-            let photoPath;
-            // Handle both old format (full path) and new format (just filename)
-            if (applicationData.documents.photo.includes(path.sep)) {
-              // Old format: full path
-              photoPath = applicationData.documents.photo;
-            } else {
-              // New format: just filename
-              photoPath = path.join(__dirname, '../uploads', applicationData.documents.photo);
-            }
-            
-            if (fs.existsSync(photoPath)) {
-              // Add photo to the right side of header
-              this.doc
-                .image(photoPath, 450, 80, { width: 80, height: 100 })
-                .moveDown(0.5);
-            }
-          } catch (photoError) {
-            console.error('Error adding photo to PDF:', photoError);
-          }
-        }
-
-        // Application Details
+        // Application Details Table
         this.doc
-          .fontSize(12)
+          .fontSize(14)
           .font('Helvetica-Bold')
           .text('APPLICANT DETAILS', { underline: true })
           .moveDown(1);
 
-        const details = [
-          ['Application Number:', applicationData.applicationNumber],
+        // Create applicant details table
+        const applicantTable = [
+          ['Application Number:', admitCardData.applicationNumber],
           ['Full Name:', applicationData.personalDetails.fullName],
           ['Father\'s Name:', applicationData.personalDetails.fathersName],
           ['Category:', applicationData.personalDetails.category],
-          ['Date of Birth:', this.formatDate(applicationData.personalDetails.dateOfBirth)],
-          ['Course:', applicationData.courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)']
+          ['Date of Birth:', this.formatDate(applicationData.personalDetails.dateOfBirth)]
         ];
 
-        details.forEach(([label, value]) => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica-Bold')
-            .text(label, { continued: true })
-            .font('Helvetica')
-            .text(`: ${value}`)
-            .moveDown(0.5);
-        });
+        this.createTable(applicantTable, 50, this.doc.y, 500, 20);
+        this.doc.moveDown(2);
 
-        this.doc.moveDown(1);
-
-        // Examination Details
+        // Examination Details Table
         this.doc
-          .fontSize(12)
+          .fontSize(14)
           .font('Helvetica-Bold')
           .text('EXAMINATION DETAILS', { underline: true })
           .moveDown(1);
 
-        const examDetails = [
+        const examTable = [
           ['Exam Date:', this.formatDate(admitCardData.examDate)],
           ['Exam Time:', admitCardData.examTime],
           ['Exam Center:', admitCardData.examCenter],
           ['Center Address:', admitCardData.examCenterAddress]
         ];
 
-        examDetails.forEach(([label, value]) => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica-Bold')
-            .text(label, { continued: true })
-            .font('Helvetica')
-            .text(`: ${value}`)
-            .moveDown(0.5);
-        });
-
+        this.createTable(examTable, 50, this.doc.y, 500, 20);
         this.doc.moveDown(2);
 
-        // Instructions
+        // Instructions Table
         this.doc
-          .fontSize(12)
+          .fontSize(14)
           .font('Helvetica-Bold')
           .text('IMPORTANT INSTRUCTIONS', { underline: true })
           .moveDown(1);
 
-        const instructions = [
-          '1. Please arrive at the exam center 1 hour before the exam time',
-          '2. Carry this admit card and a valid photo ID proof',
-          '3. No electronic devices are allowed in the examination hall',
-          '4. Follow all COVID-19 protocols as per government guidelines',
-          '5. Bring your own stationery (pen, pencil, eraser)',
-          '6. Dress code: Formal attire'
+        // Use dynamic instructions if available, otherwise use default
+        const instructions = admitCardData.instructions || [
+          'Please arrive at the exam center 1 hour before the exam time',
+          'Carry this admit card and a valid photo ID proof',
+          'No electronic devices are allowed in the examination hall',
+          'Follow all COVID-19 protocols as per government guidelines',
+          'Bring your own stationery (pen, pencil, eraser)',
+          'Dress code: Formal attire'
         ];
 
-        instructions.forEach(instruction => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica')
-            .text(instruction)
-            .moveDown(0.3);
-        });
+        // Create instructions table
+        const instructionRows = instructions.map((instruction, index) => [`${index + 1}.`, instruction]);
+        this.createTable(instructionRows, 50, this.doc.y, 500, 15);
+        this.doc.moveDown(2);
 
+        // Signature Section
+        this.doc
+          .fontSize(12)
+          .font('Helvetica-Bold')
+          .text('SIGNATURE SECTION', { underline: true })
+          .moveDown(1);
+
+        // Create signature table
+        const signatureTable = [
+          ['Applicant\'s Signature:', '_________________'],
+          ['Authorized Signature:', '_________________'],
+          ['Date:', '_________________']
+        ];
+
+        this.createTable(signatureTable, 50, this.doc.y, 500, 30);
         this.doc.moveDown(2);
 
         // Footer
@@ -163,49 +134,14 @@ class PDFGenerator {
 
         this.doc
           .fontSize(8)
-          .text('This is a computer generated document. No signature required.', { align: 'center' });
+          .text('This is a computer generated document. No signature required.', { align: 'center' })
+          .moveDown(1);
 
-        // Add signature if available
-        if (applicationData.documents && applicationData.documents.signature) {
-          try {
-            let signaturePath;
-            // Handle both old format (full path) and new format (just filename)
-            if (applicationData.documents.signature.includes(path.sep)) {
-              // Old format: full path
-              signaturePath = applicationData.documents.signature;
-            } else {
-              // New format: just filename
-              signaturePath = path.join(__dirname, '../uploads', applicationData.documents.signature);
-            }
-            if (fs.existsSync(signaturePath)) {
-              // Add signature at the bottom
-              this.doc
-                .image(signaturePath, 100, this.doc.y + 20, { width: 60, height: 30 })
-                .moveDown(1);
-            }
-          } catch (signatureError) {
-            console.error('Error adding signature to PDF:', signatureError);
-          }
-        }
-
-        // Add "Powered by Selfky" with small logo at the bottom
-        this.doc.moveDown(1);
-        
-        // Add Selfky logo if available
-        const selfkyLogoPath = path.join(__dirname, '../uploads', 'selfky-logo.png');
-        if (fs.existsSync(selfkyLogoPath)) {
-          this.doc
-            .fontSize(8)
-            .font('Helvetica')
-            .text('Powered by', { align: 'center' })
-            .image(selfkyLogoPath, 250, this.doc.y, { width: 30, height: 15 })
-            .moveDown(0.5);
-        } else {
-          this.doc
-            .fontSize(8)
-            .font('Helvetica')
-            .text('Powered by Selfky', { align: 'center' });
-        }
+        // Powered by Selfky
+        this.doc
+          .fontSize(8)
+          .font('Helvetica')
+          .text('Powered by Selfky', { align: 'center' });
 
         this.doc.end();
 
@@ -227,6 +163,29 @@ class PDFGenerator {
     });
   }
 
+  // Helper method to create tables
+  createTable(data, x, y, width, rowHeight) {
+    const colWidth = width / 2;
+    
+    data.forEach((row, index) => {
+      const rowY = y + (index * rowHeight);
+      
+      // Draw cell borders
+      this.doc
+        .rect(x, rowY, colWidth, rowHeight)
+        .rect(x + colWidth, rowY, colWidth, rowHeight)
+        .stroke();
+      
+      // Add text
+      this.doc
+        .fontSize(10)
+        .font('Helvetica-Bold')
+        .text(row[0], x + 5, rowY + 5)
+        .font('Helvetica')
+        .text(row[1], x + colWidth + 5, rowY + 5);
+    });
+  }
+
   // Generate invigilator sheet (for admin)
   async generateInvigilatorSheet(applications) {
     return new Promise((resolve, reject) => {
@@ -241,7 +200,7 @@ class PDFGenerator {
         this.doc
           .fontSize(20)
           .font('Helvetica-Bold')
-          .text('SELFKY INSTITUTE OF PHARMACY', { align: 'center' })
+          .text('BANARAS HINDU UNIVERSITY', { align: 'center' })
           .moveDown(0.5);
 
         this.doc

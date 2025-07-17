@@ -254,7 +254,7 @@ const emailTemplates = {
             <p><strong>Course:</strong> ${courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)'}</p>
             <p><strong>Exam Date:</strong> March 15, 2025</p>
             <p><strong>Exam Time:</strong> 10:00 AM - 01:00 PM</p>
-            <p><strong>Exam Center:</strong> Selfky Institute of Pharmacy, Lucknow</p>
+            <p><strong>Exam Center:</strong> Banaras Hindu University, Varanasi</p>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">

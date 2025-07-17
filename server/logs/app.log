@@ -1340,3 +1340,25 @@
 [INFO] 2025-07-17T17:15:00.226Z: Found 0 pending payments to check
 [INFO] 2025-07-17T17:15:00.227Z: Payment polling task completed
 [INFO] 2025-07-17T17:26:19.363Z: Razorpay initialized successfully
+[INFO] 2025-07-17T17:30:00.073Z: Generating payment statistics...
+[INFO] 2025-07-17T17:30:00.078Z: Performing health check...
+[INFO] 2025-07-17T17:30:00.082Z: Database health check:
+[INFO] 2025-07-17T17:30:00.084Z: Razorpay API health check: Disabled (to prevent errors)
+[INFO] 2025-07-17T17:30:00.131Z: Payment statistics:
+[INFO] 2025-07-17T17:30:00.984Z: Starting payment polling task...
+[INFO] 2025-07-17T17:30:00.991Z: Found 0 pending payments to check
+[INFO] 2025-07-17T17:30:00.993Z: Payment polling task completed
+[INFO] 2025-07-17T17:35:00.611Z: Starting payment polling task...
+[INFO] 2025-07-17T17:35:00.617Z: Found 0 pending payments to check
+[INFO] 2025-07-17T17:35:00.618Z: Payment polling task completed
+[INFO] 2025-07-17T17:40:00.604Z: Starting payment polling task...
+[INFO] 2025-07-17T17:40:00.609Z: Found 0 pending payments to check
+[INFO] 2025-07-17T17:40:00.610Z: Payment polling task completed
+[INFO] 2025-07-17T17:40:00.681Z: Performing health check...
+[INFO] 2025-07-17T17:40:00.685Z: Database health check:
+[INFO] 2025-07-17T17:40:00.687Z: Razorpay API health check: Disabled (to prevent errors)
+[INFO] 2025-07-17T17:43:45.419Z: Razorpay initialized successfully
+[INFO] 2025-07-17T17:45:00.045Z: Starting payment polling task...
+[INFO] 2025-07-17T17:45:00.052Z: Found 0 pending payments to check
+[INFO] 2025-07-17T17:45:00.054Z: Payment polling task completed
+[INFO] 2025-07-17T17:46:04.902Z: Razorpay initialized successfully

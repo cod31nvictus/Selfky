@@ -47,11 +47,11 @@ const applicationSchema = new mongoose.Schema({
     examTime: { type: String, default: '10:00 AM - 01:00 PM' },
     examCenter: { 
       type: String, 
-      default: 'Selfky Institute of Pharmacy, Lucknow' 
+      default: 'Banaras Hindu University, Varanasi' 
     },
     examCenterAddress: { 
       type: String, 
-      default: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001' 
+      default: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005' 
     }
   },
   status: { 
