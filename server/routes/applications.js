@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const emailService = require('../utils/emailService');
 const PDFGenerator = require('../utils/pdfGenerator');
+const { processUploadedImage } = require('../utils/imageProcessor');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -104,18 +105,26 @@ router.post('/', authenticateToken, async (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // Generate unique filenames
-    const photoExt = path.extname(photo.name);
-    const signatureExt = path.extname(signature.name);
-    const photoFilename = `photo-${Date.now()}-${Math.round(Math.random() * 1E9)}${photoExt}`;
-    const signatureFilename = `signature-${Date.now()}-${Math.round(Math.random() * 1E9)}${signatureExt}`;
+    // Generate unique filenames with .jpg extension for processed images
+    const photoFilename = `photo-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
+    const signatureFilename = `signature-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
 
-    // Save files
-    const photoPath = path.join(uploadDir, photoFilename);
-    const signaturePath = path.join(uploadDir, signatureFilename);
+    // Process and resize images
+    const photoResult = await processUploadedImage(photo, uploadDir, photoFilename);
+    const signatureResult = await processUploadedImage(signature, uploadDir, signatureFilename);
 
-    await photo.mv(photoPath);
-    await signature.mv(signaturePath);
+    // Log processing results
+    if (photoResult.success) {
+      console.log(`Photo processed: ${photoResult.compressionRatio} compression, ${photoResult.newSize} bytes`);
+    } else {
+      console.log(`Photo processing failed: ${photoResult.error}`);
+    }
+
+    if (signatureResult.success) {
+      console.log(`Signature processed: ${signatureResult.compressionRatio} compression, ${signatureResult.newSize} bytes`);
+    } else {
+      console.log(`Signature processing failed: ${signatureResult.error}`);
+    }
 
     // Generate unique application number
     const applicationNumber = await generateApplicationNumber(courseType);

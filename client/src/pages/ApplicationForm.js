@@ -195,18 +195,10 @@ const ApplicationForm = () => {
     const file = files[0];
     
     if (file) {
-      // Check file size (2MB limit)
-      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
-      if (file.size > maxSize) {
-        alert(`File too large! ${file.name} is ${(file.size / 1024 / 1024).toFixed(1)}MB. Please use a file under 2MB.`);
-        e.target.value = ''; // Clear the input
-        return;
-      }
-      
       // Check file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
-        alert(`Invalid file type! Please use JPG, PNG, or PDF format.`);
+        alert(`Invalid file type! Please use JPG or PNG format. Images will be automatically optimized for size.`);
         e.target.value = ''; // Clear the input
         return;
       }
@@ -262,9 +254,7 @@ const ApplicationForm = () => {
         console.error('Error creating application:', error);
         
         // Handle different types of errors with specific messages
-        if (error.message && error.message.includes('413')) {
-          alert('File size too large! Please ensure:\n\n• Photo file is under 2MB\n• Signature file is under 2MB\n• Use JPG, PNG, or PDF format\n\nPlease compress your files and try again.');
-        } else if (error.message && error.message.includes('Unexpected token')) {
+        if (error.message && error.message.includes('Unexpected token')) {
           alert('Server error occurred. Please try again in a few moments.');
         } else if (error.message && error.message.includes('Failed to fetch')) {
           alert('Network error. Please check your internet connection and try again.');
@@ -879,7 +869,7 @@ const ApplicationForm = () => {
                   </label>
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  📁 Max size: 2MB | Formats: JPG, PNG, PDF
+                  📁 Formats: JPG, PNG | Images will be automatically optimized
                 </p>
               </div>
 
@@ -910,7 +900,7 @@ const ApplicationForm = () => {
                   </label>
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  📁 Max size: 2MB | Formats: JPG, PNG, PDF
+                  📁 Formats: JPG, PNG | Images will be automatically optimized
                 </p>
               </div>
             </div>
