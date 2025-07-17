@@ -10,6 +10,15 @@ class PDFGenerator {
     });
   }
 
+  // Helper function to format date as dd/mm/yyyy
+  formatDate(date) {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   // Generate admit card PDF
   async generateAdmitCard(applicationData, admitCardData) {
     return new Promise((resolve, reject) => {
@@ -19,6 +28,14 @@ class PDFGenerator {
         const stream = fs.createWriteStream(filepath);
 
         this.doc.pipe(stream);
+
+        // Add BHU logo at the top
+        const bhuLogoPath = path.join(__dirname, '../uploads', 'bhu-logo.png');
+        if (fs.existsSync(bhuLogoPath)) {
+          this.doc
+            .image(bhuLogoPath, 50, 50, { width: 80, height: 80 })
+            .moveDown(0.5);
+        }
 
         // Header
         this.doc
@@ -66,11 +83,10 @@ class PDFGenerator {
 
         const details = [
           ['Application Number:', applicationData.applicationNumber],
-          ['Roll Number:', admitCardData.rollNumber],
           ['Full Name:', applicationData.personalDetails.fullName],
           ['Father\'s Name:', applicationData.personalDetails.fathersName],
           ['Category:', applicationData.personalDetails.category],
-          ['Date of Birth:', new Date(applicationData.personalDetails.dateOfBirth).toLocaleDateString()],
+          ['Date of Birth:', this.formatDate(applicationData.personalDetails.dateOfBirth)],
           ['Course:', applicationData.courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)']
         ];
 
@@ -94,7 +110,7 @@ class PDFGenerator {
           .moveDown(1);
 
         const examDetails = [
-          ['Exam Date:', new Date(admitCardData.examDate).toLocaleDateString()],
+          ['Exam Date:', this.formatDate(admitCardData.examDate)],
           ['Exam Time:', admitCardData.examTime],
           ['Exam Center:', admitCardData.examCenter],
           ['Center Address:', admitCardData.examCenterAddress]
@@ -172,6 +188,25 @@ class PDFGenerator {
           }
         }
 
+        // Add "Powered by Selfky" with small logo at the bottom
+        this.doc.moveDown(1);
+        
+        // Add Selfky logo if available
+        const selfkyLogoPath = path.join(__dirname, '../uploads', 'selfky-logo.png');
+        if (fs.existsSync(selfkyLogoPath)) {
+          this.doc
+            .fontSize(8)
+            .font('Helvetica')
+            .text('Powered by', { align: 'center' })
+            .image(selfkyLogoPath, 250, this.doc.y, { width: 30, height: 15 })
+            .moveDown(0.5);
+        } else {
+          this.doc
+            .fontSize(8)
+            .font('Helvetica')
+            .text('Powered by Selfky', { align: 'center' });
+        }
+
         this.doc.end();
 
         stream.on('finish', () => {
@@ -222,7 +257,7 @@ class PDFGenerator {
           .moveDown(2);
 
         // Table headers
-        const headers = ['S.No', 'Roll No', 'Name', 'Course', 'Category', 'Signature'];
+        const headers = ['S.No', 'Application No', 'Name', 'Course', 'Category', 'Signature'];
         const startX = 50;
         const startY = this.doc.y;
         const colWidth = 80;
@@ -244,7 +279,7 @@ class PDFGenerator {
             .fontSize(9)
             .font('Helvetica')
             .text((index + 1).toString(), startX, rowY)
-            .text(app.admitCard?.rollNumber || 'N/A', startX + colWidth, rowY)
+            .text(app.applicationNumber || 'N/A', startX + colWidth, rowY)
             .text(app.personalDetails.fullName, startX + (colWidth * 2), rowY)
             .text(app.courseType === 'bpharm' ? 'BPharm' : 'MPharm', startX + (colWidth * 3), rowY)
             .text(app.personalDetails.category, startX + (colWidth * 4), rowY)

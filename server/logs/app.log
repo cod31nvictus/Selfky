@@ -1336,3 +1336,7 @@
 [INFO] 2025-07-17T17:10:00.656Z: Starting payment polling task...
 [INFO] 2025-07-17T17:10:00.661Z: Found 0 pending payments to check
 [INFO] 2025-07-17T17:10:00.663Z: Payment polling task completed
+[INFO] 2025-07-17T17:15:00.221Z: Starting payment polling task...
+[INFO] 2025-07-17T17:15:00.226Z: Found 0 pending payments to check
+[INFO] 2025-07-17T17:15:00.227Z: Payment polling task completed
+[INFO] 2025-07-17T17:26:19.363Z: Razorpay initialized successfully
