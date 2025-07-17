@@ -162,17 +162,20 @@ const healthCheckTask = cron.schedule('*/10 * * * *', async () => {
     const dbStatus = await Application.db.db.admin().ping();
     logger.info('Database health check:', dbStatus);
     
-    // Check Razorpay API only if initialized
-    if (razorpay) {
-      try {
-        const account = await razorpay.account.fetch();
-        logger.info('Razorpay API health check: OK');
-      } catch (error) {
-        logger.error('Razorpay API health check failed:', error.message);
-      }
-    } else {
-      logger.info('Razorpay API health check: Skipped (not configured)');
-    }
+    // Temporarily disable Razorpay health check to prevent errors
+    logger.info('Razorpay API health check: Disabled (to prevent errors)');
+    
+    // TODO: Re-enable when Razorpay integration is fully stable
+    // if (razorpay) {
+    //   try {
+    //     const account = await razorpay.account.fetch();
+    //     logger.info('Razorpay API health check: OK');
+    //   } catch (error) {
+    //     logger.error('Razorpay API health check failed:', error.message);
+    //   }
+    // } else {
+    //   logger.info('Razorpay API health check: Skipped (not configured)');
+    // }
     
   } catch (error) {
     logger.error('Health check failed:', error);
