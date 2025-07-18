@@ -105,6 +105,13 @@ const monitoringRoutes = require('./routes/monitoring');
 // Import scheduled tasks
 require('./scheduledTasks');
 
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+
 // Start server with optimized database connection
 const startServer = async () => {
   try {
@@ -138,13 +145,6 @@ const startServer = async () => {
 };
 
 startServer();
-
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/monitoring', monitoringRoutes);
 
 // Start scheduled tasks in production
 if (process.env.NODE_ENV === 'production') {
