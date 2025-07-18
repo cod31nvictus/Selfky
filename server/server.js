@@ -121,10 +121,11 @@ const startServer = async () => {
     console.log('Connecting to database...');
     await connectToDatabase();
     
-    // Use optimized database connection for additional features
-    console.log('Optimizing database connection...');
+    // Initialize database optimizer for monitoring (don't reconnect)
+    console.log('Initializing database optimizer...');
     const dbOptimizer = new DatabaseOptimizer();
-    await dbOptimizer.optimizeConnection();
+    // Don't call optimizeConnection() since we're already connected
+    dbOptimizer.initializeMonitoring();
     
     console.log('MongoDB connected with optimizations');
 

@@ -91,6 +91,12 @@ class DatabaseOptimizer {
     }, 60000); // Check every minute
   }
 
+  // Initialize monitoring without reconnecting
+  initializeMonitoring() {
+    this.startConnectionMonitoring();
+    logger.info('Database monitoring initialized');
+  }
+
   // Get connection statistics
   getConnectionStats() {
     return this.connectionStats;
