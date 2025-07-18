@@ -34,7 +34,6 @@ class DatabaseOptimizer {
         readPreference: 'primaryPreferred',
         
         // Buffer settings
-        bufferMaxEntries: 0,
         bufferCommands: false,
         
         // Compression
@@ -61,17 +60,33 @@ class DatabaseOptimizer {
 
   // Monitor connection pool health
   startConnectionMonitoring() {
-    setInterval(() => {
-      const poolStatus = mongoose.connection.db.admin().command({ serverStatus: 1 });
-      
-      if (poolStatus) {
-        this.connectionStats = {
-          totalConnections: poolStatus.connections?.current || 0,
-          activeConnections: poolStatus.connections?.active || 0,
-          idleConnections: poolStatus.connections?.available || 0
-        };
+    setInterval(async () => {
+      try {
+        // Try to get server status, but handle authorization errors gracefully
+        const poolStatus = await mongoose.connection.db.admin().command({ serverStatus: 1 });
         
-        logger.info('Database connection stats:', this.connectionStats);
+        if (poolStatus) {
+          this.connectionStats = {
+            totalConnections: poolStatus.connections?.current || 0,
+            activeConnections: poolStatus.connections?.active || 0,
+            idleConnections: poolStatus.connections?.available || 0
+          };
+          
+          logger.info('Database connection stats:', this.connectionStats);
+        }
+      } catch (error) {
+        // Handle authorization errors gracefully
+        if (error.code === 13 || error.codeName === 'Unauthorized') {
+          logger.debug('Database monitoring: Insufficient privileges for serverStatus command');
+          // Set default stats when we can't get detailed connection info
+          this.connectionStats = {
+            totalConnections: 0,
+            activeConnections: 0,
+            idleConnections: 0
+          };
+        } else {
+          logger.error('Database connection monitoring error:', error.message);
+        }
       }
     }, 60000); // Check every minute
   }
@@ -172,12 +187,24 @@ class DatabaseOptimizer {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      logger.error('Database health check failed:', error);
-      return {
-        status: 'unhealthy',
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
+      // Handle authorization errors gracefully
+      if (error.code === 13 || error.codeName === 'Unauthorized') {
+        logger.debug('Database health check: Insufficient privileges for admin commands');
+        return {
+          status: 'healthy', // Assume healthy if we can connect but can't run admin commands
+          responseTime: 0,
+          connectionStats: this.getConnectionStats(),
+          timestamp: new Date().toISOString(),
+          note: 'Limited monitoring due to insufficient privileges'
+        };
+      } else {
+        logger.error('Database health check failed:', error);
+        return {
+          status: 'unhealthy',
+          error: error.message,
+          timestamp: new Date().toISOString()
+        };
+      }
     }
   }
 }
