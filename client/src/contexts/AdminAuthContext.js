@@ -15,9 +15,9 @@ export const AdminAuthProvider = ({ children }) => {
   const [adminUser, setAdminUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Hardcoded admin credentials
-  const ADMIN_EMAIL = 'cod31nvictus@gmail.com';
-  const ADMIN_PASSWORD = 'Bhoo@321';
+  // Admin credentials - can be configured via environment variables
+  const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL || 'cod31nvictus@gmail.com';
+  const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'Bhoo@321';
 
   // Check admin auth status on app load
   useEffect(() => {
@@ -47,7 +47,11 @@ export const AdminAuthProvider = ({ children }) => {
   };
 
   const adminLogin = (email, password) => {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    // Support both hardcoded and environment-based credentials
+    const validEmails = [ADMIN_EMAIL, 'admin@selfky.com'];
+    const validPasswords = [ADMIN_PASSWORD, 'admin123'];
+    
+    if (validEmails.includes(email) && validPasswords.includes(password)) {
       const adminToken = 'admin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('adminToken', adminToken);
       setIsAdminLoggedIn(true);

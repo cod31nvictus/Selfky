@@ -18,7 +18,7 @@ const MonitoringDashboard = () => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await axios.get('/api/monitoring/dashboard', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'x-admin-token': token }
       });
       setDashboardData(response.data.data);
       setError(null);
