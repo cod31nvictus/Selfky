@@ -6,6 +6,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "create-indexes": "node utils/createIndexes.js",
+    "migrate-to-atlas": "node utils/migrateToAtlas.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -27,7 +28,6 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.3",
     "pdfkit": "^0.17.1",
-    "rate-limiter-flexible": "^2.4.2",
     "razorpay": "^2.8.6",
     "redis": "^4.6.10",
     "sharp": "^0.34.3"
