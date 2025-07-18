@@ -251,13 +251,16 @@ export const adminAPI = {
   // Analytics
   getAnalytics: () => adminApiCall('/admin/analytics'),
 
+  // Monitoring dashboard
+  getMonitoringDashboard: () => adminApiCall('/monitoring/dashboard'),
+
   // Download invigilator sheet PDF
   downloadInvigilatorSheet: () => {
     const adminToken = getAdminToken();
     return fetch(`${API_BASE_URL}/admin/invigilator-sheet-pdf`, {
       method: 'GET',
       headers: {
-        'X-Admin-Token': adminToken
+        'x-admin-token': adminToken
       }
     });
   },
