@@ -1,0 +1,292 @@
+const logger = require('./logger');
+const redis = require('../config/redis');
+
+class ApplicationMonitor {
+  constructor() {
+    this.metrics = {
+      requests: {
+        total: 0,
+        successful: 0,
+        failed: 0,
+        byEndpoint: {}
+      },
+      performance: {
+        responseTimes: [],
+        averageResponseTime: 0,
+        slowQueries: []
+      },
+      errors: {
+        total: 0,
+        byType: {},
+        recent: []
+      },
+      system: {
+        memory: {},
+        cpu: {},
+        uptime: 0
+      },
+      database: {
+        connections: 0,
+        queries: 0,
+        slowQueries: 0
+      },
+      redis: {
+        connected: false,
+        operations: 0,
+        errors: 0
+      }
+    };
+    
+    this.startTime = Date.now();
+    this.initializeMonitoring();
+  }
+
+  initializeMonitoring() {
+    // Start periodic monitoring
+    setInterval(() => this.collectSystemMetrics(), 30000); // Every 30 seconds
+    setInterval(() => this.cleanupOldData(), 300000); // Every 5 minutes
+    setInterval(() => this.logHealthReport(), 600000); // Every 10 minutes
+    
+    logger.info('Application monitoring initialized');
+  }
+
+  // Request monitoring
+  trackRequest(endpoint, method, statusCode, responseTime) {
+    this.metrics.requests.total++;
+    
+    if (statusCode >= 200 && statusCode < 400) {
+      this.metrics.requests.successful++;
+    } else {
+      this.metrics.requests.failed++;
+    }
+
+    // Track by endpoint
+    const key = `${method} ${endpoint}`;
+    if (!this.metrics.requests.byEndpoint[key]) {
+      this.metrics.requests.byEndpoint[key] = {
+        count: 0,
+        avgResponseTime: 0,
+        errors: 0
+      };
+    }
+    
+    this.metrics.requests.byEndpoint[key].count++;
+    this.metrics.requests.byEndpoint[key].avgResponseTime = 
+      (this.metrics.requests.byEndpoint[key].avgResponseTime * (this.metrics.requests.byEndpoint[key].count - 1) + responseTime) / 
+      this.metrics.requests.byEndpoint[key].count;
+
+    if (statusCode >= 400) {
+      this.metrics.requests.byEndpoint[key].errors++;
+    }
+
+    // Track response times
+    this.metrics.performance.responseTimes.push(responseTime);
+    if (this.metrics.performance.responseTimes.length > 100) {
+      this.metrics.performance.responseTimes.shift();
+    }
+
+    // Track slow queries (> 1 second)
+    if (responseTime > 1000) {
+      this.metrics.performance.slowQueries.push({
+        endpoint,
+        method,
+        responseTime,
+        timestamp: Date.now()
+      });
+    }
+
+    // Update average response time
+    this.metrics.performance.averageResponseTime = 
+      this.metrics.performance.responseTimes.reduce((a, b) => a + b, 0) / 
+      this.metrics.performance.responseTimes.length;
+  }
+
+  // Error tracking
+  trackError(error, context = {}) {
+    this.metrics.errors.total++;
+    
+    const errorType = error.name || 'Unknown';
+    if (!this.metrics.errors.byType[errorType]) {
+      this.metrics.errors.byType[errorType] = 0;
+    }
+    this.metrics.errors.byType[errorType]++;
+
+    // Store recent errors (last 50)
+    this.metrics.errors.recent.push({
+      type: errorType,
+      message: error.message,
+      stack: error.stack,
+      context,
+      timestamp: Date.now()
+    });
+
+    if (this.metrics.errors.recent.length > 50) {
+      this.metrics.errors.recent.shift();
+    }
+
+    logger.error(`Error tracked: ${errorType} - ${error.message}`, { context });
+  }
+
+  // Database monitoring
+  trackDatabaseOperation(operation, duration) {
+    this.metrics.database.queries++;
+    
+    if (duration > 1000) { // Slow query threshold
+      this.metrics.database.slowQueries++;
+      logger.warn(`Slow database operation: ${operation} took ${duration}ms`);
+    }
+  }
+
+  updateDatabaseConnections(count) {
+    this.metrics.database.connections = count;
+  }
+
+  // Redis monitoring
+  updateRedisStatus(connected) {
+    this.metrics.redis.connected = connected;
+  }
+
+  trackRedisOperation(success = true) {
+    this.metrics.redis.operations++;
+    if (!success) {
+      this.metrics.redis.errors++;
+    }
+  }
+
+  // System metrics collection
+  async collectSystemMetrics() {
+    try {
+      const memUsage = process.memoryUsage();
+      this.metrics.system.memory = {
+        rss: Math.round(memUsage.rss / 1024 / 1024), // MB
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
+        external: Math.round(memUsage.external / 1024 / 1024) // MB
+      };
+
+      this.metrics.system.uptime = Math.round((Date.now() - this.startTime) / 1000); // seconds
+
+      // Check Redis connection
+      try {
+        await redis.ping();
+        this.updateRedisStatus(true);
+      } catch (error) {
+        this.updateRedisStatus(false);
+        logger.error('Redis connection check failed:', error.message);
+      }
+
+    } catch (error) {
+      logger.error('Error collecting system metrics:', error.message);
+    }
+  }
+
+  // Data cleanup
+  cleanupOldData() {
+    const now = Date.now();
+    const fiveMinutesAgo = now - (5 * 60 * 1000);
+
+    // Clean up old slow queries
+    this.metrics.performance.slowQueries = 
+      this.metrics.performance.slowQueries.filter(query => 
+        query.timestamp > fiveMinutesAgo
+      );
+
+    // Clean up old errors
+    this.metrics.errors.recent = 
+      this.metrics.errors.recent.filter(error => 
+        error.timestamp > fiveMinutesAgo
+      );
+
+    logger.debug('Cleaned up old monitoring data');
+  }
+
+  // Health report
+  logHealthReport() {
+    const uptime = Math.round((Date.now() - this.startTime) / 1000 / 60); // minutes
+    const errorRate = this.metrics.requests.total > 0 ? 
+      (this.metrics.errors.total / this.metrics.requests.total * 100).toFixed(2) : 0;
+    
+    const report = {
+      uptime: `${uptime} minutes`,
+      requests: {
+        total: this.metrics.requests.total,
+        successful: this.metrics.requests.successful,
+        failed: this.metrics.requests.failed,
+        successRate: this.metrics.requests.total > 0 ? 
+          (this.metrics.requests.successful / this.metrics.requests.total * 100).toFixed(2) + '%' : '0%'
+      },
+      performance: {
+        averageResponseTime: Math.round(this.metrics.performance.averageResponseTime) + 'ms',
+        slowQueries: this.metrics.performance.slowQueries.length
+      },
+      errors: {
+        total: this.metrics.errors.total,
+        errorRate: errorRate + '%',
+        recentErrors: this.metrics.errors.recent.length
+      },
+      system: {
+        memory: this.metrics.system.memory,
+        uptime: this.metrics.system.uptime
+      },
+      database: {
+        connections: this.metrics.database.connections,
+        queries: this.metrics.database.queries,
+        slowQueries: this.metrics.database.slowQueries
+      },
+      redis: {
+        connected: this.metrics.redis.connected,
+        operations: this.metrics.redis.operations,
+        errors: this.metrics.redis.errors
+      }
+    };
+
+    logger.info('Application Health Report:', report);
+
+    // Alert if error rate is high
+    if (parseFloat(errorRate) > 5) {
+      logger.warn(`High error rate detected: ${errorRate}%`);
+    }
+
+    // Alert if memory usage is high
+    if (this.metrics.system.memory.heapUsed > 500) { // 500MB
+      logger.warn(`High memory usage: ${this.metrics.system.memory.heapUsed}MB`);
+    }
+
+    // Alert if Redis is disconnected
+    if (!this.metrics.redis.connected) {
+      logger.warn('Redis connection lost');
+    }
+  }
+
+  // Get current metrics
+  getMetrics() {
+    return {
+      ...this.metrics,
+      uptime: Math.round((Date.now() - this.startTime) / 1000),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  // Get health status
+  getHealthStatus() {
+    const errorRate = this.metrics.requests.total > 0 ? 
+      this.metrics.errors.total / this.metrics.requests.total : 0;
+    
+    const isHealthy = 
+      errorRate < 0.05 && // Less than 5% error rate
+      this.metrics.redis.connected &&
+      this.metrics.system.memory.heapUsed < 1000; // Less than 1GB memory
+
+    return {
+      healthy: isHealthy,
+      errorRate: (errorRate * 100).toFixed(2) + '%',
+      redisConnected: this.metrics.redis.connected,
+      memoryUsage: this.metrics.system.memory.heapUsed + 'MB'
+    };
+  }
+}
+
+// Create singleton instance
+const monitor = new ApplicationMonitor();
+
+module.exports = monitor; 
