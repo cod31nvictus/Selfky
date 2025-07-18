@@ -131,8 +131,13 @@ const startServer = async () => {
 
     // Initialize Redis client
     console.log('Initializing Redis client...');
-    await createRedisClient();
-    console.log('Redis client initialized');
+    try {
+      await createRedisClient();
+      console.log('Redis client initialized successfully');
+    } catch (error) {
+      console.error('❌ Redis client initialization failed:', error);
+      throw error;
+    }
 
     console.log(`Starting HTTP server on port ${PORT}...`);
     app.listen(PORT, () => {
@@ -141,6 +146,7 @@ const startServer = async () => {
 
   } catch (error) {
     console.error('❌ Error starting server:', error);
+    console.error('❌ Error stack:', error.stack);
     process.exit(1);
   }
 };
