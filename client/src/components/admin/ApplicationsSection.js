@@ -41,6 +41,11 @@ const ApplicationsSection = () => {
   };
 
   const filterApplications = () => {
+    if (!Array.isArray(applications)) {
+      setFilteredApplications([]);
+      return;
+    }
+    
     let filtered = applications.filter(app => {
       // Filter by course
       if (activeTab === 'bpharm' && app.courseType !== 'bpharm') return false;
@@ -182,9 +187,9 @@ const ApplicationsSection = () => {
       {/* Results Count */}
       <div className="mt-4">
         <p className="text-sm text-gray-600">
-          Showing {filteredApplications.length} of {applications.filter(app => 
+          Showing {filteredApplications.length} of {Array.isArray(applications) ? applications.filter(app => 
             activeTab === 'bpharm' ? app.courseType === 'bpharm' : app.courseType === 'mpharm'
-          ).length} {activeTab === 'bpharm' ? 'BPharm' : 'MPharm'} applications
+          ).length : 0} {activeTab === 'bpharm' ? 'BPharm' : 'MPharm'} applications
         </p>
       </div>
 
