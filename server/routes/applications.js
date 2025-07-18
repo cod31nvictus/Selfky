@@ -8,6 +8,7 @@ const fs = require('fs');
 const emailService = require('../utils/emailService');
 const PDFGenerator = require('../utils/pdfGenerator');
 const { processUploadedImage } = require('../utils/imageProcessor');
+const S3Service = require('../utils/s3Service');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -99,19 +100,9 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Only image files are allowed' });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filenames with .jpg extension for processed images
-    const photoFilename = `photo-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
-    const signatureFilename = `signature-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
-
-    // Process and resize images
-    const photoResult = await processUploadedImage(photo, uploadDir, photoFilename);
-    const signatureResult = await processUploadedImage(signature, uploadDir, signatureFilename);
+    // Process and resize images first
+    const photoResult = await processUploadedImage(photo, null, 'photo.jpg');
+    const signatureResult = await processUploadedImage(signature, null, 'signature.jpg');
 
     // Log processing results
     if (photoResult.success) {
@@ -124,6 +115,23 @@ router.post('/', authenticateToken, async (req, res) => {
       console.log(`Signature processed: ${signatureResult.compressionRatio} compression, ${signatureResult.newSize} bytes`);
     } else {
       console.log(`Signature processing failed: ${signatureResult.error}`);
+    }
+
+    // Upload processed images to S3
+    const photoUpload = await S3Service.uploadFile({
+      data: photoResult.processedBuffer,
+      name: `photo-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+      mimetype: 'image/jpeg'
+    }, 'photos');
+
+    const signatureUpload = await S3Service.uploadFile({
+      data: signatureResult.processedBuffer,
+      name: `signature-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+      mimetype: 'image/jpeg'
+    }, 'signatures');
+
+    if (!photoUpload.success || !signatureUpload.success) {
+      return res.status(500).json({ error: 'Failed to upload files to S3' });
     }
 
     // Generate unique application number
@@ -141,8 +149,8 @@ router.post('/', authenticateToken, async (req, res) => {
         dateOfBirth: new Date(dateOfBirth)
       },
       documents: {
-        photo: photoFilename,
-        signature: signatureFilename
+        photo: photoUpload.key,
+        signature: signatureUpload.key
       },
       payment: {
         amount: category === 'General' 
