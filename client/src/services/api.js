@@ -49,7 +49,7 @@ const adminApiCall = async (endpoint, options = {}) => {
   const config = {
     headers: {
       'Content-Type': 'application/json',
-      'X-Admin-Token': adminToken,
+      'x-admin-token': adminToken,
       ...options.headers,
     },
     ...options,
@@ -215,7 +215,7 @@ export const adminAPI = {
     return fetch(`${API_BASE_URL}/admin/applications`, {
       method: 'POST',
       headers: {
-        'X-Admin-Token': adminToken,
+        'x-admin-token': adminToken,
       },
       body: data,
     }).then(response => response.json());
@@ -237,7 +237,7 @@ export const adminAPI = {
     return fetch(`${API_BASE_URL}/admin/applications/${applicationId}`, {
       method: 'PUT',
       headers: {
-        'X-Admin-Token': adminToken,
+        'x-admin-token': adminToken,
       },
       body: data,
     }).then(response => response.json());
