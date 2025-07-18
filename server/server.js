@@ -7,6 +7,7 @@ const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const S3Service = require('./utils/s3Service');
 const DatabaseOptimizer = require('./utils/databaseOptimizer');
+const { connectToDatabase } = require('./config/database');
 
 const app = express();
 
@@ -56,7 +57,8 @@ app.get('/api/health', async (req, res) => {
       worker: process.pid,
       uptime: process.uptime(),
       database: dbHealth,
-      memory: process.memoryUsage()
+      memory: process.memoryUsage(),
+      databaseType: process.env.USE_MONGODB_ATLAS === 'true' ? 'MongoDB Atlas' : 'Local MongoDB'
     });
   } catch (error) {
     res.status(500).json({ 
@@ -75,7 +77,8 @@ app.get('/api/db/stats', async (req, res) => {
     
     res.json({
       connectionStats: stats,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      databaseType: process.env.USE_MONGODB_ATLAS === 'true' ? 'MongoDB Atlas' : 'Local MongoDB'
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get database stats' });
@@ -97,7 +100,10 @@ require('./scheduledTasks');
 // Start server with optimized database connection
 const startServer = async () => {
   try {
-    // Use optimized database connection
+    // Connect to database (Atlas or local)
+    await connectToDatabase();
+    
+    // Use optimized database connection for additional features
     const dbOptimizer = new DatabaseOptimizer();
     await dbOptimizer.optimizeConnection();
     
