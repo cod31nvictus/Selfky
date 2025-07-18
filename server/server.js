@@ -9,6 +9,9 @@ const S3Service = require('./utils/s3Service');
 const DatabaseOptimizer = require('./utils/databaseOptimizer');
 const { connectToDatabase } = require('./config/database');
 const { createRedisClient, closeRedisClient } = require('./config/redis');
+const monitor = require('./utils/monitor');
+const logger = require('./utils/logger');
+const { requestMonitor, errorMonitor } = require('./middleware/monitoring');
 
 const app = express();
 
@@ -28,6 +31,9 @@ app.use(fileUpload({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 }));
+
+// Apply monitoring middleware
+app.use(requestMonitor);
 
 // S3 file serving endpoint
 app.get('/api/files/:key', async (req, res) => {
@@ -94,6 +100,7 @@ const authRoutes = require('./routes/auth');
 const applicationRoutes = require('./routes/applications');
 const adminRoutes = require('./routes/admin');
 const paymentRoutes = require('./routes/payment');
+const monitoringRoutes = require('./routes/monitoring');
 
 // Import scheduled tasks
 require('./scheduledTasks');
@@ -131,6 +138,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/monitoring', monitoringRoutes);
 
 // Start scheduled tasks in production
 if (process.env.NODE_ENV === 'production') {
@@ -161,8 +169,5 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-}); 
+// Error handling middleware with monitoring
+app.use(errorMonitor); 
