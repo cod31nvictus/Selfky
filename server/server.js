@@ -8,6 +8,7 @@ const fileUpload = require('express-fileupload');
 const S3Service = require('./utils/s3Service');
 const DatabaseOptimizer = require('./utils/databaseOptimizer');
 const { connectToDatabase } = require('./config/database');
+const { createRedisClient, closeRedisClient } = require('./config/redis');
 
 const app = express();
 
@@ -109,6 +110,10 @@ const startServer = async () => {
     
     console.log('MongoDB connected with optimizations');
 
+    // Initialize Redis client
+    await createRedisClient();
+    console.log('Redis client initialized');
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
@@ -142,6 +147,19 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await closeRedisClient();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await closeRedisClient();
+  process.exit(0);
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
