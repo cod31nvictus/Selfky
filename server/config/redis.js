@@ -86,7 +86,14 @@ async function createRedisClient() {
     });
     
     // Connect to Redis
+    logger.info('Attempting to connect to Redis...');
     await redisClient.connect();
+    logger.info('Redis connect() completed successfully');
+    
+    // Test the connection
+    logger.info('Testing Redis connection...');
+    await redisClient.ping();
+    logger.info('Redis ping successful');
     
     logger.info('Redis client initialized successfully');
     return redisClient;
