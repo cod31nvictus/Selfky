@@ -6,6 +6,19 @@ const logger = require('./logger');
 
 async function createIndexes() {
   try {
+    console.log('Connecting to MongoDB...');
+    
+    // Connect to MongoDB with proper timeout settings
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/selfky', {
+      maxPoolSize: 5,
+      serverSelectionTimeoutMS: 30000, // 30 seconds
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      bufferCommands: false,
+      bufferMaxEntries: 0
+    });
+    
+    console.log('Connected to MongoDB');
     console.log('Creating database indexes...');
     
     // Create indexes for User model with proper error handling
