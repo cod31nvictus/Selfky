@@ -27,7 +27,6 @@ const dbConfig = {
       readPreference: 'primaryPreferred',
       
       // Buffer settings
-      bufferMaxEntries: 0,
       bufferCommands: false,
       
       // Compression
