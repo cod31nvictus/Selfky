@@ -76,4 +76,21 @@ applicationSchema.pre('save', function(next) {
   next();
 });
 
+// Database indexes for better query performance
+applicationSchema.index({ applicationNumber: 1 });
+applicationSchema.index({ userId: 1 });
+applicationSchema.index({ courseType: 1 });
+applicationSchema.index({ status: 1 });
+applicationSchema.index({ 'payment.status': 1 });
+applicationSchema.index({ createdAt: -1 });
+applicationSchema.index({ updatedAt: -1 });
+applicationSchema.index({ 'personalDetails.category': 1 });
+applicationSchema.index({ 'admitCard.rollNumber': 1 });
+
+// Compound indexes for common query patterns
+applicationSchema.index({ userId: 1, status: 1 });
+applicationSchema.index({ courseType: 1, status: 1 });
+applicationSchema.index({ 'payment.status': 1, createdAt: -1 });
+applicationSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Application', applicationSchema); 

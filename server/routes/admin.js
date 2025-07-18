@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const PDFGenerator = require('../utils/pdfGenerator');
 const fs = require('fs');
+const DatabaseOptimizer = require('../utils/databaseOptimizer');
 
 // Middleware to check if admin
 const isAdmin = (req, res, next) => {
@@ -29,24 +30,86 @@ router.get('/debug', isAdmin, (req, res) => {
   res.json({ message: 'Admin authentication working', token: req.headers['x-admin-token'] });
 });
 
-// Get all applicants (users)
+// Get all applicants (users) with optimization
 router.get('/applicants', isAdmin, async (req, res) => {
   try {
-    const applicants = await User.find({}, '-password').sort({ createdAt: -1 });
-    res.json(applicants);
+    const { page = 1, limit = 20, search = '' } = req.query;
+    
+    let query = User.find({}, '-password');
+    
+    // Add search functionality
+    if (search) {
+      query = query.find({
+        $or: [
+          { email: { $regex: search, $options: 'i' } },
+          { name: { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+    
+    // Add sorting and pagination
+    query = DatabaseOptimizer.addSorting(query, 'createdAt', 'desc');
+    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    
+    // Optimize query
+    const applicants = await DatabaseOptimizer.optimizeQuery(query);
+    
+    // Get total count
+    const total = await User.countDocuments(search ? {
+      $or: [
+        { email: { $regex: search, $options: 'i' } },
+        { name: { $regex: search, $options: 'i' } }
+      ]
+    } : {});
+    
+    res.json({
+      applicants,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('Error fetching applicants:', error);
     res.status(500).json({ error: 'Failed to fetch applicants' });
   }
 });
 
-// Get all applications
+// Get all applications with optimization
 router.get('/applications', isAdmin, async (req, res) => {
   try {
-    const applications = await Application.find({})
-      .populate('userId', 'email name')
-      .sort({ createdAt: -1 });
-    res.json(applications);
+    const { page = 1, limit = 20, status, courseType, category } = req.query;
+    
+    // Create optimized query with filters
+    const filters = DatabaseOptimizer.createCompoundQuery({
+      status,
+      courseType,
+      category
+    });
+    
+    let query = Application.find(filters).populate('userId', 'email name');
+    
+    // Add sorting and pagination
+    query = DatabaseOptimizer.addSorting(query, 'createdAt', 'desc');
+    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    
+    // Optimize query
+    const applications = await DatabaseOptimizer.optimizeQuery(query);
+    
+    // Get total count
+    const total = await Application.countDocuments(filters);
+    
+    res.json({
+      applications,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('Error fetching applications:', error);
     res.status(500).json({ error: 'Failed to fetch applications' });
