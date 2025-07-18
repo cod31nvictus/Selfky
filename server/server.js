@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
+const S3Service = require('./utils/s3Service');
 
 
 const app = express();
@@ -26,21 +27,21 @@ app.use(fileUpload({
   }
 }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve uploaded files with error handling
-app.get('/uploads/:filename', (req, res) => {
-  const filename = req.params.filename;
-  const filepath = path.join(__dirname, 'uploads', filename);
-  
-  // Check if file exists
-  if (!fs.existsSync(filepath)) {
-    return res.status(404).json({ error: 'File not found' });
+// S3 file serving endpoint
+app.get('/api/files/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const result = await S3Service.getSignedUrl(key);
+    
+    if (result.success) {
+      res.json({ url: result.url });
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
+  } catch (error) {
+    console.error('Error serving file:', error);
+    res.status(500).json({ error: 'Failed to serve file' });
   }
-  
-  // Serve the file
-  res.sendFile(filepath);
 });
 
 // Health check route

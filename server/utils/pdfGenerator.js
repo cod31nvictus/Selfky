@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const S3Service = require('./s3Service');
 
 class PDFGenerator {
   constructor() {
@@ -184,6 +185,22 @@ class PDFGenerator {
         .font('Helvetica')
         .text(row[1], x + colWidth + 5, rowY + 5);
     });
+  }
+
+  // Helper method to fetch image from S3
+  async fetchImageFromS3(imageKey) {
+    try {
+      const result = await S3Service.downloadFile(imageKey);
+      if (result.success) {
+        return result.data;
+      } else {
+        console.error('Failed to fetch image from S3:', result.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching image from S3:', error);
+      return null;
+    }
   }
 
   // Generate invigilator sheet (for admin)
