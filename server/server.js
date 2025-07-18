@@ -129,15 +129,15 @@ const startServer = async () => {
     
     console.log('MongoDB connected with optimizations');
 
-    // Initialize Redis client
-    console.log('Initializing Redis client...');
-    try {
-      await createRedisClient();
-      console.log('Redis client initialized successfully');
-    } catch (error) {
-      console.error('❌ Redis client initialization failed:', error);
-      throw error;
-    }
+    // Initialize Redis client (temporarily disabled for debugging)
+    console.log('Skipping Redis client initialization for debugging...');
+    // try {
+    //   await createRedisClient();
+    //   console.log('Redis client initialized successfully');
+    // } catch (error) {
+    //   console.error('❌ Redis client initialization failed:', error);
+    //   throw error;
+    // }
 
     console.log(`Starting HTTP server on port ${PORT}...`);
     app.listen(PORT, () => {
