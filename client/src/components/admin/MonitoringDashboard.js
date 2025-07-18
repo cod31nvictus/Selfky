@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { adminAPI } from '../../services/api';
 import './MonitoringDashboard.css';
 
 const MonitoringDashboard = () => {
@@ -16,11 +16,8 @@ const MonitoringDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.get('/api/monitoring/dashboard', {
-        headers: { 'x-admin-token': token }
-      });
-      setDashboardData(response.data.data);
+      const response = await adminAPI.getMonitoringDashboard();
+      setDashboardData(response.data);
       setError(null);
     } catch (err) {
       setError('Failed to fetch monitoring data');
