@@ -5,51 +5,41 @@ const logger = require('../utils/logger');
 const redisConfig = {
   // Production (ElastiCache)
   production: {
-    host: process.env.REDIS_HOST || 'clustercfg.selfky-redis-cache.ncv2gn.eun1.cache.amazonaws.com',
-    port: parseInt(process.env.REDIS_PORT) || 6379,
-    password: process.env.REDIS_PASSWORD || null,
-    retry_strategy: (options) => {
-      if (options.error && options.error.code === 'ECONNREFUSED') {
-        logger.error('Redis server refused connection');
-        return new Error('Redis server refused connection');
+    socket: {
+      host: process.env.REDIS_HOST || 'clustercfg.selfky-redis-cache.ncv2gn.eun1.cache.amazonaws.com',
+      port: parseInt(process.env.REDIS_PORT) || 6379,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+      reconnectStrategy: (retries) => {
+        if (retries > 10) {
+          logger.error('Redis max retry attempts reached');
+          return false;
+        }
+        return Math.min(retries * 100, 3000);
       }
-      if (options.total_retry_time > 1000 * 60 * 60) {
-        logger.error('Redis retry time exhausted');
-        return new Error('Redis retry time exhausted');
-      }
-      if (options.attempt > 10) {
-        logger.error('Redis max retry attempts reached');
-        return undefined;
-      }
-      return Math.min(options.attempt * 100, 3000);
     },
-    max_attempts: 3,
-    connect_timeout: 10000,
-    command_timeout: 5000,
-    lazyConnect: true
+    password: process.env.REDIS_PASSWORD || null,
+    retryDelayOnFailover: 100,
+    maxRetriesPerRequest: 3
   },
   
   // Development (Local Redis)
   development: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT) || 6379,
-    password: process.env.REDIS_PASSWORD || null,
-    retry_strategy: (options) => {
-      if (options.error && options.error.code === 'ECONNREFUSED') {
-        return new Error('Redis server refused connection');
+    socket: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT) || 6379,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+      reconnectStrategy: (retries) => {
+        if (retries > 10) {
+          return false;
+        }
+        return Math.min(retries * 100, 3000);
       }
-      if (options.total_retry_time > 1000 * 60 * 60) {
-        return new Error('Redis retry time exhausted');
-      }
-      if (options.attempt > 10) {
-        return undefined;
-      }
-      return Math.min(options.attempt * 100, 3000);
     },
-    max_attempts: 3,
-    connect_timeout: 10000,
-    command_timeout: 5000,
-    lazyConnect: true
+    password: process.env.REDIS_PASSWORD || null,
+    retryDelayOnFailover: 100,
+    maxRetriesPerRequest: 3
   }
 };
 
@@ -59,7 +49,7 @@ function getRedisConfig() {
   const config = redisConfig[env] || redisConfig.development;
   
   // Log the configuration being used
-  logger.info(`Redis config for ${env}: ${config.host}:${config.port}`);
+  logger.info(`Redis config for ${env}: ${config.socket.host}:${config.socket.port}`);
   
   return config;
 }
