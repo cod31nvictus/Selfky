@@ -108,25 +108,31 @@ require('./scheduledTasks');
 // Start server with optimized database connection
 const startServer = async () => {
   try {
+    console.log('Starting server initialization...');
+    
     // Connect to database (Atlas or local)
+    console.log('Connecting to database...');
     await connectToDatabase();
     
     // Use optimized database connection for additional features
+    console.log('Optimizing database connection...');
     const dbOptimizer = new DatabaseOptimizer();
     await dbOptimizer.optimizeConnection();
     
     console.log('MongoDB connected with optimizations');
 
     // Initialize Redis client
+    console.log('Initializing Redis client...');
     await createRedisClient();
     console.log('Redis client initialized');
 
+    console.log(`Starting HTTP server on port ${PORT}...`);
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
     });
 
   } catch (error) {
-    console.error('Error starting server:', error);
+    console.error('❌ Error starting server:', error);
     process.exit(1);
   }
 };
