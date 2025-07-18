@@ -52,9 +52,11 @@ const dbConfig = {
   }
 };
 
+// Determine which database to use
+const useAtlas = process.env.USE_MONGODB_ATLAS === 'true';
+
 // Get the appropriate database configuration
 const getDbConfig = () => {
-  const useAtlas = process.env.USE_MONGODB_ATLAS === 'true';
   return useAtlas ? dbConfig.atlas : dbConfig.local;
 };
 
