@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const S3Service = require('./utils/s3Service');
-
+const DatabaseOptimizer = require('./utils/databaseOptimizer');
 
 const app = express();
 
@@ -44,19 +44,46 @@ app.get('/api/files/:key', async (req, res) => {
   }
 });
 
-// Health check route
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    worker: process.pid,
-    uptime: process.uptime()
-  });
+// Enhanced health check route with database status
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbOptimizer = new DatabaseOptimizer();
+    const dbHealth = await dbOptimizer.healthCheck();
+    
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      worker: process.pid,
+      uptime: process.uptime(),
+      database: dbHealth,
+      memory: process.memoryUsage()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Database performance monitoring endpoint
+app.get('/api/db/stats', async (req, res) => {
+  try {
+    const dbOptimizer = new DatabaseOptimizer();
+    const stats = dbOptimizer.getConnectionStats();
+    
+    res.json({
+      connectionStats: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get database stats' });
+  }
 });
 
 // MongoDB connection
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/selfky';
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -67,17 +94,14 @@ const paymentRoutes = require('./routes/payment');
 // Import scheduled tasks
 require('./scheduledTasks');
 
-// Start server
+// Start server with optimized database connection
 const startServer = async () => {
   try {
-    // MongoDB connection with optimized settings
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/selfky', {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
-    });
+    // Use optimized database connection
+    const dbOptimizer = new DatabaseOptimizer();
+    await dbOptimizer.optimizeConnection();
     
-    console.log('MongoDB connected');
+    console.log('MongoDB connected with optimizations');
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

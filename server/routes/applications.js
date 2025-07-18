@@ -9,6 +9,7 @@ const emailService = require('../utils/emailService');
 const PDFGenerator = require('../utils/pdfGenerator');
 const { processUploadedImage } = require('../utils/imageProcessor');
 const S3Service = require('../utils/s3Service');
+const DatabaseOptimizer = require('../utils/databaseOptimizer');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -33,10 +34,12 @@ const generateApplicationNumber = async (courseType) => {
   const prefix = courseType === 'bpharm' ? 'BPH' : 'MPH';
   const year = '25';
   
-  // Find the last application number for this course type
-  const lastApplication = await Application.findOne({
-    applicationNumber: new RegExp(`^${prefix}${year}`)
-  }).sort({ applicationNumber: -1 });
+  // Find the last application number for this course type with optimized query
+  const lastApplication = await DatabaseOptimizer.optimizeQuery(
+    Application.findOne({
+      applicationNumber: new RegExp(`^${prefix}${year}`)
+    }).sort({ applicationNumber: -1 })
+  );
 
   let nextNumber = 1;
   if (lastApplication) {
@@ -47,25 +50,48 @@ const generateApplicationNumber = async (courseType) => {
   return `${prefix}${year}${nextNumber.toString().padStart(4, '0')}`;
 };
 
-// Get all applications for a user
+// Get all applications for a user with optimization
 router.get('/my-applications', authenticateToken, async (req, res) => {
   try {
-    const applications = await Application.find({ userId: req.user.id })
-      .sort({ createdAt: -1 });
+    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
-    res.json(applications);
+    let query = Application.find({ userId: req.user.id });
+    
+    // Add sorting
+    query = DatabaseOptimizer.addSorting(query, sortBy, sortOrder);
+    
+    // Add pagination
+    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    
+    // Optimize query with lean()
+    const applications = await DatabaseOptimizer.optimizeQuery(query);
+    
+    // Get total count for pagination
+    const total = await Application.countDocuments({ userId: req.user.id });
+    
+    res.json({
+      applications,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch applications' });
   }
 });
 
-// Get a specific application
+// Get a specific application with optimization
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const application = await Application.findOne({
-      _id: req.params.id,
-      userId: req.user.id
-    });
+    const application = await DatabaseOptimizer.optimizeQuery(
+      Application.findOne({
+        _id: req.params.id,
+        userId: req.user.id
+      })
+    );
 
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
