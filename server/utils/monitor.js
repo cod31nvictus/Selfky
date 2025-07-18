@@ -1,5 +1,5 @@
 const logger = require('./logger');
-const redis = require('../config/redis');
+const { getRedisClient } = require('../config/redis');
 
 class ApplicationMonitor {
   constructor() {
@@ -168,7 +168,8 @@ class ApplicationMonitor {
 
       // Check Redis connection
       try {
-        await redis.ping();
+        const redisClient = getRedisClient();
+        await redisClient.ping();
         this.updateRedisStatus(true);
       } catch (error) {
         this.updateRedisStatus(false);

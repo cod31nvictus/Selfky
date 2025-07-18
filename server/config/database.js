@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 const dbConfig = {
   // MongoDB Atlas connection string
   atlas: {
-    uri: process.env.MONGODB_ATLAS_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.xxxxx.mongodb.net/selfky?retryWrites=true&w=majority',
+    uri: process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.xxxxx.mongodb.net/selfky?retryWrites=true&w=majority',
     options: {
       // Connection pooling
       maxPoolSize: 20,
@@ -53,7 +53,7 @@ const dbConfig = {
 };
 
 // Determine which database to use
-const useAtlas = process.env.USE_MONGODB_ATLAS === 'true';
+const useAtlas = process.env.MONGODB_URI && process.env.MONGODB_URI.includes('mongodb+srv');
 
 // Get the appropriate database configuration
 const getDbConfig = () => {
