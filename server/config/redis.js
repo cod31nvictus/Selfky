@@ -6,7 +6,7 @@ const redisConfig = {
   // Production (ElastiCache)
   production: {
     host: process.env.REDIS_HOST || 'clustercfg.selfky-redis-cache.ncv2gn.eun1.cache.amazonaws.com',
-    port: process.env.REDIS_PORT || 6379,
+    port: parseInt(process.env.REDIS_PORT) || 6379,
     password: process.env.REDIS_PASSWORD || null,
     retry_strategy: (options) => {
       if (options.error && options.error.code === 'ECONNREFUSED') {
@@ -32,7 +32,7 @@ const redisConfig = {
   // Development (Local Redis)
   development: {
     host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
+    port: parseInt(process.env.REDIS_PORT) || 6379,
     password: process.env.REDIS_PASSWORD || null,
     retry_strategy: (options) => {
       if (options.error && options.error.code === 'ECONNREFUSED') {
@@ -56,7 +56,12 @@ const redisConfig = {
 // Get Redis configuration based on environment
 function getRedisConfig() {
   const env = process.env.NODE_ENV || 'development';
-  return redisConfig[env] || redisConfig.development;
+  const config = redisConfig[env] || redisConfig.development;
+  
+  // Log the configuration being used
+  logger.info(`Redis config for ${env}: ${config.host}:${config.port}`);
+  
+  return config;
 }
 
 // Create Redis client
