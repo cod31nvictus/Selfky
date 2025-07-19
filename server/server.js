@@ -112,6 +112,15 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 
+// Serve static files from React build in production (AFTER API routes)
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+}
+
 // Start server with optimized database connection
 const startServer = async () => {
   try {
@@ -158,15 +167,6 @@ if (process.env.NODE_ENV === 'production') {
   const { startScheduledTasks } = require('./scheduledTasks');
   startScheduledTasks();
   console.log('Scheduled tasks started');
-}
-
-// Serve static files from React build in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
 }
 
 // Graceful shutdown
