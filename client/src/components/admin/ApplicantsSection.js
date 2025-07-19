@@ -18,6 +18,11 @@ const ApplicantsSection = () => {
   }, []);
 
   useEffect(() => {
+    if (!Array.isArray(applicants)) {
+      setFilteredApplicants([]);
+      return;
+    }
+    
     const filtered = applicants.filter(applicant =>
       applicant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       applicant.name?.toLowerCase().includes(searchTerm.toLowerCase())
