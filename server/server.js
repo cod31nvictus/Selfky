@@ -58,35 +58,75 @@ app.get('/api/s3/:key(*)', async (req, res) => {
   try {
     const { key } = req.params;
     
+    // Try different path combinations since files might be stored with just filename
+    const possibleKeys = [
+      key, // Try as-is
+      `photos/${key}`, // Try with photos folder
+      `signatures/${key}`, // Try with signatures folder
+      `certificates/${key}` // Try with certificates folder
+    ];
+    
     // Get the file from S3
     const s3 = new AWS.S3();
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME || 'selfky-applications-2025',
-      Key: key
-    };
+    let s3Object = null;
+    let foundKey = null;
     
-    const s3Object = await s3.getObject(params).promise();
+    for (const testKey of possibleKeys) {
+      try {
+        const params = {
+          Bucket: process.env.S3_BUCKET_NAME || 'selfky-applications-2025',
+          Key: testKey
+        };
+        
+        s3Object = await s3.getObject(params).promise();
+        foundKey = testKey;
+        break;
+      } catch (error) {
+        if (error.code === 'NoSuchKey') {
+          continue; // Try next key
+        } else {
+          throw error; // Re-throw other errors
+        }
+      }
+    }
     
-    // Set appropriate content type based on file extension
-    let contentType = 'application/octet-stream';
-    if (key.endsWith('.jpg') || key.endsWith('.jpeg')) {
-      contentType = 'image/jpeg';
-    } else if (key.endsWith('.png')) {
-      contentType = 'image/png';
-    } else if (key.endsWith('.pdf')) {
-      contentType = 'application/pdf';
+    if (!s3Object) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Set proper content type based on file extension
+    let contentType = s3Object.ContentType;
+    if (!contentType) {
+      const ext = foundKey.split('.').pop().toLowerCase();
+      switch (ext) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case 'png':
+          contentType = 'image/png';
+          break;
+        case 'pdf':
+          contentType = 'application/pdf';
+          break;
+        default:
+          contentType = 'application/octet-stream';
+      }
     }
     
     // Set headers
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Length', s3Object.ContentLength);
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.set({
+      'Content-Type': contentType,
+      'Content-Length': s3Object.ContentLength,
+      'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      'Access-Control-Allow-Origin': '*'
+    });
     
     // Send the file
     res.send(s3Object.Body);
   } catch (error) {
     console.error('Error serving S3 file:', error);
-    res.status(404).json({ error: 'File not found' });
+    res.status(500).json({ error: 'Failed to serve file' });
   }
 });
 
