@@ -26,37 +26,59 @@ const Dashboard = () => {
   const loadApplications = async () => {
     try {
       const response = await applicationAPI.getMyApplications();
-      setApplications(response);
+      console.log('API Response:', response); // Debug log
+      
+      // Handle different response structures
+      let applicationsData = [];
+      if (response && typeof response === 'object') {
+        if (Array.isArray(response)) {
+          // Direct array response
+          applicationsData = response;
+        } else if (response.applications && Array.isArray(response.applications)) {
+          // Object with applications array
+          applicationsData = response.applications;
+        } else {
+          // Fallback to empty array
+          applicationsData = [];
+        }
+      }
+      
+      setApplications(applicationsData);
     } catch (error) {
       console.error('Error loading applications:', error);
+      setApplications([]);
     } finally {
       setLoading(false);
     }
   };
 
   const getApplicationStatus = (courseType) => {
-    const application = applications.find(app => app.courseType === courseType);
-    if (!application) return null;
+    if (!Array.isArray(applications) || applications.length === 0) return null;
     
-    switch (application.payment.status) {
-      case 'pending':
-        return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
-      case 'completed':
-        return { status: 'completed', text: 'Payment Completed', color: 'green' };
-      case 'failed':
-        return { status: 'failed', text: 'Payment Failed', color: 'red' };
-      case 'cancelled':
-        return { status: 'cancelled', text: 'Payment Cancelled', color: 'gray' };
-      default:
-        return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
+    try {
+      const application = applications.find(app => app && app.courseType === courseType);
+      if (!application || !application.payment) return null;
+      
+      switch (application.payment.status) {
+        case 'pending':
+          return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
+        case 'completed':
+          return { status: 'completed', text: 'Payment Completed', color: 'green' };
+        case 'failed':
+          return { status: 'failed', text: 'Payment Failed', color: 'red' };
+        case 'cancelled':
+          return { status: 'cancelled', text: 'Payment Cancelled', color: 'gray' };
+        default:
+          return { status: 'pending', text: 'Payment Pending', color: 'yellow' };
+      }
+    } catch (error) {
+      console.error('Error getting application status:', error);
+      return null;
     }
   };
 
   const getApplicationButton = (courseType) => {
-    const application = applications.find(app => app.courseType === courseType);
-    const status = getApplicationStatus(courseType);
-
-    if (!application) {
+    if (!Array.isArray(applications) || applications.length === 0) {
       return (
         <Link to={`/apply/${courseType}`}>
           <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
@@ -65,8 +87,39 @@ const Dashboard = () => {
         </Link>
       );
     }
+    
+    try {
+      const application = applications.find(app => app && app.courseType === courseType);
+      const status = getApplicationStatus(courseType);
 
-    if (status?.status === 'completed') {
+      if (!application) {
+        return (
+          <Link to={`/apply/${courseType}`}>
+            <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
+              Apply Now
+            </button>
+          </Link>
+        );
+      }
+
+      if (status?.status === 'completed') {
+        return (
+          <div className="space-y-2">
+            <div className="text-center">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
+                {status.text}
+              </span>
+            </div>
+            <button 
+              onClick={() => navigate(`/admit-card/${application._id}`)}
+              className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200"
+            >
+              View Admit Card
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div className="space-y-2">
           <div className="text-center">
@@ -74,39 +127,32 @@ const Dashboard = () => {
               {status.text}
             </span>
           </div>
-          <button 
-            onClick={() => navigate(`/admit-card/${application._id}`)}
-            className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200"
-          >
-            View Admit Card
-          </button>
+          <div className="space-y-2">
+            <button 
+              onClick={() => navigate(`/application/${application._id}`)}
+              className="w-full bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 text-sm"
+            >
+              View Application
+            </button>
+            <button 
+              onClick={() => navigate(`/payment/${application._id}`)}
+              className="w-full bg-[#101418] text-white py-2 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200 text-sm"
+            >
+              Complete Payment
+            </button>
+          </div>
         </div>
       );
+    } catch (error) {
+      console.error('Error getting application button:', error);
+      return (
+        <Link to={`/apply/${courseType}`}>
+          <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
+            Apply Now
+          </button>
+        </Link>
+      );
     }
-
-    return (
-      <div className="space-y-2">
-        <div className="text-center">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
-            {status.text}
-          </span>
-        </div>
-        <div className="space-y-2">
-          <button 
-            onClick={() => navigate(`/application/${application._id}`)}
-            className="w-full bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 text-sm"
-          >
-            View Application
-          </button>
-          <button 
-            onClick={() => navigate(`/payment/${application._id}`)}
-            className="w-full bg-[#101418] text-white py-2 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200 text-sm"
-          >
-            Complete Payment
-          </button>
-        </div>
-      </div>
-    );
   };
 
   if (loading) {
