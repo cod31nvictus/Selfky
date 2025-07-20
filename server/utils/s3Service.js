@@ -16,7 +16,11 @@ class S3Service {
   // Upload file to S3
   static async uploadFile(file, folder = 'uploads') {
     try {
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+      // Generate a unique filename with proper extension
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(7);
+      const extension = file.mimetype === 'application/pdf' ? 'pdf' : 'jpg';
+      const fileName = `${folder}/${timestamp}-${randomId}.${extension}`;
       
       const params = {
         Bucket: BUCKET_NAME,
@@ -34,6 +38,14 @@ class S3Service {
       };
     } catch (error) {
       console.error('S3 upload error:', error);
+      console.error('S3 upload details:', {
+        bucket: BUCKET_NAME,
+        folder: folder,
+        mimetype: file.mimetype,
+        dataSize: file.data ? file.data.length : 'undefined',
+        errorCode: error.code,
+        errorMessage: error.message
+      });
       return {
         success: false,
         error: error.message
