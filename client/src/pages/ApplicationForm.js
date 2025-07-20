@@ -84,7 +84,9 @@ const ApplicationForm = () => {
 
   const checkExistingApplication = async () => {
     try {
-      const applications = await applicationAPI.getMyApplications();
+      const response = await applicationAPI.getMyApplications();
+      // Handle both paginated and direct response formats
+      const applications = response.applications || response;
       const existing = applications.find(app => app.courseType === courseType);
       
       if (existing) {
