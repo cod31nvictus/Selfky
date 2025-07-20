@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminAPI } from '../services/api';
+import DocumentViewer from '../components/admin/DocumentViewer';
 
 const AdminApplicantDashboard = () => {
   const { userId } = useParams();
@@ -198,6 +199,14 @@ const AdminApplicantDashboard = () => {
                       </button>
                     )}
                   </div>
+                  
+                  {/* Documents Section */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <DocumentViewer 
+                      documents={bpharmApplication.documents}
+                      applicationNumber={bpharmApplication.applicationNumber}
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -247,6 +256,14 @@ const AdminApplicantDashboard = () => {
                         Continue Application
                       </button>
                     )}
+                  </div>
+                  
+                  {/* Documents Section */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <DocumentViewer 
+                      documents={mpharmApplication.documents}
+                      applicationNumber={mpharmApplication.applicationNumber}
+                    />
                   </div>
                 </div>
               ) : (

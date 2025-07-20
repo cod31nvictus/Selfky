@@ -54,7 +54,10 @@ const ApplicationForm = () => {
     placeOfApplication: '',
     category: 'General',
     photo: null,
-    signature: null
+    signature: null,
+    categoryCertificate: null,
+    highSchoolCertificate: null,
+    intermediateCertificate: null
   });
   const [loading, setLoading] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
@@ -362,7 +365,10 @@ const ApplicationForm = () => {
           category: formData.category,
           dateOfBirth: formData.dateOfBirth,
           photo: formData.photo,
-          signature: formData.signature
+          signature: formData.signature,
+          categoryCertificate: formData.categoryCertificate,
+          highSchoolCertificate: formData.highSchoolCertificate,
+          intermediateCertificate: formData.intermediateCertificate
         };
 
         // Create application in database
@@ -1099,6 +1105,102 @@ const ApplicationForm = () => {
                 <p className="mt-2 text-xs text-gray-500">
                   📁 Formats: JPG, PNG | Images will be automatically optimized
                 </p>
+              </div>
+            </div>
+
+            {/* Additional Documents (Optional) */}
+            <div className="mt-6">
+              <h4 className="text-md font-medium text-[#101418] mb-4">Additional Documents (Optional)</h4>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Category Certificate */}
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    Category Certificate
+                  </label>
+                  <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                    <input
+                      type="file"
+                      name="categoryCertificate"
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      id="category-certificate-upload"
+                      disabled={!isStepEditable(1) || loading}
+                    />
+                    <label htmlFor="category-certificate-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                      <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {formData.categoryCertificate ? formData.categoryCertificate.name : 
+                         (existingApplication?.documents?.categoryCertificate ? 'Category Certificate uploaded ✓' : 'Click to upload')}
+                      </p>
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    📁 Formats: JPG, PNG, PDF | Optional
+                  </p>
+                </div>
+
+                {/* High School Certificate */}
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    High School Certificate
+                  </label>
+                  <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                    <input
+                      type="file"
+                      name="highSchoolCertificate"
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      id="high-school-certificate-upload"
+                      disabled={!isStepEditable(1) || loading}
+                    />
+                    <label htmlFor="high-school-certificate-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                      <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {formData.highSchoolCertificate ? formData.highSchoolCertificate.name : 
+                         (existingApplication?.documents?.highSchoolCertificate ? 'High School Certificate uploaded ✓' : 'Click to upload')}
+                      </p>
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    📁 Formats: JPG, PNG, PDF | Optional
+                  </p>
+                </div>
+
+                {/* 10+2 Certificate */}
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    10+2 Certificate
+                  </label>
+                  <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                    <input
+                      type="file"
+                      name="intermediateCertificate"
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      id="intermediate-certificate-upload"
+                      disabled={!isStepEditable(1) || loading}
+                    />
+                    <label htmlFor="intermediate-certificate-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                      <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {formData.intermediateCertificate ? formData.intermediateCertificate.name : 
+                         (existingApplication?.documents?.intermediateCertificate ? '10+2 Certificate uploaded ✓' : 'Click to upload')}
+                      </p>
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    📁 Formats: JPG, PNG, PDF | Optional
+                  </p>
+                </div>
               </div>
             </div>
           </div>

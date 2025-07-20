@@ -231,6 +231,9 @@ router.post('/applications', isAdmin, async (req, res) => {
     // Handle file uploads
     let photoPath = '';
     let signaturePath = '';
+    let categoryCertificatePath = '';
+    let highSchoolCertificatePath = '';
+    let intermediateCertificatePath = '';
     
     if (req.files && req.files.photo) {
       const photo = req.files.photo;
@@ -242,6 +245,25 @@ router.post('/applications', isAdmin, async (req, res) => {
       const signature = req.files.signature;
       signaturePath = `/uploads/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
       await signature.mv(`./uploads${signaturePath}`);
+    }
+
+    // Handle optional documents
+    if (req.files && req.files.categoryCertificate) {
+      const categoryCertificate = req.files.categoryCertificate;
+      categoryCertificatePath = `/uploads/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
+      await categoryCertificate.mv(`./uploads${categoryCertificatePath}`);
+    }
+    
+    if (req.files && req.files.highSchoolCertificate) {
+      const highSchoolCertificate = req.files.highSchoolCertificate;
+      highSchoolCertificatePath = `/uploads/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
+      await highSchoolCertificate.mv(`./uploads${highSchoolCertificatePath}`);
+    }
+    
+    if (req.files && req.files.intermediateCertificate) {
+      const intermediateCertificate = req.files.intermediateCertificate;
+      intermediateCertificatePath = `/uploads/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
+      await intermediateCertificate.mv(`./uploads${intermediateCertificatePath}`);
     }
 
     // Calculate fee
@@ -268,7 +290,10 @@ router.post('/applications', isAdmin, async (req, res) => {
       },
       documents: {
         photo: photoPath,
-        signature: signaturePath
+        signature: signaturePath,
+        categoryCertificate: categoryCertificatePath || null,
+        highSchoolCertificate: highSchoolCertificatePath || null,
+        intermediateCertificate: intermediateCertificatePath || null
       },
       payment: {
         amount: fee,
@@ -313,6 +338,28 @@ router.put('/applications/:applicationId', isAdmin, async (req, res) => {
       const signaturePath = `/uploads/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
       await signature.mv(`./uploads${signaturePath}`);
       application.documents.signature = signaturePath;
+    }
+
+    // Handle optional documents
+    if (req.files && req.files.categoryCertificate) {
+      const categoryCertificate = req.files.categoryCertificate;
+      const categoryCertificatePath = `/uploads/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
+      await categoryCertificate.mv(`./uploads${categoryCertificatePath}`);
+      application.documents.categoryCertificate = categoryCertificatePath;
+    }
+    
+    if (req.files && req.files.highSchoolCertificate) {
+      const highSchoolCertificate = req.files.highSchoolCertificate;
+      const highSchoolCertificatePath = `/uploads/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
+      await highSchoolCertificate.mv(`./uploads${highSchoolCertificatePath}`);
+      application.documents.highSchoolCertificate = highSchoolCertificatePath;
+    }
+    
+    if (req.files && req.files.intermediateCertificate) {
+      const intermediateCertificate = req.files.intermediateCertificate;
+      const intermediateCertificatePath = `/uploads/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
+      await intermediateCertificate.mv(`./uploads${intermediateCertificatePath}`);
+      application.documents.intermediateCertificate = intermediateCertificatePath;
     }
 
     // Update fields

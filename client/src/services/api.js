@@ -95,6 +95,17 @@ export const applicationAPI = {
     data.append('dateOfBirth', formData.dateOfBirth);
     data.append('photo', formData.photo);
     data.append('signature', formData.signature);
+    
+    // Add optional documents if they exist
+    if (formData.categoryCertificate) {
+      data.append('categoryCertificate', formData.categoryCertificate);
+    }
+    if (formData.highSchoolCertificate) {
+      data.append('highSchoolCertificate', formData.highSchoolCertificate);
+    }
+    if (formData.intermediateCertificate) {
+      data.append('intermediateCertificate', formData.intermediateCertificate);
+    }
 
     const response = await fetch(`${API_BASE_URL}/applications`, {
       method: 'POST',
@@ -211,6 +222,9 @@ export const adminAPI = {
     data.append('dateOfBirth', formData.get('dateOfBirth'));
     if (formData.get('photo')) data.append('photo', formData.get('photo'));
     if (formData.get('signature')) data.append('signature', formData.get('signature'));
+    if (formData.get('categoryCertificate')) data.append('categoryCertificate', formData.get('categoryCertificate'));
+    if (formData.get('highSchoolCertificate')) data.append('highSchoolCertificate', formData.get('highSchoolCertificate'));
+    if (formData.get('intermediateCertificate')) data.append('intermediateCertificate', formData.get('intermediateCertificate'));
 
     return fetch(`${API_BASE_URL}/admin/applications`, {
       method: 'POST',
@@ -233,6 +247,9 @@ export const adminAPI = {
     data.append('dateOfBirth', formData.get('dateOfBirth'));
     if (formData.get('photo')) data.append('photo', formData.get('photo'));
     if (formData.get('signature')) data.append('signature', formData.get('signature'));
+    if (formData.get('categoryCertificate')) data.append('categoryCertificate', formData.get('categoryCertificate'));
+    if (formData.get('highSchoolCertificate')) data.append('highSchoolCertificate', formData.get('highSchoolCertificate'));
+    if (formData.get('intermediateCertificate')) data.append('intermediateCertificate', formData.get('intermediateCertificate'));
 
     return fetch(`${API_BASE_URL}/admin/applications/${applicationId}`, {
       method: 'PUT',

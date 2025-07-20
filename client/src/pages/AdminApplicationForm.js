@@ -327,6 +327,54 @@ const AdminApplicationForm = () => {
                   </div>
                 </div>
 
+                {/* Additional Documents (Optional) */}
+                <div className="mt-6">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Additional Documents (Optional)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Category Certificate
+                      </label>
+                      <input
+                        type="file"
+                        name="categoryCertificate"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload category certificate (optional)</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        High School Certificate
+                      </label>
+                      <input
+                        type="file"
+                        name="highSchoolCertificate"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload high school certificate (optional)</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        10+2 Certificate
+                      </label>
+                      <input
+                        type="file"
+                        name="intermediateCertificate"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload 10+2 certificate (optional)</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex justify-between">
                   <button
                     onClick={handlePrevious}
