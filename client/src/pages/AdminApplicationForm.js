@@ -29,7 +29,7 @@ const AdminApplicationForm = () => {
       
       // Get user details
       const userResponse = await adminAPI.getApplicants();
-      const userData = userResponse.find(u => u._id === userId);
+      const userData = (userResponse.applicants || userResponse).find(u => u._id === userId);
       setUser(userData);
 
       // If editing existing application
