@@ -106,12 +106,30 @@ const Payment = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('Payment order creation failed:', data);
+        if (data.error && data.error.includes('not configured')) {
+          throw new Error('Payment service is temporarily unavailable. Please try again later or contact support.');
+        }
         throw new Error(data.error || 'Failed to create payment order');
       }
 
-      // Initialize Razorpay directly here
+      // Check if this is a mock order for testing
+      if (data.order.id && data.order.id.startsWith('mock_order_')) {
+        console.log('Using mock payment for testing');
+        // For mock payments, simulate success immediately
+        setTimeout(() => {
+          verifyPayment({
+            razorpay_order_id: data.order.id,
+            razorpay_payment_id: 'mock_payment_id',
+            razorpay_signature: 'mock_signature'
+          });
+        }, 2000); // Simulate 2 second delay
+        return;
+      }
+
+      // Initialize Razorpay with backend-provided key
       const options = {
-        key: 'rzp_live_JNqhifD5U57fhJ', // Live Razorpay key
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_live_JNqhifD5U57fhJ', // Use environment variable or fallback
         amount: data.order.amount,
         currency: data.order.currency,
         name: 'Selfky',
