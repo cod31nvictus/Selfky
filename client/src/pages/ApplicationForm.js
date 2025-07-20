@@ -311,8 +311,8 @@ const ApplicationForm = () => {
   const validateStep1 = () => {
     const newErrors = {};
     
-    // Required fields validation
-    const requiredFields = ['fullName', 'fathersName', 'aadharNumber', 'dateOfBirth', 'sex', 'correspondenceAddress', 'permanentAddress', 'correspondencePhone', 'qualifyingExamStatus', 'qualifyingBoard', 'qualifyingYear', 'qualifyingSubjects', 'highSchoolBoard', 'highSchoolYear', 'highSchoolSubjects', 'placeOfApplication', 'category'];
+    // Required fields validation - only check what backend actually expects
+    const requiredFields = ['fullName', 'fathersName', 'dateOfBirth', 'category'];
     
     requiredFields.forEach(field => {
       if (!formData[field]) {
@@ -320,24 +320,13 @@ const ApplicationForm = () => {
       }
     });
 
-    // Conditional validation for qualifying exam marks (only if status is 'passed')
-    if (formData.qualifyingExamStatus === 'passed') {
-      if (!formData.qualifyingMarksObtained) newErrors.qualifyingMarksObtained = 'Marks obtained is required';
-      if (!formData.qualifyingMaxMarks) newErrors.qualifyingMaxMarks = 'Maximum marks is required';
-      if (!formData.qualifyingPercentage) newErrors.qualifyingPercentage = 'Percentage is required';
-    }
-
-    // High school marks validation
-    if (!formData.highSchoolMarksObtained) newErrors.highSchoolMarksObtained = 'High school marks obtained is required';
-    if (!formData.highSchoolMaxMarks) newErrors.highSchoolMaxMarks = 'High school maximum marks is required';
-    if (!formData.highSchoolPercentage) newErrors.highSchoolPercentage = 'High school percentage is required';
-
     // File validation
     if (!formData.photo) newErrors.photo = 'Photo is required';
     if (!formData.signature) newErrors.signature = 'Signature is required';
 
-    // Custom field validations
-    Object.keys(formData).forEach(field => {
+    // Custom field validations for fields that are being sent
+    const fieldsToValidate = ['fullName', 'fathersName', 'dateOfBirth'];
+    fieldsToValidate.forEach(field => {
       if (formData[field] && validateField(field, formData[field])) {
         newErrors[field] = validateField(field, formData[field]);
       }
