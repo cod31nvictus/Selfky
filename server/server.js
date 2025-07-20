@@ -12,6 +12,7 @@ const { createRedisClient, closeRedisClient } = require('./config/redis');
 const monitor = require('./utils/monitor');
 const logger = require('./utils/logger');
 const { requestMonitor, errorMonitor } = require('./middleware/monitoring');
+const AWS = require('aws-sdk'); // Added for direct S3 serving
 
 const app = express();
 
@@ -49,6 +50,43 @@ app.get('/api/files/:key', async (req, res) => {
   } catch (error) {
     console.error('Error serving file:', error);
     res.status(500).json({ error: 'Failed to serve file' });
+  }
+});
+
+// Direct S3 file serving endpoint with proper content types
+app.get('/api/s3/:key(*)', async (req, res) => {
+  try {
+    const { key } = req.params;
+    
+    // Get the file from S3
+    const s3 = new AWS.S3();
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME || 'selfky-applications-2025',
+      Key: key
+    };
+    
+    const s3Object = await s3.getObject(params).promise();
+    
+    // Set appropriate content type based on file extension
+    let contentType = 'application/octet-stream';
+    if (key.endsWith('.jpg') || key.endsWith('.jpeg')) {
+      contentType = 'image/jpeg';
+    } else if (key.endsWith('.png')) {
+      contentType = 'image/png';
+    } else if (key.endsWith('.pdf')) {
+      contentType = 'application/pdf';
+    }
+    
+    // Set headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Length', s3Object.ContentLength);
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    
+    // Send the file
+    res.send(s3Object.Body);
+  } catch (error) {
+    console.error('Error serving S3 file:', error);
+    res.status(404).json({ error: 'File not found' });
   }
 });
 

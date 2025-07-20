@@ -6,7 +6,7 @@ const DocumentViewer = ({ documents, applicationNumber }) => {
     
     // Create a temporary link to download the file
     const link = document.createElement('a');
-    link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${documentPath.includes('/') ? documentPath.split('/').pop() : documentPath}`;
+    link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/s3/${documentPath}`;
     link.download = `${applicationNumber}_${documentName}`;
     document.body.appendChild(link);
     link.click();
