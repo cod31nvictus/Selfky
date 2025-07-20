@@ -285,10 +285,18 @@ const ApplicationForm = () => {
     const file = files[0];
     
     if (file) {
-      // Check file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      // Define allowed file types based on field name
+      let allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      let errorMessage = 'Invalid file type! Please use JPG or PNG format. Images will be automatically optimized for size.';
+      
+      // For document fields, also allow PDF files
+      if (name === 'categoryCertificate' || name === 'highSchoolCertificate' || name === 'intermediateCertificate') {
+        allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        errorMessage = 'Invalid file type! Please use JPG, PNG, or PDF format.';
+      }
+      
       if (!allowedTypes.includes(file.type)) {
-        alert(`Invalid file type! Please use JPG or PNG format. Images will be automatically optimized for size.`);
+        alert(errorMessage);
         e.target.value = ''; // Clear the input
         return;
       }
