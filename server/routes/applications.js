@@ -113,17 +113,33 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Check if files were uploaded
+    // Check if required files were uploaded
     if (!req.files || !req.files.photo || !req.files.signature) {
       return res.status(400).json({ error: 'Photo and signature are required' });
     }
 
-    // Validate file types
+    // Validate required file types
     const photo = req.files.photo;
     const signature = req.files.signature;
 
     if (!photo.mimetype.startsWith('image/') || !signature.mimetype.startsWith('image/')) {
-      return res.status(400).json({ error: 'Only image files are allowed' });
+      return res.status(400).json({ error: 'Photo and signature must be image files' });
+    }
+
+    // Handle optional documents
+    const categoryCertificate = req.files.categoryCertificate;
+    const highSchoolCertificate = req.files.highSchoolCertificate;
+    const intermediateCertificate = req.files.intermediateCertificate;
+
+    // Validate optional file types if they exist
+    if (categoryCertificate && !categoryCertificate.mimetype.startsWith('image/') && categoryCertificate.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'Category certificate must be an image or PDF file' });
+    }
+    if (highSchoolCertificate && !highSchoolCertificate.mimetype.startsWith('image/') && highSchoolCertificate.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'High school certificate must be an image or PDF file' });
+    }
+    if (intermediateCertificate && !intermediateCertificate.mimetype.startsWith('image/') && intermediateCertificate.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: '10+2 certificate must be an image or PDF file' });
     }
 
     // Process and resize images first
@@ -157,7 +173,72 @@ router.post('/', authenticateToken, async (req, res) => {
     }, 'signatures');
 
     if (!photoUpload.success || !signatureUpload.success) {
-      return res.status(500).json({ error: 'Failed to upload files to S3' });
+      return res.status(500).json({ error: 'Failed to upload required files to S3' });
+    }
+
+    // Process and upload optional documents
+    let categoryCertificateUpload = null;
+    let highSchoolCertificateUpload = null;
+    let intermediateCertificateUpload = null;
+
+    if (categoryCertificate) {
+      if (categoryCertificate.mimetype.startsWith('image/')) {
+        const categoryResult = await processUploadedImage(categoryCertificate, null, 'category.jpg');
+        if (categoryResult.success) {
+          categoryCertificateUpload = await S3Service.uploadFile({
+            data: categoryResult.processedBuffer,
+            name: `category-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        // Handle PDF directly
+        categoryCertificateUpload = await S3Service.uploadFile({
+          data: categoryCertificate.data,
+          name: `category-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+    }
+
+    if (highSchoolCertificate) {
+      if (highSchoolCertificate.mimetype.startsWith('image/')) {
+        const highSchoolResult = await processUploadedImage(highSchoolCertificate, null, 'highschool.jpg');
+        if (highSchoolResult.success) {
+          highSchoolCertificateUpload = await S3Service.uploadFile({
+            data: highSchoolResult.processedBuffer,
+            name: `highschool-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        // Handle PDF directly
+        highSchoolCertificateUpload = await S3Service.uploadFile({
+          data: highSchoolCertificate.data,
+          name: `highschool-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+    }
+
+    if (intermediateCertificate) {
+      if (intermediateCertificate.mimetype.startsWith('image/')) {
+        const intermediateResult = await processUploadedImage(intermediateCertificate, null, 'intermediate.jpg');
+        if (intermediateResult.success) {
+          intermediateCertificateUpload = await S3Service.uploadFile({
+            data: intermediateResult.processedBuffer,
+            name: `intermediate-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        // Handle PDF directly
+        intermediateCertificateUpload = await S3Service.uploadFile({
+          data: intermediateCertificate.data,
+          name: `intermediate-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
     }
 
     // Generate unique application number
@@ -176,7 +257,10 @@ router.post('/', authenticateToken, async (req, res) => {
       },
       documents: {
         photo: photoUpload.key,
-        signature: signatureUpload.key
+        signature: signatureUpload.key,
+        categoryCertificate: categoryCertificateUpload?.key || null,
+        highSchoolCertificate: highSchoolCertificateUpload?.key || null,
+        intermediateCertificate: intermediateCertificateUpload?.key || null
       },
       payment: {
         amount: category === 'General' 

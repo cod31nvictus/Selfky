@@ -28,7 +28,10 @@ const applicationSchema = new mongoose.Schema({
   },
   documents: {
     photo: { type: String, required: true }, // File path/URL
-    signature: { type: String, required: true } // File path/URL
+    signature: { type: String, required: true }, // File path/URL
+    categoryCertificate: { type: String }, // Optional - Category Certificate
+    highSchoolCertificate: { type: String }, // Optional - High School Certificate
+    intermediateCertificate: { type: String } // Optional - 10+2 Certificate
   },
   payment: {
     amount: { type: Number, required: true },
