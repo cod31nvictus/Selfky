@@ -64,59 +64,40 @@ const resizeImage = async (inputPath, outputPath, options = {}) => {
 };
 
 /**
- * Process uploaded image file
+ * Process uploaded image file in memory
  * @param {Object} file - Uploaded file object
- * @param {string} uploadDir - Directory to save processed image
+ * @param {string} uploadDir - Directory to save processed image (optional)
  * @param {string} filename - Output filename
  * @returns {Promise<Object>} - Processing result
  */
 const processUploadedImage = async (file, uploadDir, filename) => {
   try {
-    // Create temporary path for original file
-    const tempPath = path.join(uploadDir, `temp_${filename}`);
+    // Process image in memory using sharp
+    const processedBuffer = await sharp(file.data)
+      .resize(800, 800, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ quality: 80 })
+      .toBuffer();
     
-    // Save original file temporarily
-    await file.mv(tempPath);
+    // Get original and processed sizes
+    const originalSize = file.data.length;
+    const newSize = processedBuffer.length;
+    const compressionRatio = ((originalSize - newSize) / originalSize * 100).toFixed(1);
     
-    // Process the image
-    const outputPath = path.join(uploadDir, filename);
-    const result = await resizeImage(tempPath, outputPath, {
-      maxWidth: 800,
-      maxHeight: 800,
-      quality: 80
-    });
-    
-    // Clean up temporary file
-    if (fs.existsSync(tempPath)) {
-      fs.unlinkSync(tempPath);
-    }
-    
-    if (result.success) {
-      return {
-        success: true,
-        filename,
-        originalSize: result.originalSize,
-        newSize: result.newSize,
-        compressionRatio: result.compressionRatio,
-        dimensions: result.dimensions
-      };
-    } else {
-      // If processing fails, use original file
-      if (fs.existsSync(tempPath)) {
-        fs.renameSync(tempPath, outputPath);
-      }
-      return {
-        success: false,
-        filename,
-        error: result.error,
-        fallback: true
-      };
-    }
+    return {
+      success: true,
+      processedBuffer,
+      originalSize,
+      newSize,
+      compressionRatio: `${compressionRatio}%`,
+      dimensions: { width: 800, height: 800 }
+    };
   } catch (error) {
     console.error('File processing error:', error);
     return {
       success: false,
-      filename,
       error: error.message
     };
   }
