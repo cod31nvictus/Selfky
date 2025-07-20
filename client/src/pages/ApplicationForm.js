@@ -368,6 +368,19 @@ const ApplicationForm = () => {
           intermediateCertificate: formData.intermediateCertificate
         };
 
+        console.log('Sending data to backend:', {
+          courseType: apiData.courseType,
+          fullName: apiData.fullName,
+          fathersName: apiData.fathersName,
+          category: apiData.category,
+          dateOfBirth: apiData.dateOfBirth,
+          hasPhoto: !!apiData.photo,
+          hasSignature: !!apiData.signature,
+          hasCategoryCertificate: !!apiData.categoryCertificate,
+          hasHighSchoolCertificate: !!apiData.highSchoolCertificate,
+          hasIntermediateCertificate: !!apiData.intermediateCertificate
+        });
+
         // Create application in database
         const response = await applicationAPI.createApplication(apiData);
         
@@ -388,6 +401,11 @@ const ApplicationForm = () => {
         });
       } catch (error) {
         console.error('Error creating application:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response,
+          data: error.data
+        });
         
         // Handle different types of errors with specific messages
         if (error.message && error.message.includes('Unexpected token')) {
@@ -395,7 +413,9 @@ const ApplicationForm = () => {
         } else if (error.message && error.message.includes('Failed to fetch')) {
           alert('Network error. Please check your internet connection and try again.');
         } else {
-          alert('Failed to create application. Please ensure all required fields are filled and try again.');
+          // Show the actual error message from the backend if available
+          const errorMessage = error.message || 'Failed to create application. Please ensure all required fields are filled and try again.';
+          alert(errorMessage);
         }
       } finally {
         setLoading(false);
