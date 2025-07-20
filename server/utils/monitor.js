@@ -166,6 +166,22 @@ class ApplicationMonitor {
 
       this.metrics.system.uptime = Math.round((Date.now() - this.startTime) / 1000); // seconds
 
+      // Check MongoDB connection
+      try {
+        const mongoose = require('mongoose');
+        const dbState = mongoose.connection.readyState;
+        // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+        const isConnected = dbState === 1;
+        this.updateDatabaseConnections(isConnected ? 1 : 0);
+        
+        if (!isConnected) {
+          logger.warn(`Database connection state: ${dbState} (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)`);
+        }
+      } catch (error) {
+        this.updateDatabaseConnections(0);
+        logger.error('Database connection check failed:', error.message);
+      }
+
       // Check Redis connection
       try {
         const redisClient = getRedisClient();
@@ -276,12 +292,14 @@ class ApplicationMonitor {
     const isHealthy = 
       errorRate < 0.05 && // Less than 5% error rate
       this.metrics.redis.connected &&
+      this.metrics.database.connections > 0 && // Database must be connected
       this.metrics.system.memory.heapUsed < 1000; // Less than 1GB memory
 
     return {
       healthy: isHealthy,
       errorRate: (errorRate * 100).toFixed(2) + '%',
       redisConnected: this.metrics.redis.connected,
+      databaseConnected: this.metrics.database.connections > 0,
       memoryUsage: this.metrics.system.memory.heapUsed + 'MB'
     };
   }
