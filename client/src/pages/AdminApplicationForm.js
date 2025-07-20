@@ -16,7 +16,10 @@ const AdminApplicationForm = () => {
     category: 'General',
     dateOfBirth: '',
     photo: null,
-    signature: null
+    signature: null,
+    categoryCertificate: null,
+    highSchoolCertificate: null,
+    intermediateCertificate: null
   });
 
   useEffect(() => {
@@ -66,10 +69,30 @@ const AdminApplicationForm = () => {
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: files[0]
-    }));
+    const file = files[0];
+    
+    if (file) {
+      // Define allowed file types based on field name
+      let allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      let errorMessage = 'Invalid file type! Please use JPG or PNG format. Images will be automatically optimized for size.';
+      
+      // For document fields, also allow PDF files
+      if (name === 'categoryCertificate' || name === 'highSchoolCertificate' || name === 'intermediateCertificate') {
+        allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        errorMessage = 'Invalid file type! Please use JPG, PNG, or PDF format.';
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        alert(errorMessage);
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: file
+      }));
+    }
   };
 
   const handleNext = () => {
@@ -96,6 +119,9 @@ const AdminApplicationForm = () => {
       submitData.append('dateOfBirth', formData.dateOfBirth);
       if (formData.photo) submitData.append('photo', formData.photo);
       if (formData.signature) submitData.append('signature', formData.signature);
+      if (formData.categoryCertificate) submitData.append('categoryCertificate', formData.categoryCertificate);
+      if (formData.highSchoolCertificate) submitData.append('highSchoolCertificate', formData.highSchoolCertificate);
+      if (formData.intermediateCertificate) submitData.append('intermediateCertificate', formData.intermediateCertificate);
 
       if (application) {
         // Update existing application
