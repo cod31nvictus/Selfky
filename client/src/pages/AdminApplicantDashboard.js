@@ -18,12 +18,12 @@ const AdminApplicantDashboard = () => {
       setLoading(true);
       // Get user details
       const userResponse = await adminAPI.getApplicants();
-      const userData = userResponse.find(u => u._id === userId);
+      const userData = (userResponse.applicants || userResponse).find(u => u._id === userId);
       setUser(userData);
 
       // Get user's applications
       const applicationsResponse = await adminAPI.getApplications();
-      const userApplications = applicationsResponse.filter(app => app.userId._id === userId);
+      const userApplications = (applicationsResponse.applications || applicationsResponse).filter(app => app.userId._id === userId);
       setApplications(userApplications);
     } catch (error) {
       console.error('Error fetching user data:', error);

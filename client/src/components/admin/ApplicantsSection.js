@@ -34,7 +34,7 @@ const ApplicantsSection = () => {
     try {
       setLoading(true);
       const response = await adminAPI.getApplicants();
-      setApplicants(response);
+      setApplicants(response.applicants || response);
     } catch (error) {
       console.error('Error fetching applicants:', error);
     } finally {

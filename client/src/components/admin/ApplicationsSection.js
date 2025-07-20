@@ -32,7 +32,7 @@ const ApplicationsSection = () => {
     try {
       setLoading(true);
       const response = await adminAPI.getApplications();
-      setApplications(response);
+      setApplications(response.applications || response);
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
