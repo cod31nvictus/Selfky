@@ -22,8 +22,7 @@ async function createRedisClient() {
   logger.info('Creating Redis Cluster client with nodes: ' + JSON.stringify(startupNodes));
   redisClient = new Redis.Cluster(startupNodes, {
     redisOptions: {
-      // If you have TLS enabled, add tls: {} here
-      // password: process.env.REDIS_PASSWORD, // Not needed for ElastiCache default
+      tls: {}, // Enable TLS for ElastiCache encryption in transit
     },
     scaleReads: 'slave',
     slotsRefreshTimeout: 20000,
