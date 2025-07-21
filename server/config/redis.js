@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const logger = require('../utils/logger');
+const dns = require('dns');
 
 let redisClient = null;
 
@@ -21,6 +22,7 @@ async function createRedisClient() {
   const startupNodes = getRedisConfig();
   logger.info('Creating Redis Cluster client with nodes: ' + JSON.stringify(startupNodes));
   redisClient = new Redis.Cluster(startupNodes, {
+    dnsLookup: (address, callback) => dns.lookup(address, { family: 4 }, callback),
     redisOptions: {
       tls: {}, // Enable TLS for ElastiCache encryption in transit
     },
