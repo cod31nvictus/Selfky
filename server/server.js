@@ -115,25 +115,30 @@ app.get('/api/files/:key(*)', async (req, res) => {
 // Enhanced health check route with database status
 app.get('/api/health', async (req, res) => {
   try {
-    optimizeDatabase();
-    const dbHealth = optimizeDatabase.healthCheck();
+    const stats = await mongoose.connection.db.stats();
     
-    res.json({ 
-      status: 'healthy', 
+    // Get Redis status
+    let redisStatus = 'disconnected';
+    try {
+      const { getRedisClient } = require('./config/redis');
+      const redisClient = getRedisClient();
+      if (redisClient && redisClient.isReady) {
+        redisStatus = 'connected';
+      }
+    } catch (error) {
+      // Redis not available or not connected
+      redisStatus = 'disconnected';
+    }
+    
+    res.json({
+      connectionStats: stats,
       timestamp: new Date().toISOString(),
-      worker: process.pid,
-      uptime: process.uptime(),
-      database: dbHealth,
-      memory: process.memoryUsage(),
-      databaseType: 'MongoDB Atlas',
+      databaseType: process.env.USE_MONGODB_ATLAS === 'true' ? 'MongoDB Atlas' : 'Local MongoDB',
+      redis: redisStatus,
       fileStorage: 'AWS S3'
     });
   } catch (error) {
-    res.status(500).json({ 
-      status: 'unhealthy',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json({ error: 'Failed to get database stats' });
   }
 });
 
@@ -198,14 +203,15 @@ const startServer = async () => {
     console.log('MongoDB connected with optimizations');
 
     // Initialize Redis client (temporarily disabled for debugging)
-    console.log('Skipping Redis client initialization for debugging...');
-    // try {
-    //   await createRedisClient();
-    //   console.log('Redis client initialized successfully');
-    // } catch (error) {
-    //   console.error('❌ Redis client initialization failed:', error);
-    //   throw error;
-    // }
+    console.log('Initializing Redis client...');
+    try {
+      await createRedisClient();
+      console.log('Redis client initialized successfully');
+    } catch (error) {
+      console.error('❌ Redis client initialization failed:', error);
+      // Don't throw error - allow server to start without Redis
+      console.log('⚠️ Server will continue without Redis');
+    }
 
     console.log(`Starting HTTP server on port ${PORT}...`);
     app.listen(PORT, () => {
