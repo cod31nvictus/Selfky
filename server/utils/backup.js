@@ -93,20 +93,58 @@ class BackupManager {
     }
   }
 
+  // Compress directory to tar.gz file
+  async compressDirectory(dirPath, outputPath) {
+    return new Promise((resolve, reject) => {
+      const { exec } = require('child_process');
+      const command = `tar -czf "${outputPath}" -C "${path.dirname(dirPath)}" "${path.basename(dirPath)}"`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          logger.error('Compression error:', error);
+          reject(error);
+        } else {
+          logger.info(`Directory compressed to: ${outputPath}`);
+          resolve(outputPath);
+        }
+      });
+    });
+  }
+
   // Upload backup to S3
   async uploadToS3(localPath, s3Key) {
     try {
-      const fileContent = fs.readFileSync(localPath);
+      // Check if it's a directory (database backup)
+      const stats = fs.statSync(localPath);
+      
+      let fileToUpload = localPath;
+      let contentType = 'application/octet-stream';
+      
+      if (stats.isDirectory()) {
+        // Compress directory before uploading
+        const compressedPath = localPath + '.tar.gz';
+        fileToUpload = await this.compressDirectory(localPath, compressedPath);
+        contentType = 'application/gzip';
+      } else if (localPath.endsWith('.json')) {
+        contentType = 'application/json';
+      }
+      
+      const fileContent = fs.readFileSync(fileToUpload);
       
       const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: process.env.S3_BUCKET_NAME || process.env.AWS_S3_BUCKET || 'selfky-applications-2025',
         Key: `backups/${s3Key}`,
         Body: fileContent,
-        ContentType: 'application/octet-stream'
+        ContentType: contentType
       };
       
       const result = await this.s3.upload(params).promise();
       logger.info(`Backup uploaded to S3: ${result.Location}`);
+      
+      // Clean up compressed file if it was created
+      if (fileToUpload !== localPath && fs.existsSync(fileToUpload)) {
+        fs.unlinkSync(fileToUpload);
+      }
       
       return result.Location;
     } catch (error) {
@@ -141,7 +179,7 @@ class BackupManager {
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
       
       // Upload to S3 if configured
-      if (process.env.S3_BUCKET_NAME) {
+      if (process.env.S3_BUCKET_NAME || process.env.AWS_S3_BUCKET) {
         try {
           await this.uploadToS3(dbBackupPath, `database-${new Date().toISOString().split('T')[0]}.tar.gz`);
           await this.uploadToS3(configBackupPath, `config-${new Date().toISOString().split('T')[0]}.json`);
