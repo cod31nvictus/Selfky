@@ -1,24 +1,29 @@
-# Gmail Environment Setup
+# Gmail Environment Setup for Selfky
 
-## 📝 **Create .env File**
+This guide helps you set up Gmail SMTP for sending emails in the Selfky application.
 
-Create a file named `.env` in the `server` directory with the following content:
+## Environment Variables
 
-```env
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/selfky
+Add these to your `.env` file:
+
+```bash
+# Gmail SMTP Configuration
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_APP_PASSWORD=your_gmail_app_password
+EMAIL_FROM=your_gmail_address@gmail.com
+
+# Database Configuration - MongoDB Atlas
+MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.e5jmlu.mongodb.net/selfky?retryWrites=true&w=majority&appName=selfky-cluster
+
+# JWT Configuration
+JWT_SECRET=your_very_secure_jwt_secret_key_here
 
 # Server Configuration
+NODE_ENV=production
 PORT=5000
-NODE_ENV=development
 
-# Gmail SMTP Configuration
-GMAIL_USER=teamselfky@gmail.com
-GMAIL_APP_PASSWORD=your_16_character_app_password_here
-EMAIL_FROM=teamselfky@gmail.com
-
-# JWT Secret
-JWT_SECRET=your_jwt_secret_here
+# Frontend URL
+FRONTEND_URL=https://selfky.com
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID=your_razorpay_key_id
@@ -28,39 +33,39 @@ RAZORPAY_KEY_SECRET=your_razorpay_secret
 MAX_FILE_SIZE=5242880
 UPLOAD_PATH=./uploads
 
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+AWS_REGION=eu-north-1
+S3_BUCKET_NAME=selfky-applications-2025
+
 # Logging Configuration
 LOG_LEVEL=info
 LOG_FILE=./logs/app.log
 ERROR_LOG_FILE=./logs/error.log
 ```
 
-## 🔑 **Important Steps**
+## Gmail App Password Setup
 
-### **1. Replace the App Password**
-Replace `your_16_character_app_password_here` with the actual 16-character App Password you generated from Gmail.
+1. **Enable 2-Factor Authentication** on your Gmail account
+2. **Generate App Password**:
+   - Go to Google Account settings
+   - Security → 2-Step Verification → App passwords
+   - Generate a new app password for "Mail"
+3. **Use the generated password** as `GMAIL_APP_PASSWORD`
 
-**Example:**
-```env
-GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
-```
+## Testing Email Configuration
 
-### **2. Update Other Values**
-- Replace `your_jwt_secret_here` with a secure random string
-- Replace `your_razorpay_key_id` and `your_razorpay_secret` with your actual Razorpay credentials
-
-## 🧪 **Test the Setup**
-
-After creating the `.env` file, test the email configuration:
+Run the test script to verify your email setup:
 
 ```bash
 cd server
 node test-email.js
 ```
 
-## ✅ **Expected Result**
+## Security Notes
 
-If everything is configured correctly, you should see:
-```
-✅ Configuration result: Gmail SMTP configured successfully
-✅ Test email sent successfully
-``` 
+- Never commit your `.env` file to version control
+- Use environment-specific app passwords
+- Regularly rotate your app passwords
+- Monitor email sending logs for any issues 

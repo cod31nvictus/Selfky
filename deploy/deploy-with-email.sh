@@ -1,156 +1,122 @@
 #!/bin/bash
 
-# Selfky Deployment Script with Email System for AWS EC2
-# Run this script after setting up the EC2 instance
+# Selfky Deployment Script with Email Setup
+# This script deploys the Selfky application with Gmail SMTP configuration
 
-echo "🚀 Deploying Selfky with Email System to AWS EC2..."
+set -e  # Exit on any error
 
-# Set variables
-APP_DIR="/home/ubuntu/Selfky"
-WEB_DIR="/var/www/selfky"
-REPO_URL="https://github.com/cod31nvictus/Selfky.git"
+echo "🚀 Starting Selfky deployment with email setup..."
 
-# Create application directory
-echo "📁 Creating application directory..."
-cd /home/ubuntu
-sudo mkdir -p $WEB_DIR
-sudo chown ubuntu:ubuntu $WEB_DIR
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Clone or pull repository
-echo "📥 Updating repository..."
-if [ -d "Selfky" ]; then
-    cd Selfky
-    git pull origin main
-else
-    git clone $REPO_URL Selfky
-    cd Selfky
+# Function to print colored output
+print_status() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+   print_error "This script should not be run as root"
+   exit 1
 fi
 
-# Install dependencies
-echo "📦 Installing dependencies..."
-cd server && npm install && cd ..
-cd client && npm install && cd ..
+# Navigate to project directory
+cd /home/ubuntu/Selfky
 
-# Create production environment file
-echo "🔧 Setting up production environment variables..."
-cat > server/.env << EOF
-# Production Environment Variables for Selfky
+print_status "📦 Installing backend dependencies..."
+cd server
+npm install
+
+print_status "🔧 Setting up environment variables..."
+cat > .env << EOF
 NODE_ENV=production
+JWT_SECRET=your_very_secure_jwt_secret_key_here
+MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.e5jmlu.mongodb.net/selfky?retryWrites=true&w=majority&appName=selfky-cluster
 PORT=5000
-
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/selfky
-
-# JWT Configuration
-JWT_SECRET=your_very_secure_jwt_secret_key_here_change_this_in_production
-
-# Gmail SMTP Configuration
 GMAIL_USER=teamselfky@gmail.com
 GMAIL_APP_PASSWORD=your_gmail_app_password_here
 EMAIL_FROM=teamselfky@gmail.com
-
-# Frontend URL for production
 FRONTEND_URL=https://selfky.com
-
-# Razorpay Configuration
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_secret
-
-# File Upload Configuration
 MAX_FILE_SIZE=5242880
 UPLOAD_PATH=./uploads
-
-# Logging Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+AWS_REGION=eu-north-1
+S3_BUCKET_NAME=selfky-applications-2025
 LOG_LEVEL=info
 LOG_FILE=./logs/app.log
 ERROR_LOG_FILE=./logs/error.log
 EOF
 
-# Create logs directory
-echo "📁 Setting up logs directory..."
-mkdir -p server/logs
-sudo chown -R ubuntu:ubuntu server/logs
+print_success "Environment file created"
 
-# Build React app
-echo "🔨 Building React application..."
-cd client
+print_status "🏗️  Building frontend..."
+cd ../client
+npm install
 npm run build
-cd ..
 
-# Copy build files to web directory with proper permissions
-echo "📁 Setting up web directory..."
-sudo cp -r client/build/* $WEB_DIR/
-sudo chown -R www-data:www-data $WEB_DIR
+print_success "Frontend built successfully"
 
-# Create uploads directory with proper permissions
-echo "📁 Setting up uploads directory..."
-mkdir -p server/uploads
-sudo chown -R www-data:www-data server/uploads
-sudo chmod -R 755 server/uploads
+print_status "📁 Copying frontend files to Nginx..."
+sudo cp -r build/* /var/www/html/
 
-# Set up PM2 ecosystem
-echo "⚙️ Setting up PM2..."
-cat > ecosystem.config.js << EOF
-module.exports = {
-  apps: [{
-    name: 'selfky-backend',
-    script: 'server/server.js',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 5000
-    },
-    error_file: './logs/pm2-error.log',
-    out_file: './logs/pm2-out.log',
-    log_file: './logs/pm2-combined.log',
-    time: true
-  }]
-};
-EOF
-
-# Restart application with PM2
-echo "🚀 Restarting application..."
-pm2 delete selfky-backend 2>/dev/null || true
-pm2 start ecosystem.config.js
+print_status "🔄 Restarting backend with PM2..."
+cd ../server
+pm2 restart selfky-backend || pm2 start server.js --name "selfky-backend"
 pm2 save
-pm2 startup
 
-# Configure Nginx
-echo "🔧 Configuring Nginx..."
-sudo cp deploy/nginx-config /etc/nginx/sites-available/selfky
-sudo ln -sf /etc/nginx/sites-available/selfky /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl restart nginx
+print_status "🔄 Reloading Nginx..."
+sudo systemctl reload nginx
 
-# Test email system
-echo "📧 Testing email system..."
-cd server
-node test-gmail-setup.js
-cd ..
+print_success "Deployment completed successfully!"
 
-echo "✅ Deployment complete!"
-echo ""
-echo "🌐 Application Status:"
-echo "   Frontend: https://selfky.com"
-echo "   Backend API: https://selfky.com/api"
-echo "   PM2 Status: pm2 status"
-echo "   PM2 Logs: pm2 logs selfky-backend"
-echo ""
-echo "📧 Email System:"
-echo "   Gmail SMTP configured"
-echo "   Password reset emails working"
-echo "   Application notifications enabled"
-echo ""
-echo "🔧 Next Steps:"
-echo "1. Update Gmail app password in server/.env"
-echo "2. Update Razorpay keys in server/.env"
-echo "3. Update JWT_SECRET in server/.env"
-echo "4. Run SSL setup: sudo certbot --nginx -d selfky.com -d www.selfky.com"
-echo ""
-echo "📝 To update environment variables:"
-echo "   nano server/.env"
-echo "   pm2 restart selfky-backend" 
+print_status "🔍 Verifying deployment..."
+sleep 3
+
+# Check if backend is running
+if pm2 list | grep -q "selfky-backend.*online"; then
+    print_success "Backend is running"
+else
+    print_error "Backend failed to start"
+    pm2 logs selfky-backend --lines 10
+    exit 1
+fi
+
+# Check if Nginx is running
+if sudo systemctl is-active --quiet nginx; then
+    print_success "Nginx is running"
+else
+    print_error "Nginx is not running"
+    exit 1
+fi
+
+# Test API endpoint
+if curl -s http://localhost:5000/api/health > /dev/null; then
+    print_success "API is responding"
+else
+    print_warning "API health check failed"
+fi
+
+print_success "🎉 Selfky deployment with email setup completed!"
+print_status "🌐 Your application should be available at: https://selfky.com"
+print_status "📧 Email functionality is configured with Gmail SMTP"
+print_status "📊 Monitor logs with: pm2 logs selfky-backend" 
