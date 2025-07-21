@@ -251,7 +251,7 @@ const ApplicationView = () => {
                     {documents?.photo && (
                       <div className="border border-gray-200 rounded-lg p-4">
                         <img 
-                          src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/s3/${documents.photo}`} 
+                          src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.photo}`} 
                           alt="Applicant Photo" 
                           className="w-32 h-40 object-cover rounded-lg"
                         />
@@ -263,7 +263,7 @@ const ApplicationView = () => {
                     {documents?.signature && (
                       <div className="border border-gray-200 rounded-lg p-4">
                         <img 
-                          src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/s3/${documents.signature}`} 
+                          src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.signature}`} 
                           alt="Applicant Signature" 
                           className="w-32 h-20 object-contain rounded-lg"
                         />
