@@ -37,7 +37,10 @@ const AdmitCard = () => {
         try {
           admitCardData = await adminAPI.getAdmitCard(applicationId);
           console.log('Admin admit card data received:', admitCardData);
-          
+
+          // Fetch full application to get documents
+          const fullApplication = await adminAPI.getApplication(applicationId);
+
           // Convert to application data format
           application = {
             _id: applicationId,
@@ -45,8 +48,11 @@ const AdmitCard = () => {
             courseType: admitCardData.courseType === 'B.Pharm' ? 'bpharm' : 'mpharm',
             personalDetails: {
               fullName: admitCardData.fullName,
-              category: admitCardData.category
-            }
+              fathersName: admitCardData.fathersName,
+              category: admitCardData.category,
+              dateOfBirth: admitCardData.dateOfBirth
+            },
+            documents: fullApplication.documents || {}
           };
         } catch (adminError) {
           console.error('Admin admit card API failed, trying regular admin API:', adminError);
