@@ -146,10 +146,10 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/db/stats', async (req, res) => {
   try {
     // optimizeDatabase();
-    const stats = optimizeDatabase.getConnectionStats();
+    // const stats = optimizeDatabase.getConnectionStats();
     
     res.json({
-      connectionStats: stats,
+      connectionStats: { message: 'Database optimizer temporarily disabled' },
       timestamp: new Date().toISOString(),
       databaseType: process.env.USE_MONGODB_ATLAS === 'true' ? 'MongoDB Atlas' : 'Local MongoDB'
     });
