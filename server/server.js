@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const S3Service = require('./utils/s3Service');
-const DatabaseOptimizer = require('./utils/databaseOptimizer');
+const optimizeDatabase = require('./utils/databaseOptimizer');
 const { connectToDatabase } = require('./config/database');
 const { createRedisClient, closeRedisClient } = require('./config/redis');
 const monitor = require('./utils/monitor');
@@ -115,8 +115,8 @@ app.get('/api/files/:key(*)', async (req, res) => {
 // Enhanced health check route with database status
 app.get('/api/health', async (req, res) => {
   try {
-    const dbOptimizer = new DatabaseOptimizer();
-    const dbHealth = await dbOptimizer.healthCheck();
+    optimizeDatabase();
+    const dbHealth = optimizeDatabase.healthCheck();
     
     res.json({ 
       status: 'healthy', 
@@ -140,8 +140,8 @@ app.get('/api/health', async (req, res) => {
 // Database performance monitoring endpoint
 app.get('/api/db/stats', async (req, res) => {
   try {
-    const dbOptimizer = new DatabaseOptimizer();
-    const stats = dbOptimizer.getConnectionStats();
+    optimizeDatabase();
+    const stats = optimizeDatabase.getConnectionStats();
     
     res.json({
       connectionStats: stats,
@@ -193,9 +193,7 @@ const startServer = async () => {
     
     // Initialize database optimizer for monitoring (don't reconnect)
     console.log('Initializing database optimizer...');
-    const dbOptimizer = new DatabaseOptimizer();
-    // Don't call optimizeConnection() since we're already connected
-    dbOptimizer.initializeMonitoring();
+    optimizeDatabase();
     
     console.log('MongoDB connected with optimizations');
 
