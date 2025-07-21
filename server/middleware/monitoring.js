@@ -79,20 +79,7 @@ const errorMonitor = (error, req, res, next) => {
   });
 
   // Log detailed error
-  logger.error('Unhandled error:', {
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    },
-    request: {
-      method: req.method,
-      path: req.path,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    },
-    responseTime
-  });
+  logger.error('Unhandled error:', error);
 
   // Send error response
   res.status(500).json({
