@@ -5,18 +5,18 @@ const logger = require('./logger');
 const atlasOptions = {
   maxPoolSize: 50,
   minPoolSize: 10,
-  maxIdleTimeMS: 30000,
+        maxIdleTimeMS: 30000,
   serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
+        socketTimeoutMS: 45000,
   connectTimeoutMS: 30000,
-  writeConcern: {
+        writeConcern: {
     w: 'majority',
     j: true
-  },
-  readPreference: 'primaryPreferred',
-  bufferCommands: false,
-  compressors: ['zlib'],
-  retryWrites: true,
+        },
+        readPreference: 'primaryPreferred',
+        bufferCommands: false,
+        compressors: ['zlib'],
+        retryWrites: true,
   retryReads: true,
   ssl: true,
   tlsAllowInvalidCertificates: false
@@ -77,10 +77,11 @@ const optimizeDatabase = async () => {
     }
     
     logger.info('Database optimization completed');
-    await mongoose.connection.close();
-    logger.info('MongoDB Atlas connection closed');
+    // Don't close the connection - let the server manage it
+    // await mongoose.connection.close();
+    // logger.info('MongoDB Atlas connection closed');
     
-  } catch (error) {
+    } catch (error) {
     logger.error('Database optimization failed:', error);
     throw error;
   }
