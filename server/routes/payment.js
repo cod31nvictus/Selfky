@@ -204,7 +204,64 @@ router.post('/verify-payment', async (req, res) => {
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
+    
+    // If payment verification fails, update payment record to failed status
+    if (applicationId) {
+      try {
+        const paymentRecord = await Payment.findOneAndUpdate(
+          { 
+            applicationId: applicationId,
+            razorpayOrderId: razorpay_order_id,
+            status: 'pending'
+          },
+          {
+            status: 'failed',
+            errorMessage: error.message || 'Payment verification failed',
+            updatedAt: new Date()
+          },
+          { new: true }
+        );
+
+        if (paymentRecord) {
+          console.log('Updated payment record to failed status:', paymentRecord._id);
+        }
+      } catch (dbError) {
+        console.error('Error updating failed payment record:', dbError);
+      }
+    }
+    
     res.status(500).json({ error: 'Failed to verify payment' });
+  }
+});
+
+// Webhook to handle payment status updates from Razorpay
+router.post('/webhook', async (req, res) => {
+  try {
+    const { event, payload } = req.body;
+    
+    if (event === 'payment.failed') {
+      const { payment } = payload.entity;
+      
+      // Find and update the payment record
+      const paymentRecord = await Payment.findOneAndUpdate(
+        { razorpayPaymentId: payment.id },
+        {
+          status: 'failed',
+          errorMessage: payment.error_description || 'Payment failed',
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+
+      if (paymentRecord) {
+        console.log('Updated payment record to failed status via webhook:', paymentRecord._id);
+      }
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error processing webhook:', error);
+    res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 
