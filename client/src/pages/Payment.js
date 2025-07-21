@@ -116,6 +116,10 @@ const Payment = () => {
 
       // Store the order ID for cancellation
       setOrderId(data.order.id);
+      
+      // Store orderId in localStorage for later checking
+      localStorage.setItem('lastOrderId', data.order.id);
+      localStorage.setItem('lastApplicationId', applicationId);
 
       // Check if this is a mock order for testing
       if (data.order.id && data.order.id.startsWith('mock_order_')) {

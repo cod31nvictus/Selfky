@@ -11,7 +11,47 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadApplications();
+    checkCancelledPayments();
   }, []);
+
+  const checkCancelledPayments = async () => {
+    try {
+      const lastOrderId = localStorage.getItem('lastOrderId');
+      const lastApplicationId = localStorage.getItem('lastApplicationId');
+      
+      if (lastOrderId && lastApplicationId) {
+        console.log('Checking for cancelled payment:', { lastOrderId, lastApplicationId });
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/payment/check-cancelled-payments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            orderId: lastOrderId,
+            applicationId: lastApplicationId
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Payment status check result:', data);
+          
+          if (data.status === 'cancelled') {
+            // Clear the stored order info
+            localStorage.removeItem('lastOrderId');
+            localStorage.removeItem('lastApplicationId');
+            
+            // Reload applications to show updated status
+            loadApplications();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking cancelled payments:', error);
+    }
+  };
 
   // Refresh applications when component comes into focus
   useEffect(() => {

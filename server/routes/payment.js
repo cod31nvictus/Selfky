@@ -261,6 +261,8 @@ router.post('/webhook', async (req, res) => {
   try {
     const { event, payload } = req.body;
     
+    console.log('Webhook received:', { event, payload });
+    
     if (event === 'payment.failed') {
       const { payment } = payload.entity;
       
@@ -409,6 +411,61 @@ router.post('/cancel', async (req, res) => {
   } catch (error) {
     console.error('Error cancelling payment:', error);
     res.status(500).json({ error: 'Failed to cancel payment' });
+  }
+});
+
+// Check and update cancelled payments (fallback for webhook issues)
+router.post('/check-cancelled-payments', async (req, res) => {
+  try {
+    const { orderId, applicationId } = req.body;
+    
+    if (!orderId || !applicationId) {
+      return res.status(400).json({ error: 'Order ID and Application ID are required' });
+    }
+
+    // Find the payment record
+    const paymentRecord = await Payment.findOne({
+      razorpayOrderId: orderId,
+      applicationId: applicationId
+    });
+
+    if (!paymentRecord) {
+      return res.status(404).json({ error: 'Payment record not found' });
+    }
+
+    // Check with Razorpay if the payment was cancelled
+    if (razorpay) {
+      try {
+        const order = await razorpay.orders.fetch(orderId);
+        console.log('Razorpay order status:', order.status);
+        
+        if (order.status === 'cancelled') {
+          paymentRecord.status = 'cancelled';
+          paymentRecord.errorMessage = 'Payment was cancelled on Razorpay';
+          paymentRecord.updatedAt = new Date();
+          await paymentRecord.save();
+          
+          console.log('Updated payment record to cancelled status:', paymentRecord._id);
+          
+          return res.json({
+            success: true,
+            message: 'Payment updated to cancelled status',
+            status: 'cancelled'
+          });
+        }
+      } catch (razorpayError) {
+        console.error('Error checking Razorpay order:', razorpayError);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment status checked',
+      status: paymentRecord.status
+    });
+  } catch (error) {
+    console.error('Error checking cancelled payments:', error);
+    res.status(500).json({ error: 'Failed to check payment status' });
   }
 });
 
