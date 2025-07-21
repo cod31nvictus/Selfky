@@ -101,6 +101,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
 // Create new application (Step 1: Personal Details)
 router.post('/', authenticateToken, async (req, res) => {
+  console.log('Application creation started');
+  console.log('Request body keys:', Object.keys(req.body));
+  console.log('Files:', req.files ? Object.keys(req.files) : 'No files');
+  
   try {
     const { 
       courseType, 
@@ -138,12 +142,20 @@ router.post('/', authenticateToken, async (req, res) => {
     } = req.body;
 
     // Validate required fields
+    console.log('Validating required fields...');
     if (!courseType || !fullName || !fathersName || !category || !dateOfBirth) {
+      console.log('Missing required fields:', { courseType, fullName, fathersName, category, dateOfBirth });
       return res.status(400).json({ error: 'All required fields are required' });
     }
 
     // Check if required files were uploaded
+    console.log('Checking required files...');
     if (!req.files || !req.files.photo || !req.files.signature) {
+      console.log('Missing required files:', { 
+        hasFiles: !!req.files, 
+        hasPhoto: !!(req.files && req.files.photo), 
+        hasSignature: !!(req.files && req.files.signature) 
+      });
       return res.status(400).json({ error: 'Photo and signature are required' });
     }
 
