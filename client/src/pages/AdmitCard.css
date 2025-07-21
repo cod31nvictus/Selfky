@@ -1,0 +1,149 @@
+/* Print styles for Admit Card */
+@media print {
+  /* Hide all non-essential elements */
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  /* Reset page margins and size */
+  @page {
+    margin: 0.5in;
+    size: A4;
+  }
+  
+  /* Ensure the admit card container fits on one page */
+  .admit-card-container {
+    max-height: 100vh;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+  
+  /* Reduce font sizes for print */
+  .admit-card-container h1 {
+    font-size: 24px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .admit-card-container h3 {
+    font-size: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .admit-card-container p {
+    font-size: 14px !important;
+  }
+  
+  /* Reduce spacing */
+  .admit-card-container .space-y-3 > div {
+    margin-bottom: 6px !important;
+  }
+  
+  .admit-card-container .mb-8 {
+    margin-bottom: 16px !important;
+  }
+  
+  .admit-card-container .mb-6 {
+    margin-bottom: 12px !important;
+  }
+  
+  .admit-card-container .mb-4 {
+    margin-bottom: 8px !important;
+  }
+  
+  .admit-card-container .pb-6 {
+    padding-bottom: 12px !important;
+  }
+  
+  /* Reduce padding */
+  .admit-card-container .p-8 {
+    padding: 16px !important;
+  }
+  
+  .admit-card-container .p-4 {
+    padding: 8px !important;
+  }
+  
+  /* Make images smaller for print */
+  .admit-card-container img {
+    max-width: 100px !important;
+    max-height: 120px !important;
+  }
+  
+  /* Reduce logo size */
+  .admit-card-container .h-16 {
+    height: 48px !important;
+  }
+  
+  /* Compact grid layout */
+  .admit-card-container .grid {
+    gap: 12px !important;
+  }
+  
+  /* Reduce instruction list spacing */
+  .admit-card-container .space-y-2 > li {
+    margin-bottom: 4px !important;
+  }
+  
+  /* Ensure signature sections fit */
+  .admit-card-container .w-32 {
+    width: 80px !important;
+  }
+  
+  .admit-card-container .h-16 {
+    height: 48px !important;
+  }
+  
+  /* Hide powered by section in print */
+  .admit-card-container .text-center.mt-6 {
+    display: none !important;
+  }
+  
+  /* Ensure background colors print */
+  .admit-card-container .bg-gray-50 {
+    background-color: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .admit-card-container .bg-yellow-50 {
+    background-color: #fffbeb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .admit-card-container .border-yellow-200 {
+    border-color: #fde68a !important;
+  }
+  
+  /* Ensure text colors print */
+  .admit-card-container .text-101418 {
+    color: #101418 !important;
+  }
+  
+  .admit-card-container .text-5c728a {
+    color: #5c728a !important;
+  }
+  
+  .admit-card-container .text-green-800 {
+    color: #166534 !important;
+  }
+  
+  .admit-card-container .text-green-700 {
+    color: #15803d !important;
+  }
+  
+  .admit-card-container .text-yellow-600 {
+    color: #d97706 !important;
+  }
+  
+  /* Force page break avoidance */
+  .admit-card-container {
+    page-break-after: avoid;
+    page-break-before: avoid;
+  }
+  
+  /* Ensure all content fits */
+  .admit-card-container * {
+    max-width: 100% !important;
+  }
+} 

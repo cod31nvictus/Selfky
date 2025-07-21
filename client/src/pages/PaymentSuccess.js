@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaDownload, FaPrint, FaArrowLeft } from 'react-icons/fa';
+import { FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
 import './PaymentSuccess.css';
 
 const PaymentSuccess = () => {
@@ -37,18 +37,6 @@ const PaymentSuccess = () => {
     setLoading(false);
   }, [location]);
 
-  const handleDownloadAdmitCard = () => {
-    if (paymentDetails?.applicationId) {
-      navigate(`/admit-card/${paymentDetails.applicationId}`);
-    }
-  };
-
-  const handlePrintAdmitCard = () => {
-    if (paymentDetails?.applicationId) {
-      window.open(`/admit-card/${paymentDetails.applicationId}?print=true`, '_blank');
-    }
-  };
-
   const handleBackToDashboard = () => {
     navigate('/dashboard');
   };
@@ -80,10 +68,6 @@ const PaymentSuccess = () => {
               <span className="label">Payment ID:</span>
               <span className="value">{paymentDetails.paymentId}</span>
             </div>
-            <div className="detail-item">
-              <span className="label">Order ID:</span>
-              <span className="value">{paymentDetails.orderId}</span>
-            </div>
             {paymentDetails.applicationId && (
               <div className="detail-item">
                 <span className="label">Application ID:</span>
@@ -95,35 +79,11 @@ const PaymentSuccess = () => {
 
         <div className="action-buttons">
           <button 
-            className="btn btn-primary"
-            onClick={handleDownloadAdmitCard}
-          >
-            <FaDownload /> Download Admit Card
-          </button>
-          
-          <button 
-            className="btn btn-secondary"
-            onClick={handlePrintAdmitCard}
-          >
-            <FaPrint /> Print Admit Card
-          </button>
-          
-          <button 
             className="btn btn-outline"
             onClick={handleBackToDashboard}
           >
             <FaArrowLeft /> Back to Dashboard
           </button>
-        </div>
-
-        <div className="next-steps">
-          <h3>What's Next?</h3>
-          <ul>
-            <li>Download your admit card</li>
-            <li>Keep your payment receipt for reference</li>
-            <li>Check your email for confirmation</li>
-            <li>Prepare for your examination</li>
-          </ul>
         </div>
       </div>
     </div>

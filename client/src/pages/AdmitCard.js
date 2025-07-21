@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { applicationAPI, adminAPI } from '../services/api';
+import './AdmitCard.css';
 
 const AdmitCard = () => {
   const navigate = useNavigate();
@@ -235,6 +236,7 @@ const AdmitCard = () => {
     window.print();
   };
 
+  // Download function kept for future use
   const handleDownload = async () => {
     try {
       if (!applicationData?.applicationId) {
@@ -404,7 +406,7 @@ const AdmitCard = () => {
           </div>
 
           {/* Admit Card */}
-          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
+          <div className="admit-card-container bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
             {/* Header */}
             <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
               <div className="flex items-center justify-center mb-4">
@@ -564,12 +566,6 @@ const AdmitCard = () => {
               Print Admit Card
             </button>
             <button
-              onClick={handleDownload}
-              className="bg-green-600 text-white py-3 px-8 rounded-lg font-medium hover:bg-green-700 transition-colors"
-            >
-              Download PDF
-            </button>
-            <button
               onClick={() => navigate('/dashboard')}
               className="bg-gray-300 text-[#101418] py-3 px-8 rounded-lg font-medium hover:bg-gray-400 transition-colors"
             >
@@ -579,26 +575,15 @@ const AdmitCard = () => {
 
           {/* Floating Action Button for Mobile */}
           <div className="fixed bottom-6 right-6 print:hidden md:hidden z-50">
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleDownload}
-                className="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors"
-                title="Download PDF"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </button>
-              <button
-                onClick={handlePrint}
-                className="bg-[#101418] text-white p-4 rounded-full shadow-lg hover:bg-[#2a2f36] transition-colors"
-                title="Print Admit Card"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-              </button>
-            </div>
+            <button
+              onClick={handlePrint}
+              className="bg-[#101418] text-white p-4 rounded-full shadow-lg hover:bg-[#2a2f36] transition-colors"
+              title="Print Admit Card"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
