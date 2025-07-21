@@ -21,6 +21,10 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 // Create payment order
 router.post('/create-order', async (req, res) => {
   try {
+    console.log('Payment order creation request received:', {
+      body: req.body,
+      notes: req.body.notes
+    });
     if (!razorpay) {
       console.warn('Razorpay not configured - returning mock payment order for testing');
       // Return a mock order for testing purposes
@@ -57,6 +61,13 @@ router.post('/create-order', async (req, res) => {
       try {
         const application = await Application.findById(notes.applicationId);
         const user = await User.findById(notes.userId);
+        
+        console.log('Database lookup results:', {
+          applicationId: notes.applicationId,
+          userId: notes.userId,
+          applicationFound: !!application,
+          userFound: !!user
+        });
         
         if (application && user) {
                   // Create payment record
