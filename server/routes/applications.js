@@ -317,7 +317,7 @@ router.post('/', authenticateToken, async (req, res) => {
         highSchoolPercentage,
         intermediateBoard,
         intermediateYear,
-        intermediateSubjects: intermediateSubjects ? new Map(Object.entries(intermediateSubjects)) : new Map(),
+        intermediateSubjects: intermediateSubjects ? new Map(Object.entries(JSON.parse(intermediateSubjects))) : new Map(),
         intermediateMarksObtained,
         intermediateMaxMarks,
         intermediatePercentage,
