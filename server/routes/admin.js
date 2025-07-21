@@ -7,6 +7,8 @@ const bcrypt = require('bcryptjs');
 const PDFGenerator = require('../utils/pdfGenerator');
 const fs = require('fs');
 const DatabaseOptimizer = require('../utils/databaseOptimizer');
+const S3Service = require('../utils/s3Service');
+const logger = require('../utils/logger');
 
 // Middleware to check if admin
 const isAdmin = (req, res, next) => {
@@ -198,37 +200,43 @@ router.patch('/applications/:applicationId/status', isAdmin, async (req, res) =>
   }
 });
 
-// Create application for user (admin)
+// Create application (admin)
 router.post('/applications', isAdmin, async (req, res) => {
   try {
-    const { userId, courseType, fullName, fathersName, category, dateOfBirth } = req.body;
-    
+    const { 
+      userId, 
+      courseType, 
+      fullName, 
+      fathersName, 
+      category, 
+      dateOfBirth 
+    } = req.body;
+
+    // Validate required fields
+    if (!userId || !courseType || !fullName || !fathersName || !category || !dateOfBirth) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if application already exists for this course
-    const existingApplication = await Application.findOne({ 
-      userId, 
-      courseType 
-    });
-    
+    // Check if user already has an application
+    const existingApplication = await Application.findOne({ userId });
     if (existingApplication) {
-      return res.status(400).json({ error: 'Application already exists for this course' });
+      return res.status(400).json({ error: 'User already has an application' });
     }
 
     // Generate application number
-    const lastApplication = await Application.findOne({}, {}, { sort: { 'applicationNumber': -1 } });
-    let nextNumber = 1;
-    if (lastApplication) {
-      const lastNumber = parseInt(lastApplication.applicationNumber.slice(-6));
-      nextNumber = lastNumber + 1;
-    }
-    const applicationNumber = `BPH${String(nextNumber).padStart(6, '0')}`;
+    const applicationNumber = courseType === 'bpharm' ? 'BPH' : 'BSC';
+    const count = await Application.countDocuments({ courseType });
+    const paddedCount = (count + 1).toString().padStart(5, '0');
+    const year = new Date().getFullYear().toString().slice(-2);
+    const finalApplicationNumber = `${applicationNumber}${year}${paddedCount}`;
 
-    // Handle file uploads
+    // Handle file uploads to S3
     let photoPath = '';
     let signaturePath = '';
     let categoryCertificatePath = '';
@@ -237,33 +245,52 @@ router.post('/applications', isAdmin, async (req, res) => {
     
     if (req.files && req.files.photo) {
       const photo = req.files.photo;
-      photoPath = `/uploads/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${photo.name.split('.').pop()}`;
-      await photo.mv(`./uploads${photoPath}`);
+      const photoKey = `photos/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${photo.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(photo.data, photoKey, photo.mimetype);
+      if (uploadResult.success) {
+        photoPath = photoKey;
+      } else {
+        return res.status(500).json({ error: 'Failed to upload photo' });
+      }
     }
     
     if (req.files && req.files.signature) {
       const signature = req.files.signature;
-      signaturePath = `/uploads/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
-      await signature.mv(`./uploads${signaturePath}`);
+      const signatureKey = `signatures/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(signature.data, signatureKey, signature.mimetype);
+      if (uploadResult.success) {
+        signaturePath = signatureKey;
+      } else {
+        return res.status(500).json({ error: 'Failed to upload signature' });
+      }
     }
 
     // Handle optional documents
     if (req.files && req.files.categoryCertificate) {
       const categoryCertificate = req.files.categoryCertificate;
-      categoryCertificatePath = `/uploads/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
-      await categoryCertificate.mv(`./uploads${categoryCertificatePath}`);
+      const certificateKey = `certificates/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(categoryCertificate.data, certificateKey, categoryCertificate.mimetype);
+      if (uploadResult.success) {
+        categoryCertificatePath = certificateKey;
+      }
     }
     
     if (req.files && req.files.highSchoolCertificate) {
       const highSchoolCertificate = req.files.highSchoolCertificate;
-      highSchoolCertificatePath = `/uploads/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
-      await highSchoolCertificate.mv(`./uploads${highSchoolCertificatePath}`);
+      const certificateKey = `certificates/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(highSchoolCertificate.data, certificateKey, highSchoolCertificate.mimetype);
+      if (uploadResult.success) {
+        highSchoolCertificatePath = certificateKey;
+      }
     }
     
     if (req.files && req.files.intermediateCertificate) {
       const intermediateCertificate = req.files.intermediateCertificate;
-      intermediateCertificatePath = `/uploads/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
-      await intermediateCertificate.mv(`./uploads${intermediateCertificatePath}`);
+      const certificateKey = `certificates/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(intermediateCertificate.data, certificateKey, intermediateCertificate.mimetype);
+      if (uploadResult.success) {
+        intermediateCertificatePath = certificateKey;
+      }
     }
 
     // Calculate fee
@@ -279,7 +306,7 @@ router.post('/applications', isAdmin, async (req, res) => {
     const fee = Math.round(baseFee * (1 - discount));
 
     const application = new Application({
-      applicationNumber,
+      applicationNumber: finalApplicationNumber,
       userId,
       courseType,
       personalDetails: {
@@ -325,58 +352,70 @@ router.put('/applications/:applicationId', isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    // Handle file uploads
+    // Handle file uploads to S3
     if (req.files && req.files.photo) {
       const photo = req.files.photo;
-      const photoPath = `/uploads/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${photo.name.split('.').pop()}`;
-      await photo.mv(`./uploads${photoPath}`);
-      application.documents.photo = photoPath;
+      const photoKey = `photos/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${photo.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(photo.data, photoKey, photo.mimetype);
+      if (uploadResult.success) {
+        application.documents.photo = photoKey;
+      } else {
+        return res.status(500).json({ error: 'Failed to upload photo' });
+      }
     }
-    
+
     if (req.files && req.files.signature) {
       const signature = req.files.signature;
-      const signaturePath = `/uploads/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
-      await signature.mv(`./uploads${signaturePath}`);
-      application.documents.signature = signaturePath;
+      const signatureKey = `signatures/signature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${signature.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(signature.data, signatureKey, signature.mimetype);
+      if (uploadResult.success) {
+        application.documents.signature = signatureKey;
+      } else {
+        return res.status(500).json({ error: 'Failed to upload signature' });
+      }
     }
 
     // Handle optional documents
     if (req.files && req.files.categoryCertificate) {
       const categoryCertificate = req.files.categoryCertificate;
-      const categoryCertificatePath = `/uploads/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
-      await categoryCertificate.mv(`./uploads${categoryCertificatePath}`);
-      application.documents.categoryCertificate = categoryCertificatePath;
+      const certificateKey = `certificates/category-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${categoryCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(categoryCertificate.data, certificateKey, categoryCertificate.mimetype);
+      if (uploadResult.success) {
+        application.documents.categoryCertificate = certificateKey;
+      }
     }
     
     if (req.files && req.files.highSchoolCertificate) {
       const highSchoolCertificate = req.files.highSchoolCertificate;
-      const highSchoolCertificatePath = `/uploads/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
-      await highSchoolCertificate.mv(`./uploads${highSchoolCertificatePath}`);
-      application.documents.highSchoolCertificate = highSchoolCertificatePath;
+      const certificateKey = `certificates/highschool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${highSchoolCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(highSchoolCertificate.data, certificateKey, highSchoolCertificate.mimetype);
+      if (uploadResult.success) {
+        application.documents.highSchoolCertificate = certificateKey;
+      }
     }
     
     if (req.files && req.files.intermediateCertificate) {
       const intermediateCertificate = req.files.intermediateCertificate;
-      const intermediateCertificatePath = `/uploads/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
-      await intermediateCertificate.mv(`./uploads${intermediateCertificatePath}`);
-      application.documents.intermediateCertificate = intermediateCertificatePath;
+      const certificateKey = `certificates/intermediate-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${intermediateCertificate.name.split('.').pop()}`;
+      const uploadResult = await S3Service.uploadFile(intermediateCertificate.data, certificateKey, intermediateCertificate.mimetype);
+      if (uploadResult.success) {
+        application.documents.intermediateCertificate = certificateKey;
+      }
     }
 
-    // Update fields
-    application.courseType = courseType;
-    application.personalDetails = {
-      fullName,
-      fathersName,
-      category,
-      dateOfBirth: new Date(dateOfBirth)
-    };
+    // Update other fields
+    if (courseType) application.courseType = courseType;
+    if (fullName) application.personalDetails.fullName = fullName;
+    if (fathersName) application.personalDetails.fathersName = fathersName;
+    if (category) application.personalDetails.category = category;
+    if (dateOfBirth) application.personalDetails.dateOfBirth = new Date(dateOfBirth);
 
     await application.save();
     
-    const populatedApplication = await Application.findById(application._id)
+    const updatedApplication = await Application.findById(applicationId)
       .populate('userId', 'email name');
     
-    res.json(populatedApplication);
+    res.json(updatedApplication);
   } catch (error) {
     console.error('Error updating application:', error);
     res.status(500).json({ error: 'Failed to update application' });
