@@ -60,6 +60,7 @@ let redisClient = null;
 async function createRedisClient() {
   try {
     const config = getRedisConfig();
+    logger.info('Creating Redis client with config:', JSON.stringify(config.socket));
     
     // Create Redis client
     redisClient = redis.createClient(config);
@@ -85,15 +86,25 @@ async function createRedisClient() {
       logger.info('Redis client reconnecting...');
     });
     
-    // Connect to Redis
+    // Connect to Redis with timeout
     logger.info('Attempting to connect to Redis...');
-    await redisClient.connect();
+    const connectPromise = redisClient.connect();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Redis connection timeout after 10 seconds')), 10000);
+    });
+    
+    await Promise.race([connectPromise, timeoutPromise]);
     logger.info('Redis connect() completed successfully');
     
     // Test the connection
     logger.info('Testing Redis connection...');
-    await redisClient.ping();
-    logger.info('Redis ping successful');
+    try {
+      await redisClient.ping();
+      logger.info('Redis ping successful');
+    } catch (pingError) {
+      logger.error('Redis ping failed:', pingError);
+      throw pingError;
+    }
     
     logger.info('Redis client initialized successfully');
     return redisClient;
