@@ -24,7 +24,8 @@ async function createRedisClient() {
   redisClient = new Redis.Cluster(startupNodes, {
     dnsLookup: (address, callback) => dns.lookup(address, { family: 4 }, callback),
     redisOptions: {
-      tls: {}, // Enable TLS for ElastiCache encryption in transit
+      tls: { servername: process.env.REDIS_HOST }, // Set SNI for AWS ElastiCache
+      family: 4, // Force IPv4
     },
     scaleReads: 'slave',
     slotsRefreshTimeout: 20000,
