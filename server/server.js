@@ -198,7 +198,7 @@ const startServer = async () => {
     
     // Initialize database optimizer for monitoring (don't reconnect)
     console.log('Initializing database optimizer...');
-    optimizeDatabase();
+    await optimizeDatabase();
     
     console.log('MongoDB connected with optimizations');
 
