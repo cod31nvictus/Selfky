@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const PDFGenerator = require('../utils/pdfGenerator');
 const fs = require('fs');
-const DatabaseOptimizer = require('../utils/databaseOptimizer');
 const S3Service = require('../utils/s3Service');
 const logger = require('../utils/logger');
 
@@ -50,11 +49,10 @@ router.get('/applicants', isAdmin, async (req, res) => {
     }
     
     // Add sorting and pagination
-    query = DatabaseOptimizer.addSorting(query, 'createdAt', 'desc');
-    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    query = query.sort({ createdAt: -1 });
+    query = query.skip((page - 1) * limit).limit(limit);
     
-    // Optimize query
-    const applicants = await DatabaseOptimizer.optimizeQuery(query);
+    const applicants = await query;
     
     // Get total count
     const total = await User.countDocuments(search ? {
@@ -85,20 +83,18 @@ router.get('/applications', isAdmin, async (req, res) => {
     const { page = 1, limit = 20, status, courseType, category } = req.query;
     
     // Create optimized query with filters
-    const filters = DatabaseOptimizer.createCompoundQuery({
-      status,
-      courseType,
-      category
-    });
-    
+    const filters = {};
+    if (status) filters.status = status;
+    if (courseType) filters.courseType = courseType;
+    if (category) filters.personalDetails = { category: category };
+
     let query = Application.find(filters).populate('userId', 'email name');
     
     // Add sorting and pagination
-    query = DatabaseOptimizer.addSorting(query, 'createdAt', 'desc');
-    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    query = query.sort({ createdAt: -1 });
+    query = query.skip((page - 1) * limit).limit(limit);
     
-    // Optimize query
-    const applications = await DatabaseOptimizer.optimizeQuery(query);
+    const applications = await query;
     
     // Get total count
     const total = await Application.countDocuments(filters);
