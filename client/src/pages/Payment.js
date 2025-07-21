@@ -12,6 +12,7 @@ const Payment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [amount] = useState(location.state?.feeAmount || 1); // Use fee from ApplicationForm or default to ₹1
+  const [orderId, setOrderId] = useState(null);
 
   const applicationId = location.state?.applicationId || params?.applicationId;
 
@@ -113,6 +114,9 @@ const Payment = () => {
         throw new Error(data.error || 'Failed to create payment order');
       }
 
+      // Store the order ID for cancellation
+      setOrderId(data.order.id);
+
       // Check if this is a mock order for testing
       if (data.order.id && data.order.id.startsWith('mock_order_')) {
         console.log('Using mock payment for testing');
@@ -163,8 +167,34 @@ const Payment = () => {
     createOrder();
   };
 
-  const handleCancel = () => {
-    navigate('/dashboard');
+  const handleCancel = async () => {
+    try {
+      setLoading(true);
+      
+      // Call the cancellation endpoint
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/payment/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          orderId: orderId,
+          applicationId: applicationId
+        })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to record payment cancellation');
+      }
+
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error cancelling payment:', error);
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
