@@ -460,7 +460,7 @@ const AdmitCard = () => {
                 <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
                   {applicationData.documents?.photo ? (
                     <img 
-                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${applicationData.documents.photo}`}
+                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${applicationData.documents.photo}`}
                       alt="Applicant Photo"
                       className="w-32 h-40 object-cover rounded border-2 border-gray-300 shadow-md"
                       onError={(e) => {
@@ -484,7 +484,7 @@ const AdmitCard = () => {
                 <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
                   {applicationData.documents?.signature ? (
                     <img 
-                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${applicationData.documents.signature}`}
+                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${applicationData.documents.signature}`}
                       alt="Applicant Signature"
                       className="w-32 h-16 object-contain border-2 border-gray-300 rounded shadow-md"
                       onError={(e) => {
