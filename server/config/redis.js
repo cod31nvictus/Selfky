@@ -1,63 +1,62 @@
-const redis = require('redis');
+const Redis = require('ioredis');
 const logger = require('../utils/logger');
 
-let redisClient;
+let redisClient = null;
 
 function getRedisConfig() {
-  return {
-    socket: {
+  // For cluster mode, we provide an array of startup nodes
+  return [
+    {
       host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT
+      port: parseInt(process.env.REDIS_PORT, 10)
     }
-    // No password, no TLS
-  };
+  ];
 }
 
 async function createRedisClient() {
-  const config = getRedisConfig();
-  logger.info('Creating Redis client with config:', JSON.stringify(config.socket));
-  redisClient = redis.createClient(config);
+  if (redisClient) {
+    logger.info('Redis client already initialized');
+    return redisClient;
+  }
+  const startupNodes = getRedisConfig();
+  logger.info('Creating Redis Cluster client with nodes: ' + JSON.stringify(startupNodes));
+  redisClient = new Redis.Cluster(startupNodes, {
+    redisOptions: {
+      // If you have TLS enabled, add tls: {} here
+      // password: process.env.REDIS_PASSWORD, // Not needed for ElastiCache default
+    },
+    scaleReads: 'slave',
+    slotsRefreshTimeout: 20000,
+    slotsRefreshInterval: 10000
+  });
 
   redisClient.on('connect', () => {
-    logger.info('Redis client connected');
+    logger.info('Redis Cluster client connected');
   });
-
   redisClient.on('ready', () => {
-    logger.info('Redis client ready');
+    logger.info('Redis Cluster client ready');
   });
-
   redisClient.on('error', (err) => {
-    logger.error('Redis client error:', err);
+    logger.error('Redis Cluster error: ' + err);
+  });
+  redisClient.on('close', () => {
+    logger.warn('Redis Cluster connection closed');
   });
 
-  redisClient.on('end', () => {
-    logger.info('Redis client disconnected');
+  // Wait for cluster to be ready
+  await new Promise((resolve, reject) => {
+    redisClient.once('ready', resolve);
+    redisClient.once('error', reject);
+    setTimeout(() => reject(new Error('Redis Cluster connection timeout after 15 seconds')), 15000);
   });
-
-  redisClient.on('reconnecting', () => {
-    logger.info('Redis client reconnecting...');
-  });
-
-  // Connect to Redis with timeout
-  logger.info('Attempting to connect to Redis...');
-  const connectPromise = redisClient.connect();
-  const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Redis connection timeout after 10 seconds')), 10000);
-  });
-
-  await Promise.race([connectPromise, timeoutPromise]);
-  logger.info('Redis connect() completed successfully');
-
-  // Test the connection
-  logger.info('Testing Redis connection...');
-  await redisClient.ping();
-  logger.info('Redis ping successful');
-
-  logger.info('Redis client initialized successfully');
+  logger.info('Redis Cluster client initialized successfully');
   return redisClient;
 }
 
 function getRedisClient() {
+  if (!redisClient) {
+    throw new Error('Redis client not initialized');
+  }
   return redisClient;
 }
 
