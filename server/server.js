@@ -36,22 +36,22 @@ app.use(fileUpload({
 // Apply monitoring middleware
 app.use(requestMonitor);
 
-// S3 file serving endpoint
-app.get('/api/files/:key', async (req, res) => {
-  try {
-    const { key } = req.params;
-    const result = await S3Service.getSignedUrl(key);
-    
-    if (result.success) {
-      res.json({ url: result.url });
-    } else {
-      res.status(404).json({ error: 'File not found' });
-    }
-  } catch (error) {
-    console.error('Error serving file:', error);
-    res.status(500).json({ error: 'Failed to serve file' });
-  }
-});
+// S3 file serving endpoint (commented out - replaced with local file serving)
+// app.get('/api/files/:key', async (req, res) => {
+//   try {
+//     const { key } = req.params;
+//     const result = await S3Service.getSignedUrl(key);
+//     
+//     if (result.success) {
+//       res.json({ url: result.url });
+//     } else {
+//       res.status(404).json({ error: 'File not found' });
+//     }
+//   } catch (error) {
+//     console.error('Error serving file:', error);
+//     res.status(500).json({ error: 'Failed to serve file' });
+//   }
+// });
 
 // Direct S3 file serving endpoint with proper content types
 app.get('/api/s3/:key(*)', async (req, res) => {
