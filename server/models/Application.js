@@ -51,7 +51,14 @@ const applicationSchema = new mongoose.Schema({
     // Intermediate/Equivalent Exam Details
     intermediateBoard: { type: String },
     intermediateYear: { type: String },
-    intermediateSubjects: { type: String },
+    intermediateSubjects: { 
+      type: Map, 
+      of: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      }
+    },
     intermediateMarksObtained: { type: String },
     intermediateMaxMarks: { type: String },
     intermediatePercentage: { type: String },

@@ -304,7 +304,7 @@ router.post('/', authenticateToken, async (req, res) => {
         highSchoolPercentage,
         intermediateBoard,
         intermediateYear,
-        intermediateSubjects,
+        intermediateSubjects: intermediateSubjects,
         intermediateMarksObtained,
         intermediateMaxMarks,
         intermediatePercentage,

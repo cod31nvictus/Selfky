@@ -212,25 +212,49 @@ const ApplicationView = () => {
               <div className="border-b border-gray-200 pb-6">
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">Intermediate/Equivalent Exam Details</h3>
                 <div className="space-y-4">
-                  {personalDetails.intermediateSubjects && Object.entries(personalDetails.intermediateSubjects).map(([subject, marks]) => (
-                    <div key={subject} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
-                          <p className="text-[#101418] font-medium">{marks.marksObtained}</p>
+                  {(() => {
+                    let subjects = personalDetails.intermediateSubjects;
+                    
+                    // Handle different data formats
+                    if (typeof subjects === 'string') {
+                      try {
+                        subjects = JSON.parse(subjects);
+                      } catch (e) {
+                        // If it's not valid JSON, treat it as a simple string
+                        return (
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <h4 className="font-medium text-[#101418] mb-3">Subjects</h4>
+                            <p className="text-[#101418] font-medium">{subjects}</p>
+                          </div>
+                        );
+                      }
+                    }
+                    
+                    // If subjects is an object, display each subject
+                    if (subjects && typeof subjects === 'object') {
+                      return Object.entries(subjects).map(([subject, marks]) => (
+                        <div key={subject} className="border border-gray-200 rounded-lg p-4">
+                          <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
+                          <div className="grid md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                              <p className="text-[#101418] font-medium">{marks.marksObtained}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">Maximum Marks</label>
+                              <p className="text-[#101418] font-medium">{marks.maxMarks}</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                              <p className="text-[#101418] font-medium">{marks.percentage}%</p>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Maximum Marks</label>
-                          <p className="text-[#101418] font-medium">{marks.maxMarks}</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
-                          <p className="text-[#101418] font-medium">{marks.percentage}%</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      ));
+                    }
+                    
+                    return null;
+                  })()}
                 </div>
               </div>
 
