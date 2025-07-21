@@ -130,6 +130,55 @@ app.get('/api/s3/:key(*)', async (req, res) => {
   }
 });
 
+// Local file serving endpoint for files stored locally
+app.get('/api/files/:key(*)', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const filePath = path.join(__dirname, 'uploads', key);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    
+    // Set proper content type based on file extension
+    const ext = key.split('.').pop().toLowerCase();
+    let contentType = 'application/octet-stream';
+    
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case 'png':
+        contentType = 'image/png';
+        break;
+      case 'pdf':
+        contentType = 'application/pdf';
+        break;
+      default:
+        contentType = 'application/octet-stream';
+    }
+    
+    // Set headers
+    res.set({
+      'Content-Type': contentType,
+      'Content-Length': stats.size,
+      'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      'Access-Control-Allow-Origin': '*'
+    });
+    
+    // Send the file
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Error serving local file:', error);
+    res.status(500).json({ error: 'Failed to serve file' });
+  }
+});
+
 // Enhanced health check route with database status
 app.get('/api/health', async (req, res) => {
   try {
