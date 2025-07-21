@@ -9,7 +9,6 @@ const emailService = require('../utils/emailService');
 const PDFGenerator = require('../utils/pdfGenerator');
 const { processUploadedImage } = require('../utils/imageProcessor');
 const S3Service = require('../utils/s3Service');
-const DatabaseOptimizer = require('../utils/databaseOptimizer');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -35,11 +34,9 @@ const generateApplicationNumber = async (courseType) => {
   const year = '25';
   
   // Find the last application number for this course type with optimized query
-  const lastApplication = await DatabaseOptimizer.optimizeQuery(
-    Application.findOne({
-      applicationNumber: new RegExp(`^${prefix}${year}`)
-    }).sort({ applicationNumber: -1 })
-  );
+  const lastApplication = await Application.findOne({
+    applicationNumber: new RegExp(`^${prefix}${year}`)
+  }).sort({ applicationNumber: -1 });
 
   let nextNumber = 1;
   if (lastApplication) {
@@ -58,13 +55,13 @@ router.get('/my-applications', authenticateToken, async (req, res) => {
     let query = Application.find({ userId: req.user.id });
     
     // Add sorting
-    query = DatabaseOptimizer.addSorting(query, sortBy, sortOrder);
+    query = query.sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 });
     
     // Add pagination
-    query = DatabaseOptimizer.addPagination(query, parseInt(page), parseInt(limit));
+    query = query.skip((page - 1) * limit).limit(limit);
     
-    // Optimize query with lean()
-    const applications = await DatabaseOptimizer.optimizeQuery(query);
+    // Execute query
+    const applications = await query;
     
     // Get total count for pagination
     const total = await Application.countDocuments({ userId: req.user.id });
@@ -86,12 +83,10 @@ router.get('/my-applications', authenticateToken, async (req, res) => {
 // Get a specific application with optimization
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const application = await DatabaseOptimizer.optimizeQuery(
-      Application.findOne({
-        _id: req.params.id,
-        userId: req.user.id
-      })
-    );
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
 
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
