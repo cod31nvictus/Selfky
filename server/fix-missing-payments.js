@@ -19,70 +19,66 @@ async function fixMissingPayments() {
     console.log('Connected to MongoDB successfully');
     
     // Find applications with completed payments but no Payment records
-    const applicationsWithPayments = await Application.find({
-      $or: [
-        { status: 'payment_completed' },
-        { status: 'admit_card_generated' }
-      ]
+    const applications = await Application.find({
+      'payment.status': 'completed'
     }).populate('userId', 'name email');
     
-    console.log(`Found ${applicationsWithPayments.length} applications with completed payments`);
+    console.log(`Found ${applications.length} applications with completed payments`);
     
     let createdCount = 0;
     let skippedCount = 0;
+    let errorCount = 0;
     
-    for (const application of applicationsWithPayments) {
-      // Check if payment record already exists
-      const existingPayment = await Payment.findOne({
-        applicationId: application._id
-      });
-      
-      if (existingPayment) {
-        console.log(`Payment record already exists for application ${application.applicationNumber}`);
-        skippedCount++;
-        continue;
-      }
-      
-      // Create retroactive payment record
+    for (const application of applications) {
       try {
+        // Check if a payment record already exists for this application
+        const existingPayment = await Payment.findOne({
+          applicationId: application._id
+        });
+        
+        if (existingPayment) {
+          console.log(`Payment record already exists for ${application.applicationNumber}, skipping...`);
+          skippedCount++;
+          continue;
+        }
+        
+        // Create a new payment record
         const paymentRecord = new Payment({
           applicationId: application._id,
           userId: application.userId._id,
-          razorpayOrderId: `retro_order_${application.applicationNumber}`,
-          razorpayPaymentId: `retro_payment_${application.applicationNumber}`,
-          amount: application.payment?.amount || 1000, // Default amount
+          razorpayOrderId: `order_${application.applicationNumber}`,
+          razorpayPaymentId: `pay_${application.applicationNumber}`,
+          amount: application.payment?.amount || 0,
           currency: 'INR',
           status: 'completed',
-          receipt: `retro_receipt_${application.applicationNumber}`,
-          notes: { 
-            retroactive: true, 
-            createdByScript: true,
-            originalStatus: application.status,
-            applicationNumber: application.applicationNumber
-          },
-          createdAt: application.updatedAt || application.createdAt,
-          updatedAt: application.updatedAt || application.createdAt
+          receipt: `receipt_${application.applicationNumber}`,
+          notes: `Retroactively created for application ${application.applicationNumber}`,
+          createdAt: application.payment?.completedAt || application.updatedAt,
+          updatedAt: new Date()
         });
         
         await paymentRecord.save();
-        console.log(`Created retroactive payment record for ${application.applicationNumber} (${application.userId.email})`);
+        console.log(`Created payment record for ${application.applicationNumber}`);
         createdCount++;
         
       } catch (error) {
         console.error(`Error creating payment record for ${application.applicationNumber}:`, error.message);
+        errorCount++;
       }
     }
     
     console.log('\n=== SUMMARY ===');
-    console.log(`Total applications with completed payments: ${applicationsWithPayments.length}`);
+    console.log(`Total applications with completed payments: ${applications.length}`);
     console.log(`Payment records created: ${createdCount}`);
     console.log(`Payment records skipped (already existed): ${skippedCount}`);
+    console.log(`Errors: ${errorCount}`);
     
-  } catch (error) {
-    console.error('Error fixing missing payments:', error);
-  } finally {
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');
+    
+  } catch (error) {
+    console.error('Error:', error);
+    process.exit(1);
   }
 }
 
