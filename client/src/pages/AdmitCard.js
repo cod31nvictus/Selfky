@@ -60,6 +60,7 @@ const AdmitCard = () => {
       }
       
       console.log('Application data received:', application);
+      console.log('Documents from application:', application.documents);
       
       // Convert application data to the format expected by generateAdmitCard
       const applicationDataFromAPI = {
@@ -463,8 +464,12 @@ const AdmitCard = () => {
                       alt="Applicant Photo"
                       className="w-32 h-40 object-cover rounded border-2 border-gray-300 shadow-md"
                       onError={(e) => {
+                        console.error('Photo failed to load:', e.target.src);
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
+                      }}
+                      onLoad={() => {
+                        console.log('Photo loaded successfully:', `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${applicationData.documents.photo}`);
                       }}
                     />
                   ) : null}
@@ -483,8 +488,12 @@ const AdmitCard = () => {
                       alt="Applicant Signature"
                       className="w-32 h-16 object-contain border-2 border-gray-300 rounded shadow-md"
                       onError={(e) => {
+                        console.error('Signature failed to load:', e.target.src);
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
+                      }}
+                      onLoad={() => {
+                        console.log('Signature loaded successfully:', `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${applicationData.documents.signature}`);
                       }}
                     />
                   ) : null}
