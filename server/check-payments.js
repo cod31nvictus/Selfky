@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: './.env' });
 const mongoose = require('mongoose');
 const Payment = require('./models/Payment');
 
