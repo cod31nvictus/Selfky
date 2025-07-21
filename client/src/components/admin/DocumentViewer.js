@@ -30,67 +30,37 @@ const DocumentViewer = ({ documents, onClose }) => {
         
         <div className="document-grid">
           {documents.photo && (
-            <div className="document-item" onClick={() => handleDocumentClick(documents.photo)}>
+            <div className="document-item">
               <h3>Photo</h3>
-              <div className="document-preview">
-                <img 
-                  src={`/api/files/${documents.photo}`}
-                  alt="Photo" 
-                  className="document-image"
-                />
-              </div>
+              <a href={`/api/files/${documents.photo}`} download target="_blank" rel="noopener noreferrer">{documents.photo}</a>
             </div>
           )}
           
           {documents.signature && (
-            <div className="document-item" onClick={() => handleDocumentClick(documents.signature)}>
+            <div className="document-item">
               <h3>Signature</h3>
-              <div className="document-preview">
-                <img 
-                  src={`/api/files/${documents.signature}`}
-                  alt="Signature" 
-                  className="document-image"
-                />
-              </div>
+              <a href={`/api/files/${documents.signature}`} download target="_blank" rel="noopener noreferrer">{documents.signature}</a>
             </div>
           )}
           
           {documents.categoryCertificate && (
-            <div className="document-item" onClick={() => handleDocumentClick(documents.categoryCertificate)}>
+            <div className="document-item">
               <h3>Category Certificate</h3>
-              <div className="document-preview">
-                <img 
-                  src={`/api/files/${documents.categoryCertificate}`}
-                  alt="Category Certificate" 
-                  className="document-image"
-                />
-              </div>
+              <a href={`/api/files/${documents.categoryCertificate}`} download target="_blank" rel="noopener noreferrer">{documents.categoryCertificate}</a>
             </div>
           )}
           
           {documents.highSchoolCertificate && (
-            <div className="document-item" onClick={() => handleDocumentClick(documents.highSchoolCertificate)}>
+            <div className="document-item">
               <h3>High School Certificate</h3>
-              <div className="document-preview">
-                <img 
-                  src={`/api/files/${documents.highSchoolCertificate}`}
-                  alt="High School Certificate" 
-                  className="document-image"
-                />
-              </div>
+              <a href={`/api/files/${documents.highSchoolCertificate}`} download target="_blank" rel="noopener noreferrer">{documents.highSchoolCertificate}</a>
             </div>
           )}
           
           {documents.intermediateCertificate && (
-            <div className="document-item" onClick={() => handleDocumentClick(documents.intermediateCertificate)}>
+            <div className="document-item">
               <h3>Intermediate Certificate</h3>
-              <div className="document-preview">
-                <img 
-                  src={`/api/files/${documents.intermediateCertificate}`}
-                  alt="Intermediate Certificate" 
-                  className="document-image"
-                />
-              </div>
+              <a href={`/api/files/${documents.intermediateCertificate}`} download target="_blank" rel="noopener noreferrer">{documents.intermediateCertificate}</a>
             </div>
           )}
         </div>
