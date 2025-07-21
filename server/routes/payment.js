@@ -191,6 +191,28 @@ router.post('/verify-payment', async (req, res) => {
 
         if (!paymentRecord) {
           console.warn('No pending payment record found for order:', razorpay_order_id);
+          
+          // Create a payment record if none exists (for older payments)
+          try {
+            const application = await Application.findById(applicationId);
+            if (application) {
+              const newPaymentRecord = new Payment({
+                applicationId: applicationId,
+                userId: application.userId,
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                amount: application.payment?.amount || 0,
+                currency: 'INR',
+                status: 'completed',
+                receipt: `receipt_${razorpay_order_id}`,
+                notes: { retroactive: true, createdDuringVerification: true }
+              });
+              await newPaymentRecord.save();
+              console.log('Created retroactive payment record:', newPaymentRecord._id);
+            }
+          } catch (createError) {
+            console.error('Error creating retroactive payment record:', createError);
+          }
         }
       } catch (dbError) {
         console.error('Error updating payment record:', dbError);
