@@ -59,18 +59,20 @@ router.post('/create-order', async (req, res) => {
         const user = await User.findById(notes.userId);
         
         if (application && user) {
-          // Create payment record
-          const paymentRecord = new Payment({
-            applicationId: notes.applicationId,
-            userId: notes.userId,
-            razorpayOrderId: order.id,
-            amount: amount,
-            currency: currency,
-            status: 'pending',
-            receipt: receipt,
-            notes: notes
-          });
-          await paymentRecord.save();
+                  // Create payment record
+        console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id });
+        const paymentRecord = new Payment({
+          applicationId: notes.applicationId,
+          userId: notes.userId,
+          razorpayOrderId: order.id,
+          amount: amount,
+          currency: currency,
+          status: 'pending',
+          receipt: receipt,
+          notes: notes
+        });
+        await paymentRecord.save();
+        console.log('Payment record created successfully:', paymentRecord._id);
 
           // Update application status
           application.status = 'payment_pending';
@@ -80,6 +82,11 @@ router.post('/create-order', async (req, res) => {
         }
       } catch (dbError) {
         console.error('Error recording payment attempt:', dbError);
+        console.error('Database error details:', {
+          message: dbError.message,
+          code: dbError.code,
+          stack: dbError.stack
+        });
         // Don't fail the payment order creation if DB update fails
       }
     } else {
