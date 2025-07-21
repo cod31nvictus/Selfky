@@ -1,25 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// Do not commit real credentials. Use .env files and .gitignore.
 
-const AdminAuthContext = createContext();
+import React, { createContext, useState, useEffect } from 'react';
 
-export const useAdminAuth = () => {
-  const context = useContext(AdminAuthContext);
-  if (!context) {
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
-  }
-  return context;
-};
+export const AdminAuthContext = createContext();
 
 export const AdminAuthProvider = ({ children }) => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Admin credentials - can be configured via environment variables
-  const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL || 'cod31nvictus@gmail.com';
-  const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'Bhoo@321';
+  // Admin credentials - must be configured via environment variables
+  const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL;
+  const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
 
-  // Check admin auth status on app load
   useEffect(() => {
     checkAdminAuthStatus();
   }, []);
@@ -31,9 +24,6 @@ export const AdminAuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
-
-      // For now, we'll just check if the token exists
-      // In a real app, you'd validate the token with the server
       setIsAdminLoggedIn(true);
       setAdminUser({ email: ADMIN_EMAIL });
     } catch (error) {
@@ -47,11 +37,8 @@ export const AdminAuthProvider = ({ children }) => {
   };
 
   const adminLogin = (email, password) => {
-    // Support both hardcoded and environment-based credentials
-    const validEmails = [ADMIN_EMAIL, 'admin@selfky.com'];
-    const validPasswords = [ADMIN_PASSWORD, 'admin123'];
-    
-    if (validEmails.includes(email) && validPasswords.includes(password)) {
+    // Only allow login with environment-based credentials
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       const adminToken = 'admin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('adminToken', adminToken);
       setIsAdminLoggedIn(true);
@@ -68,17 +55,8 @@ export const AdminAuthProvider = ({ children }) => {
     setAdminUser(null);
   };
 
-  const value = {
-    isAdminLoggedIn,
-    adminUser,
-    loading,
-    adminLogin,
-    adminLogout,
-    checkAdminAuthStatus
-  };
-
   return (
-    <AdminAuthContext.Provider value={value}>
+    <AdminAuthContext.Provider value={{ isAdminLoggedIn, adminUser, loading, adminLogin, adminLogout }}>
       {children}
     </AdminAuthContext.Provider>
   );

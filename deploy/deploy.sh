@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Selfky Deployment Script for AWS EC2 with selfky.com domain
+# Do not commit real credentials. Use .env files and .gitignore.
 # Run this script after setting up the EC2 instance
 
 echo "🚀 Deploying Selfky to AWS EC2 with selfky.com domain..."
@@ -30,21 +31,21 @@ cd client && npm install && cd ..
 echo "🔧 Setting up environment variables..."
 cat > server/.env << EOF
 NODE_ENV=production
-JWT_SECRET=your_very_secure_jwt_secret_key_here
-MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority
+JWT_SECRET=your_jwt_secret
+MONGODB_URI=your_mongodb_atlas_connection_string
 PORT=5000
-GMAIL_USER=teamselfky@gmail.com
-GMAIL_APP_PASSWORD=your_gmail_app_password_here
-EMAIL_FROM=teamselfky@gmail.com
-FRONTEND_URL=https://selfky.com
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_APP_PASSWORD=your_gmail_app_password
+EMAIL_FROM=your_gmail_address@gmail.com
+FRONTEND_URL=https://yourdomain.com
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_secret
 MAX_FILE_SIZE=5242880
 UPLOAD_PATH=./uploads
-AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
-AWS_REGION=eu-north-1
-S3_BUCKET_NAME=selfky-applications-2025
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=your_aws_region
+S3_BUCKET_NAME=your_s3_bucket_name
 LOG_LEVEL=info
 LOG_FILE=./logs/app.log
 ERROR_LOG_FILE=./logs/error.log

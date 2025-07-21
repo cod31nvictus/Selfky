@@ -1,10 +1,12 @@
 require('dotenv').config();
+// Do not commit real credentials. Use .env files and .gitignore.
+
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Application = require('./models/Application');
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGODB_URI || 'your_mongodb_atlas_connection_string';
 
 async function testDatabase() {
   try {

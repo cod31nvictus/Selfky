@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Fresh EC2 Setup Script for Selfky
+# Do not commit real credentials. Use .env files and .gitignore.
 # Run this on a new Ubuntu 22.04 EC2 instance
 
 echo "🚀 Starting fresh EC2 setup for Selfky..."
@@ -69,8 +70,8 @@ echo "🔧 Creating backend environment file..."
 cd ../server
 cat > .env << EOF
 PORT=5000
-MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_secret
 NODE_ENV=production
 EOF
 

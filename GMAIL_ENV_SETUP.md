@@ -13,17 +13,17 @@ GMAIL_APP_PASSWORD=your_gmail_app_password
 EMAIL_FROM=your_gmail_address@gmail.com
 
 # Database Configuration - MongoDB Atlas
-MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.e5jmlu.mongodb.net/selfky?retryWrites=true&w=majority&appName=selfky-cluster
+MONGODB_URI=your_mongodb_atlas_connection_string
 
 # JWT Configuration
-JWT_SECRET=your_very_secure_jwt_secret_key_here
+JWT_SECRET=your_jwt_secret
 
 # Server Configuration
 NODE_ENV=production
 PORT=5000
 
 # Frontend URL
-FRONTEND_URL=https://selfky.com
+FRONTEND_URL=https://yourdomain.com
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID=your_razorpay_key_id
@@ -34,16 +34,18 @@ MAX_FILE_SIZE=5242880
 UPLOAD_PATH=./uploads
 
 # AWS S3 Configuration
-AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
-AWS_REGION=eu-north-1
-S3_BUCKET_NAME=selfky-applications-2025
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=your_aws_region
+S3_BUCKET_NAME=your_s3_bucket_name
 
 # Logging Configuration
 LOG_LEVEL=info
 LOG_FILE=./logs/app.log
 ERROR_LOG_FILE=./logs/error.log
 ```
+
+> **Do not commit real credentials. Use .env files and .gitignore.**
 
 ## Gmail App Password Setup
 
