@@ -9,6 +9,7 @@ const emailService = require('../utils/emailService');
 const PDFGenerator = require('../utils/pdfGenerator');
 const { processUploadedImage } = require('../utils/imageProcessor');
 const S3Service = require('../utils/s3Service');
+const logger = require('../utils/logger');
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -346,12 +347,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     res.status(201).json(application);
   } catch (error) {
-    console.error('Application creation error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
+    logger.error('Application creation error:', error);
     res.status(500).json({ 
       error: 'Failed to create application',
       details: error.message 

@@ -30,8 +30,21 @@ const logger = {
       console.error(error);
     }
     
-    // Write to file
-    const logEntry = `${logMessage}\n${error ? error.stack || error + '\n' : ''}`;
+    // Write to file with proper error serialization
+    let errorDetails = '';
+    if (error) {
+      if (error.stack) {
+        errorDetails = error.stack;
+      } else if (error.message) {
+        errorDetails = `Error: ${error.message}`;
+      } else if (typeof error === 'object') {
+        errorDetails = JSON.stringify(error, null, 2);
+      } else {
+        errorDetails = String(error);
+      }
+    }
+    
+    const logEntry = `${logMessage}\n${errorDetails}\n`;
     fs.appendFileSync(path.join(logsDir, 'error.log'), logEntry);
   },
   
