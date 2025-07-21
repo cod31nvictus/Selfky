@@ -8,7 +8,7 @@ const fileUpload = require('express-fileupload');
 const S3Service = require('./utils/s3Service');
 const optimizeDatabase = require('./utils/databaseOptimizer');
 const { connectToDatabase } = require('./config/database');
-const { createRedisClient, closeRedisClient } = require('./config/redis');
+const { createRedisClient } = require('./config/redis');
 const monitor = require('./utils/monitor');
 const logger = require('./utils/logger');
 const { requestMonitor, errorMonitor } = require('./middleware/monitoring');
@@ -231,8 +231,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Start server with optimized database connection
-const startServer = async () => {
+async function startServer() {
   try {
     console.log('Starting server initialization...');
     
@@ -246,16 +245,9 @@ const startServer = async () => {
     
     console.log('MongoDB connected with optimizations');
 
-    // Initialize Redis client (temporarily disabled for debugging)
-    console.log('Initializing Redis client...');
-    try {
-      await createRedisClient();
-      console.log('Redis client initialized successfully');
-    } catch (error) {
-      console.error('❌ Redis client initialization failed:', error);
-      // Don't throw error - allow server to start without Redis
-      console.log('⚠️ Server will continue without Redis');
-    }
+    // Initialize Redis (required)
+    await createRedisClient(); // If this fails, let the error crash the process
+    console.log('Redis client initialized successfully');
 
     console.log(`Starting HTTP server on port ${PORT}...`);
     app.listen(PORT, () => {
@@ -281,13 +273,13 @@ if (process.env.NODE_ENV === 'production') {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
-  await closeRedisClient();
+  // await closeRedisClient(); // This line is removed as per the edit hint
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully');
-  await closeRedisClient();
+  // await closeRedisClient(); // This line is removed as per the edit hint
   process.exit(0);
 });
 
