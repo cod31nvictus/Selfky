@@ -145,11 +145,11 @@ app.get('/api/health', async (req, res) => {
 // Database performance monitoring endpoint
 app.get('/api/db/stats', async (req, res) => {
   try {
-    // optimizeDatabase();
-    // const stats = optimizeDatabase.getConnectionStats();
+    optimizeDatabase();
+    const stats = optimizeDatabase.getConnectionStats();
     
     res.json({
-      connectionStats: { message: 'Database optimizer temporarily disabled' },
+      connectionStats: stats,
       timestamp: new Date().toISOString(),
       databaseType: process.env.USE_MONGODB_ATLAS === 'true' ? 'MongoDB Atlas' : 'Local MongoDB'
     });
@@ -198,7 +198,7 @@ const startServer = async () => {
     
     // Initialize database optimizer for monitoring (don't reconnect)
     console.log('Initializing database optimizer...');
-    // optimizeDatabase();
+    optimizeDatabase();
     
     console.log('MongoDB connected with optimizations');
 
