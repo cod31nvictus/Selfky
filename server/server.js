@@ -142,6 +142,50 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Backup management routes (admin only)
+app.post('/api/admin/backup', async (req, res) => {
+  try {
+    // TODO: Add admin authentication check
+    const BackupManager = require('./utils/backup');
+    const backupManager = new BackupManager();
+    
+    const manifest = await backupManager.createCompleteBackup();
+    
+    res.json({
+      success: true,
+      message: 'Backup completed successfully',
+      manifest: manifest
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Backup failed',
+      message: error.message
+    });
+  }
+});
+
+app.get('/api/admin/backups', async (req, res) => {
+  try {
+    // TODO: Add admin authentication check
+    const BackupManager = require('./utils/backup');
+    const backupManager = new BackupManager();
+    
+    const backups = backupManager.listBackups();
+    
+    res.json({
+      success: true,
+      backups: backups
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to list backups',
+      message: error.message
+    });
+  }
+});
+
 // Database performance monitoring endpoint
 app.get('/api/db/stats', async (req, res) => {
   try {
