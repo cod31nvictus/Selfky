@@ -56,7 +56,7 @@ const Payment = () => {
     } catch (error) {
       console.error('Error verifying payment:', error);
       setError(error.message || 'Payment verification failed');
-      navigate('/payment-failure', {
+      navigate('/payment/failure', {
         state: {
           error: error.message,
           applicationId: applicationId
