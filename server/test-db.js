@@ -4,7 +4,7 @@ const User = require('./models/User');
 const Application = require('./models/Application');
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/selfky';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority';
 
 async function testDatabase() {
   try {

@@ -31,8 +31,23 @@ echo "🔧 Setting up environment variables..."
 cat > server/.env << EOF
 NODE_ENV=production
 JWT_SECRET=your_very_secure_jwt_secret_key_here
-MONGO_URI=mongodb://localhost:27017/selfky
+MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority
 PORT=5000
+GMAIL_USER=teamselfky@gmail.com
+GMAIL_APP_PASSWORD=your_gmail_app_password_here
+EMAIL_FROM=teamselfky@gmail.com
+FRONTEND_URL=https://selfky.com
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+MAX_FILE_SIZE=5242880
+UPLOAD_PATH=./uploads
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+AWS_REGION=eu-north-1
+S3_BUCKET_NAME=selfky-applications-2025
+LOG_LEVEL=info
+LOG_FILE=./logs/app.log
+ERROR_LOG_FILE=./logs/error.log
 EOF
 
 # Build React app

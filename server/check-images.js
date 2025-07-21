@@ -7,7 +7,7 @@ const path = require('path');
 async function checkImages() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/selfky');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority');
     console.log('Connected to MongoDB');
 
     // Find the application with roll number RN1603

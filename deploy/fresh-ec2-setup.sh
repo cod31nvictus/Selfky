@@ -69,7 +69,7 @@ echo "🔧 Creating backend environment file..."
 cd ../server
 cat > .env << EOF
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/selfky
+MONGODB_URI=mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 NODE_ENV=production
 EOF
