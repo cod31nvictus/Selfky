@@ -40,43 +40,45 @@ app.use(requestMonitor);
 app.get('/api/files/:key(*)', async (req, res) => {
   try {
     const { key } = req.params;
-    
-    // Try different path combinations since files might be stored with just filename
+    console.log('Requested key:', key);
+
     const possibleKeys = [
-      key, // Try as-is
-      `photos/${key}`, // Try with photos folder
-      `signatures/${key}`, // Try with signatures folder
-      `certificates/${key}` // Try with certificates folder
+      key, // as-is
+      `photos/${key}`,
+      `signatures/${key}`,
+      `certificates/${key}`
     ];
-    
-    // Get the file from S3
+
     const s3 = new AWS.S3();
     let s3Object = null;
     let foundKey = null;
-    
+
     for (const testKey of possibleKeys) {
       try {
+        console.log('Trying S3 key:', testKey);
         const params = {
           Bucket: process.env.S3_BUCKET_NAME || 'selfky-applications-2025',
           Key: testKey
         };
-        
         s3Object = await s3.getObject(params).promise();
         foundKey = testKey;
+        console.log('S3 file found for key:', foundKey);
         break;
       } catch (error) {
+        console.log('S3 error for key', testKey, ':', error.code);
         if (error.code === 'NoSuchKey') {
-          continue; // Try next key
+          continue;
         } else {
-          throw error; // Re-throw other errors
+          throw error;
         }
       }
     }
-    
+
     if (!s3Object) {
+      console.log('File not found for any key');
       return res.status(404).json({ error: 'File not found' });
     }
-    
+
     // Set proper content type based on file extension
     let contentType = s3Object.ContentType;
     if (!contentType) {
@@ -96,16 +98,13 @@ app.get('/api/files/:key(*)', async (req, res) => {
           contentType = 'application/octet-stream';
       }
     }
-    
-    // Set headers
+
     res.set({
       'Content-Type': contentType,
       'Content-Length': s3Object.ContentLength,
-      'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      'Cache-Control': 'public, max-age=31536000',
       'Access-Control-Allow-Origin': '*'
     });
-    
-    // Send the file
     res.send(s3Object.Body);
   } catch (error) {
     console.error('Error serving S3 file:', error);
