@@ -145,7 +145,7 @@ app.get('/api/health', async (req, res) => {
 // Database performance monitoring endpoint
 app.get('/api/db/stats', async (req, res) => {
   try {
-    optimizeDatabase();
+    // optimizeDatabase();
     const stats = optimizeDatabase.getConnectionStats();
     
     res.json({
