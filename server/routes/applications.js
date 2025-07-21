@@ -347,7 +347,15 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(201).json(application);
   } catch (error) {
     console.error('Application creation error:', error);
-    res.status(500).json({ error: 'Failed to create application' });
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      error: 'Failed to create application',
+      details: error.message 
+    });
   }
 });
 
