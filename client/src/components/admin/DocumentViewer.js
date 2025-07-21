@@ -7,8 +7,7 @@ const DocumentViewer = ({ documents, onClose }) => {
   const handleDocumentClick = (documentPath) => {
     if (documentPath) {
       // Use S3 file serving endpoint
-      const fileUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documentPath}`;
-      setSelectedDocument(fileUrl);
+      setSelectedDocument(`/api/files/${documentPath}`);
     }
   };
 
@@ -35,7 +34,7 @@ const DocumentViewer = ({ documents, onClose }) => {
               <h3>Photo</h3>
               <div className="document-preview">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.photo}`}
+                  src={`/api/files/${documents.photo}`}
                   alt="Photo" 
                   className="document-image"
                 />
@@ -48,7 +47,7 @@ const DocumentViewer = ({ documents, onClose }) => {
               <h3>Signature</h3>
               <div className="document-preview">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.signature}`}
+                  src={`/api/files/${documents.signature}`}
                   alt="Signature" 
                   className="document-image"
                 />
@@ -61,7 +60,7 @@ const DocumentViewer = ({ documents, onClose }) => {
               <h3>Category Certificate</h3>
               <div className="document-preview">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.categoryCertificate}`}
+                  src={`/api/files/${documents.categoryCertificate}`}
                   alt="Category Certificate" 
                   className="document-image"
                 />
@@ -74,7 +73,7 @@ const DocumentViewer = ({ documents, onClose }) => {
               <h3>High School Certificate</h3>
               <div className="document-preview">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.highSchoolCertificate}`}
+                  src={`/api/files/${documents.highSchoolCertificate}`}
                   alt="High School Certificate" 
                   className="document-image"
                 />
@@ -87,7 +86,7 @@ const DocumentViewer = ({ documents, onClose }) => {
               <h3>Intermediate Certificate</h3>
               <div className="document-preview">
                 <img 
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/files/${documents.intermediateCertificate}`}
+                  src={`/api/files/${documents.intermediateCertificate}`}
                   alt="Intermediate Certificate" 
                   className="document-image"
                 />
