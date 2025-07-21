@@ -60,4 +60,13 @@ export const AdminAuthProvider = ({ children }) => {
       {children}
     </AdminAuthContext.Provider>
   );
+};
+
+// Custom hook to use admin auth context
+export const useAdminAuth = () => {
+  const context = React.useContext(AdminAuthContext);
+  if (context === undefined) {
+    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
+  }
+  return context;
 }; 
