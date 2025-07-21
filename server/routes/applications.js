@@ -101,11 +101,39 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // Create new application (Step 1: Personal Details)
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { courseType, fullName, fathersName, category, dateOfBirth } = req.body;
+    const { 
+      courseType, 
+      fullName, 
+      fathersName, 
+      aadharNumber,
+      dateOfBirth,
+      sex,
+      nationality,
+      category,
+      correspondenceAddress,
+      permanentAddress,
+      correspondencePhone,
+      qualifyingExam,
+      qualifyingExamStatus,
+      qualifyingBoard,
+      qualifyingYear,
+      qualifyingSubjects,
+      qualifyingMarksObtained,
+      qualifyingMaxMarks,
+      qualifyingPercentage,
+      highSchoolBoard,
+      highSchoolYear,
+      highSchoolSubjects,
+      highSchoolMarksObtained,
+      highSchoolMaxMarks,
+      highSchoolPercentage,
+      intermediateSubjects,
+      placeOfApplication
+    } = req.body;
 
     // Validate required fields
     if (!courseType || !fullName || !fathersName || !category || !dateOfBirth) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: 'All required fields are required' });
     }
 
     // Check if required files were uploaded
@@ -247,8 +275,30 @@ router.post('/', authenticateToken, async (req, res) => {
       personalDetails: {
         fullName,
         fathersName,
+        aadharNumber,
+        dateOfBirth: new Date(dateOfBirth),
+        sex,
+        nationality,
         category,
-        dateOfBirth: new Date(dateOfBirth)
+        correspondenceAddress,
+        permanentAddress,
+        correspondencePhone,
+        qualifyingExam,
+        qualifyingExamStatus,
+        qualifyingBoard,
+        qualifyingYear,
+        qualifyingSubjects,
+        qualifyingMarksObtained,
+        qualifyingMaxMarks,
+        qualifyingPercentage,
+        highSchoolBoard,
+        highSchoolYear,
+        highSchoolSubjects,
+        highSchoolMarksObtained,
+        highSchoolMaxMarks,
+        highSchoolPercentage,
+        intermediateSubjects: intermediateSubjects ? JSON.parse(intermediateSubjects) : undefined,
+        placeOfApplication
       },
       documents: {
         photo: photoUpload.key,

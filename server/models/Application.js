@@ -19,12 +19,69 @@ const applicationSchema = new mongoose.Schema({
   personalDetails: {
     fullName: { type: String, required: true },
     fathersName: { type: String, required: true },
+    aadharNumber: { type: String },
+    dateOfBirth: { type: Date, required: true },
+    sex: { type: String },
+    nationality: { type: String, default: 'Indian' },
     category: { 
       type: String, 
       required: true, 
       enum: ['General', 'OBC', 'SC', 'ST', 'PH'] 
     },
-    dateOfBirth: { type: Date, required: true }
+    // Contact Details
+    correspondenceAddress: { type: String },
+    permanentAddress: { type: String },
+    correspondencePhone: { type: String },
+    // Qualifying Examination
+    qualifyingExam: { type: String },
+    qualifyingExamStatus: { type: String, default: 'passed' },
+    qualifyingBoard: { type: String },
+    qualifyingYear: { type: String },
+    qualifyingSubjects: { type: String },
+    qualifyingMarksObtained: { type: String },
+    qualifyingMaxMarks: { type: String },
+    qualifyingPercentage: { type: String },
+    // High School Details
+    highSchoolBoard: { type: String },
+    highSchoolYear: { type: String },
+    highSchoolSubjects: { type: String },
+    highSchoolMarksObtained: { type: String },
+    highSchoolMaxMarks: { type: String },
+    highSchoolPercentage: { type: String },
+    // Intermediate/Equivalent Exam Details
+    intermediateSubjects: {
+      physics: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      },
+      chemistry: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      },
+      biology: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      },
+      zoology: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      },
+      botany: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      },
+      english: {
+        marksObtained: { type: String },
+        maxMarks: { type: String },
+        percentage: { type: String }
+      }
+    },
+    placeOfApplication: { type: String }
   },
   documents: {
     photo: { type: String, required: true }, // File path/URL

@@ -1,0 +1,3 @@
+a30c367f645fee1e107d431bb5626b80e23f4812 4124 fresh-ec2-setup.sh
+ec2d2fad5b520f1ad1c417fafe4c39ddc137988d 4196 fresh-ec2-setup.sh
+6f57734deaa218e04beebc676eb9c2da5c90b1e6 3482 fresh-ec2-setup.sh
