@@ -127,7 +127,12 @@ router.post('/', authenticateToken, async (req, res) => {
       highSchoolMarksObtained,
       highSchoolMaxMarks,
       highSchoolPercentage,
+      intermediateBoard,
+      intermediateYear,
       intermediateSubjects,
+      intermediateMarksObtained,
+      intermediateMaxMarks,
+      intermediatePercentage,
       placeOfApplication
     } = req.body;
 
@@ -297,7 +302,12 @@ router.post('/', authenticateToken, async (req, res) => {
         highSchoolMarksObtained,
         highSchoolMaxMarks,
         highSchoolPercentage,
-        intermediateSubjects: intermediateSubjects ? JSON.parse(intermediateSubjects) : undefined,
+        intermediateBoard,
+        intermediateYear,
+        intermediateSubjects,
+        intermediateMarksObtained,
+        intermediateMaxMarks,
+        intermediatePercentage,
         placeOfApplication
       },
       documents: {

@@ -49,38 +49,12 @@ const applicationSchema = new mongoose.Schema({
     highSchoolMaxMarks: { type: String },
     highSchoolPercentage: { type: String },
     // Intermediate/Equivalent Exam Details
-    intermediateSubjects: {
-      physics: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      },
-      chemistry: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      },
-      biology: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      },
-      zoology: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      },
-      botany: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      },
-      english: {
-        marksObtained: { type: String },
-        maxMarks: { type: String },
-        percentage: { type: String }
-      }
-    },
+    intermediateBoard: { type: String },
+    intermediateYear: { type: String },
+    intermediateSubjects: { type: String },
+    intermediateMarksObtained: { type: String },
+    intermediateMaxMarks: { type: String },
+    intermediatePercentage: { type: String },
     placeOfApplication: { type: String }
   },
   documents: {

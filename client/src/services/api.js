@@ -113,7 +113,12 @@ export const applicationAPI = {
     data.append('highSchoolMarksObtained', formData.highSchoolMarksObtained || '');
     data.append('highSchoolMaxMarks', formData.highSchoolMaxMarks || '');
     data.append('highSchoolPercentage', formData.highSchoolPercentage || '');
-    data.append('intermediateSubjects', formData.intermediateSubjects ? JSON.stringify(formData.intermediateSubjects) : '');
+    data.append('intermediateBoard', formData.intermediateBoard || '');
+    data.append('intermediateYear', formData.intermediateYear || '');
+    data.append('intermediateSubjects', formData.intermediateSubjects || '');
+    data.append('intermediateMarksObtained', formData.intermediateMarksObtained || '');
+    data.append('intermediateMaxMarks', formData.intermediateMaxMarks || '');
+    data.append('intermediatePercentage', formData.intermediatePercentage || '');
     data.append('placeOfApplication', formData.placeOfApplication || '');
     data.append('photo', formData.photo);
     data.append('signature', formData.signature);
