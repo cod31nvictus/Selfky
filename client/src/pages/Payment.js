@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { applicationAPI } from '../services/api';
+import { logFailedPaymentAttempt } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -57,6 +58,21 @@ const Payment = () => {
     } catch (error) {
       console.error('Error verifying payment:', error);
       setError(error.message || 'Payment verification failed');
+      
+      // Log failed payment verification attempt
+      try {
+        await logFailedPaymentAttempt(
+          applicationId,
+          user._id,
+          orderId || `failed_verification_${Date.now()}`,
+          amount,
+          error.message || 'Payment verification failed',
+          `failed_verification_${Date.now()}`
+        );
+      } catch (logError) {
+        console.error('Failed to log payment verification attempt:', logError);
+      }
+      
       navigate('/payment/failure', {
         state: {
           error: error.message,
@@ -146,6 +162,21 @@ const Payment = () => {
         handler: function (response) {
           verifyPayment(response);
         },
+        modal: {
+          ondismiss: function() {
+            // Log cancelled payment attempt
+            logFailedPaymentAttempt(
+              applicationId,
+              user._id,
+              orderId || `cancelled_${Date.now()}`,
+              amount,
+              'Payment cancelled by user',
+              `cancelled_${Date.now()}`
+            ).catch(logError => {
+              console.error('Failed to log cancelled payment:', logError);
+            });
+          }
+        },
         prefill: {
           name: user.name,
           email: user.email,
@@ -161,6 +192,20 @@ const Payment = () => {
     } catch (error) {
       console.error('Error creating order:', error);
       setError(error.message || 'Failed to create payment order');
+      
+      // Log failed payment attempt
+      try {
+        await logFailedPaymentAttempt(
+          applicationId,
+          user._id,
+          `failed_order_${Date.now()}`,
+          amount,
+          error.message || 'Order creation failed',
+          `failed_receipt_${Date.now()}`
+        );
+      } catch (logError) {
+        console.error('Failed to log payment attempt:', logError);
+      }
     } finally {
       setLoading(false);
     }

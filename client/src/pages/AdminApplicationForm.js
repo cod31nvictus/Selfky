@@ -9,17 +9,58 @@ const AdminApplicationForm = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [application, setApplication] = useState(null);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [formData, setFormData] = useState({
     courseType: courseType || '',
     fullName: '',
     fathersName: '',
     category: 'General',
     dateOfBirth: '',
+    aadharNumber: '',
+    sex: '',
+    nationality: '',
+    correspondenceAddress: '',
+    permanentAddress: '',
+    correspondencePhone: '',
+    highSchoolRollNo: '',
+    highSchoolBoard: '',
+    highSchoolYear: '',
+    highSchoolSubjects: '',
+    highSchoolMarksObtained: '',
+    highSchoolMaxMarks: '',
+    highSchoolPercentage: '',
+    qualifyingExamRollNo: '',
+    qualifyingExamStatus: '',
+    qualifyingBoard: '',
+    qualifyingYear: '',
+    qualifyingSubjects: '',
+    qualifyingMarksObtained: '',
+    qualifyingMaxMarks: '',
+    qualifyingPercentage: '',
+    // BPharm Year fields for MPharm
+    bpharmYear1MarksObtained: '',
+    bpharmYear1MaxMarks: '',
+    bpharmYear1Percentage: '',
+    bpharmYear2MarksObtained: '',
+    bpharmYear2MaxMarks: '',
+    bpharmYear2Percentage: '',
+    bpharmYear3MarksObtained: '',
+    bpharmYear3MaxMarks: '',
+    bpharmYear3Percentage: '',
+    bpharmYear4MarksObtained: '',
+    bpharmYear4MaxMarks: '',
+    bpharmYear4Percentage: '',
+    placeOfApplication: '',
     photo: null,
     signature: null,
     categoryCertificate: null,
     highSchoolCertificate: null,
-    intermediateCertificate: null
+    intermediateCertificate: null,
+    // BPharm marksheets for MPharm
+    bpharmYear1Marksheet: null,
+    bpharmYear2Marksheet: null,
+    bpharmYear3Marksheet: null,
+    bpharmYear4Marksheet: null
   });
 
   useEffect(() => {
@@ -108,6 +149,12 @@ const AdminApplicationForm = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate disclaimer
+    if (!disclaimerAccepted) {
+      alert('Please accept the declaration to proceed with the application.');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -306,7 +353,488 @@ const AdminApplicationForm = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Aadhar Number
+                    </label>
+                    <input
+                      type="text"
+                      name="aadharNumber"
+                      value={formData.aadharNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter Aadhar number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sex
+                    </label>
+                    <select
+                      name="sex"
+                      value={formData.sex}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">Select Sex</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nationality
+                    </label>
+                    <input
+                      type="text"
+                      name="nationality"
+                      value={formData.nationality}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter nationality"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Correspondence Address
+                    </label>
+                    <textarea
+                      name="correspondenceAddress"
+                      value={formData.correspondenceAddress}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter correspondence address"
+                      rows="3"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Permanent Address
+                    </label>
+                    <textarea
+                      name="permanentAddress"
+                      value={formData.permanentAddress}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter permanent address"
+                      rows="3"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="correspondencePhone"
+                      value={formData.correspondencePhone}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Roll No
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolRollNo"
+                      value={formData.highSchoolRollNo}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter high school roll number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Board
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolBoard"
+                      value={formData.highSchoolBoard}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter board name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Year
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolYear"
+                      value={formData.highSchoolYear}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter year of passing"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Subjects
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolSubjects"
+                      value={formData.highSchoolSubjects}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter subjects"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Marks Obtained
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolMarksObtained"
+                      value={formData.highSchoolMarksObtained}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter marks obtained"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Max Marks
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolMaxMarks"
+                      value={formData.highSchoolMaxMarks}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter maximum marks"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      High School Percentage
+                    </label>
+                    <input
+                      type="text"
+                      name="highSchoolPercentage"
+                      value={formData.highSchoolPercentage}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter percentage"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Exam Roll No
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingExamRollNo"
+                      value={formData.qualifyingExamRollNo}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter qualifying exam roll number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Exam Status
+                    </label>
+                    <select
+                      name="qualifyingExamStatus"
+                      value={formData.qualifyingExamStatus}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">Select Status</option>
+                      <option value="appearing">Appearing</option>
+                      <option value="passed">Passed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Board
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingBoard"
+                      value={formData.qualifyingBoard}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter board name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Year
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingYear"
+                      value={formData.qualifyingYear}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter year of passing"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Subjects
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingSubjects"
+                      value={formData.qualifyingSubjects}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter subjects"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Marks Obtained
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingMarksObtained"
+                      value={formData.qualifyingMarksObtained}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter marks obtained"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Max Marks
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingMaxMarks"
+                      value={formData.qualifyingMaxMarks}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter maximum marks"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qualifying Percentage
+                    </label>
+                    <input
+                      type="text"
+                      name="qualifyingPercentage"
+                      value={formData.qualifyingPercentage}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter percentage"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Place of Application
+                    </label>
+                    <input
+                      type="text"
+                      name="placeOfApplication"
+                      value={formData.placeOfApplication}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Enter place of application"
+                    />
+                  </div>
                 </div>
+
+                {/* Conditional BPharm Year Details for MPharm */}
+                {formData.courseType === 'mpharm' && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">BPharm Year Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* BPharm Year 1 */}
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">BPharm Year 1</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Marks Obtained</label>
+                            <input
+                              type="text"
+                              name="bpharmYear1MarksObtained"
+                              value={formData.bpharmYear1MarksObtained}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter marks obtained"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                            <input
+                              type="text"
+                              name="bpharmYear1MaxMarks"
+                              value={formData.bpharmYear1MaxMarks}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter total marks"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Percentage</label>
+                            <input
+                              type="text"
+                              name="bpharmYear1Percentage"
+                              value={formData.bpharmYear1Percentage}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter percentage"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BPharm Year 2 */}
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">BPharm Year 2</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Marks Obtained</label>
+                            <input
+                              type="text"
+                              name="bpharmYear2MarksObtained"
+                              value={formData.bpharmYear2MarksObtained}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter marks obtained"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                            <input
+                              type="text"
+                              name="bpharmYear2MaxMarks"
+                              value={formData.bpharmYear2MaxMarks}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter total marks"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Percentage</label>
+                            <input
+                              type="text"
+                              name="bpharmYear2Percentage"
+                              value={formData.bpharmYear2Percentage}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter percentage"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BPharm Year 3 */}
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">BPharm Year 3</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Marks Obtained</label>
+                            <input
+                              type="text"
+                              name="bpharmYear3MarksObtained"
+                              value={formData.bpharmYear3MarksObtained}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter marks obtained"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                            <input
+                              type="text"
+                              name="bpharmYear3MaxMarks"
+                              value={formData.bpharmYear3MaxMarks}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter total marks"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Percentage</label>
+                            <input
+                              type="text"
+                              name="bpharmYear3Percentage"
+                              value={formData.bpharmYear3Percentage}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter percentage"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BPharm Year 4 */}
+                      <div className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">BPharm Year 4</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Marks Obtained</label>
+                            <input
+                              type="text"
+                              name="bpharmYear4MarksObtained"
+                              value={formData.bpharmYear4MarksObtained}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter marks obtained"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                            <input
+                              type="text"
+                              name="bpharmYear4MaxMarks"
+                              value={formData.bpharmYear4MaxMarks}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter total marks"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Percentage</label>
+                            <input
+                              type="text"
+                              name="bpharmYear4Percentage"
+                              value={formData.bpharmYear4Percentage}
+                              onChange={handleInputChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              placeholder="Enter percentage"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex justify-end">
                   <button
@@ -353,6 +881,74 @@ const AdminApplicationForm = () => {
                     <p className="text-xs text-gray-500 mt-1">Upload your signature</p>
                   </div>
                 </div>
+
+                {/* BPharm Year Marksheets for MPharm applications */}
+                {formData.courseType === 'mpharm' && (
+                  <div className="mt-6">
+                    <h4 className="text-md font-medium text-gray-900 mb-4">BPharm Year Marksheets (Mandatory for MPharm)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          BPharm Year 1 Marksheet *
+                        </label>
+                        <input
+                          type="file"
+                          name="bpharmYear1Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload BPharm Year 1 marksheet (mandatory for MPharm)</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          BPharm Year 2 Marksheet *
+                        </label>
+                        <input
+                          type="file"
+                          name="bpharmYear2Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload BPharm Year 2 marksheet (mandatory for MPharm)</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          BPharm Year 3 Marksheet *
+                        </label>
+                        <input
+                          type="file"
+                          name="bpharmYear3Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload BPharm Year 3 marksheet (mandatory for MPharm)</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          BPharm Year 4 Marksheet *
+                        </label>
+                        <input
+                          type="file"
+                          name="bpharmYear4Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload BPharm Year 4 marksheet (mandatory for MPharm)</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Additional Documents (Optional) */}
                 <div className="mt-6">
@@ -454,6 +1050,23 @@ const AdminApplicationForm = () => {
                   </div>
                 </div>
 
+                {/* Disclaimer Checkbox */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="disclaimer"
+                      checked={disclaimerAccepted}
+                      onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+                      className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+                      required
+                    />
+                    <label htmlFor="disclaimer" className="text-sm text-gray-700 leading-relaxed">
+                      <span className="font-semibold text-gray-900">Declaration:</span> I hereby declare that all the information provided in this application form is true, correct, and complete to the best of my knowledge. I understand that any false or misleading information may result in the rejection of my application or cancellation of admission if discovered later. I also confirm that I have read and understood all the instructions and terms of the application process.
+                    </label>
+                  </div>
+                </div>
+
                 <div className="flex justify-between">
                   <button
                     onClick={handlePrevious}
@@ -463,7 +1076,7 @@ const AdminApplicationForm = () => {
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={loading || !disclaimerAccepted}
                     className="bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Submitting...' : 'Submit Application'}

@@ -12,10 +12,17 @@ const ApplicantsSection = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [pageSize] = useState(20);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchApplicants();
-  }, []);
+  }, [currentPage, searchTerm]);
 
   useEffect(() => {
     if (!Array.isArray(applicants)) {
@@ -33,12 +40,56 @@ const ApplicantsSection = () => {
   const fetchApplicants = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getApplicants();
-      setApplicants(response.applicants || response);
+      const response = await adminAPI.getApplicants(currentPage, pageSize, searchTerm);
+      
+      if (response.applicants) {
+        setApplicants(response.applicants);
+        setTotalPages(response.pagination?.pages || 1);
+        setTotalRecords(response.pagination?.total || 0);
+      } else {
+        setApplicants(response);
+        setTotalPages(1);
+        setTotalRecords(response.length || 0);
+      }
     } catch (error) {
       console.error('Error fetching applicants:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      const response = await adminAPI.exportApplicantsCSV(searchTerm);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `applicants_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export CSV. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error exporting CSV. Please try again.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -98,8 +149,63 @@ const ApplicantsSection = () => {
       case 'inactive':
         return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return (
+      <div className="flex items-center justify-between mt-6">
+        <div className="text-sm text-gray-700">
+          Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords} results
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {pages.map(page => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                currentPage === page
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -116,8 +222,32 @@ const ApplicantsSection = () => {
         <div className="sm:flex-auto">
           <h1 className="text-xl font-semibold text-gray-900">Applicants</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Manage user accounts and reset passwords
+            Manage all registered users and their accounts
           </p>
+        </div>
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <button
+            onClick={handleExportCSV}
+            disabled={exporting}
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Exporting...
+              </>
+            ) : (
+              <>
+                <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -128,7 +258,7 @@ const ApplicantsSection = () => {
             type="text"
             placeholder="Search by email or name..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearch}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -139,8 +269,15 @@ const ApplicantsSection = () => {
         </div>
       </div>
 
+      {/* Results Count */}
+      <div className="mt-4">
+        <p className="text-sm text-gray-600">
+          Showing {filteredApplicants.length} of {totalRecords} applicants
+        </p>
+      </div>
+
       {/* Table */}
-      <div className="mt-8 flex flex-col">
+      <div className="mt-6 flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
             <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
@@ -157,7 +294,7 @@ const ApplicantsSection = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Joined
+                      Registered Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -172,13 +309,16 @@ const ApplicantsSection = () => {
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                               <span className="text-sm font-medium text-indigo-600">
-                                {applicant.name ? applicant.name.charAt(0).toUpperCase() : applicant.email.charAt(0).toUpperCase()}
+                                {applicant.name?.charAt(0).toUpperCase() || applicant.email.charAt(0).toUpperCase()}
                               </span>
                             </div>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
                               {applicant.name || 'N/A'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              User ID: {applicant._id}
                             </div>
                           </div>
                         </div>
@@ -210,6 +350,9 @@ const ApplicantsSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && renderPagination()}
 
       {filteredApplicants.length === 0 && !loading && (
         <div className="text-center py-12">

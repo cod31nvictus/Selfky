@@ -16,6 +16,8 @@
     max-height: 100vh;
     overflow: hidden;
     page-break-inside: avoid;
+    font-size: 7px !important;
+    line-height: 1.2 !important;
   }
   
   /* Reduce font sizes for print */
@@ -33,25 +35,60 @@
     font-size: 7px !important;
   }
   
+  /* Reduce font size for applicant data values */
+  .admit-card-container .font-semibold {
+    font-size: 7px !important;
+  }
+  
+  .admit-card-container .font-medium {
+    font-size: 7px !important;
+  }
+  
+  /* Reduce font size for all text content */
+  .admit-card-container span {
+    font-size: 7px !important;
+  }
+  
+  .admit-card-container li {
+    font-size: 6px !important;
+  }
+  
   /* Reduce spacing */
   .admit-card-container .space-y-3 > div {
-    margin-bottom: 3px !important;
+    margin-bottom: 2px !important;
   }
   
   .admit-card-container .mb-8 {
-    margin-bottom: 8px !important;
-  }
-  
-  .admit-card-container .mb-6 {
-    margin-bottom: 6px !important;
-  }
-  
-  .admit-card-container .mb-4 {
     margin-bottom: 4px !important;
   }
   
+  .admit-card-container .mb-6 {
+    margin-bottom: 3px !important;
+  }
+  
+  .admit-card-container .mb-4 {
+    margin-bottom: 2px !important;
+  }
+  
   .admit-card-container .pb-6 {
-    padding-bottom: 6px !important;
+    padding-bottom: 3px !important;
+  }
+  
+  /* Reduce all margins and padding for print */
+  .admit-card-container .gap-8 {
+    gap: 4px !important;
+  }
+  
+  .admit-card-container .pt-6 {
+    padding-top: 3px !important;
+  }
+  
+  .admit-card-container .mt-6 {
+    margin-top: 3px !important;
+  }
+  
+  .admit-card-container .pt-4 {
+    padding-top: 2px !important;
   }
   
   /* Reduce padding */
@@ -65,8 +102,27 @@
   
   /* Make images smaller for print */
   .admit-card-container img {
-    max-width: 50px !important;
-    max-height: 60px !important;
+    max-width: 40px !important;
+    max-height: 50px !important;
+  }
+  
+  /* Make photo and signature smaller and display in single row */
+  .admit-card-container .w-32 {
+    width: 30px !important;
+  }
+  
+  .admit-card-container .h-40 {
+    height: 40px !important;
+  }
+  
+  .admit-card-container .h-16 {
+    height: 20px !important;
+  }
+  
+  /* Force photo and signature to display in single row */
+  .admit-card-container .md\\:grid-cols-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
   }
   
   /* Reduce logo size */
@@ -76,7 +132,25 @@
   
   /* Compact grid layout */
   .admit-card-container .grid {
-    gap: 6px !important;
+    gap: 4px !important;
+  }
+  
+  /* Force photo and signature to be in single row with minimal height */
+  .admit-card-container .md\\:grid-cols-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  /* Reduce height of photo and signature sections */
+  .admit-card-container .md\\:grid-cols-2 > div {
+    margin-bottom: 2px !important;
+  }
+  
+  /* Make photo and signature containers smaller */
+  .admit-card-container .bg-gray-50.rounded-lg {
+    padding: 1px !important;
+    border-radius: 2px !important;
   }
   
   /* Reduce instruction list spacing */
@@ -86,11 +160,29 @@
   
   /* Ensure signature sections fit */
   .admit-card-container .w-32 {
-    width: 40px !important;
+    width: 30px !important;
   }
   
   .admit-card-container .h-16 {
-    height: 24px !important;
+    height: 20px !important;
+  }
+  
+  /* Make photo and signature containers more compact */
+  .admit-card-container .bg-gray-50 {
+    padding: 2px !important;
+  }
+  
+  .admit-card-container .p-4 {
+    padding: 2px !important;
+  }
+  
+  /* Reduce text size in photo/signature placeholders */
+  .admit-card-container .text-sm {
+    font-size: 5px !important;
+  }
+  
+  .admit-card-container .text-gray-500 {
+    font-size: 5px !important;
   }
   
   /* Hide powered by section in print */
@@ -145,5 +237,30 @@
   /* Ensure all content fits */
   .admit-card-container * {
     max-width: 100% !important;
+  }
+  
+  /* Reduce signature section at bottom */
+  .admit-card-container .border-t-2 {
+    padding-top: 2px !important;
+    margin-top: 2px !important;
+  }
+  
+  .admit-card-container .pt-6 {
+    padding-top: 2px !important;
+  }
+  
+  /* Make bottom signature boxes smaller */
+  .admit-card-container .w-32.h-16 {
+    width: 25px !important;
+    height: 15px !important;
+  }
+  
+  .admit-card-container .border-b-2.border-gray-400 {
+    border-bottom-width: 1px !important;
+  }
+  
+  /* Reduce text size in signature labels */
+  .admit-card-container .text-sm {
+    font-size: 5px !important;
   }
 } 

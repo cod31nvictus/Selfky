@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Application = require('../models/Application');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const PDFGenerator = require('../utils/pdfGenerator');
 const fs = require('fs');
 const S3Service = require('../utils/s3Service');
 const logger = require('../utils/logger');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 // Middleware to check if admin
 const isAdmin = (req, res, next) => {
@@ -580,6 +582,288 @@ router.get('/analytics', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error getting analytics:', error);
     res.status(500).json({ error: 'Failed to get analytics' });
+  }
+});
+
+// Export applications to CSV
+router.get('/export-applications-csv', isAdmin, async (req, res) => {
+  try {
+    const { courseType, status } = req.query;
+    
+    // Build filters
+    const filters = {};
+    if (courseType) filters.courseType = courseType;
+    if (status) filters.status = status;
+    
+    // Get all applications with populated user data
+    const applications = await Application.find(filters)
+      .populate('userId', 'email name')
+      .sort({ createdAt: -1 });
+    
+    if (applications.length === 0) {
+      return res.status(404).json({ error: 'No applications found for export' });
+    }
+    
+    // Prepare CSV data
+    const csvData = applications.map(app => {
+      const personalDetails = app.personalDetails || {};
+      const documents = app.documents || {};
+      
+      return {
+        'Application Number': app.applicationNumber || '',
+        'Course Type': app.courseType || '',
+        'Status': app.status || '',
+        'Created Date': app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '',
+        'Updated Date': app.updatedAt ? new Date(app.updatedAt).toLocaleDateString() : '',
+        
+        // User Information
+        'User Email': app.userId?.email || '',
+        'User Name': app.userId?.name || '',
+        
+        // Personal Details
+        'Full Name': personalDetails.fullName || '',
+        'Father\'s Name': personalDetails.fathersName || '',
+        'Mother\'s Name': personalDetails.mothersName || '',
+        'Date of Birth': personalDetails.dateOfBirth || '',
+        'Gender': personalDetails.sex || '',
+        'Category': personalDetails.category || '',
+        'Aadhar Number': personalDetails.aadharNumber || '',
+        'Nationality': personalDetails.nationality || '',
+        'Correspondence Address': personalDetails.correspondenceAddress || '',
+        'Permanent Address': personalDetails.permanentAddress || '',
+        'Correspondence Phone': personalDetails.correspondencePhone || '',
+        'Place of Application': personalDetails.placeOfApplication || '',
+        
+        // High School Details
+        'High School Roll No': personalDetails.highSchoolRollNo || '',
+        'High School Board': personalDetails.highSchoolBoard || '',
+        'High School Year': personalDetails.highSchoolYear || '',
+        'High School Subjects': personalDetails.highSchoolSubjects ? JSON.stringify(personalDetails.highSchoolSubjects) : '',
+        'High School Marks Obtained': personalDetails.highSchoolMarksObtained || '',
+        'High School Max Marks': personalDetails.highSchoolMaxMarks || '',
+        'High School Percentage': personalDetails.highSchoolPercentage || '',
+        
+        // Qualifying Exam Details
+        'Qualifying Exam Roll No': personalDetails.qualifyingExamRollNo || '',
+        'Qualifying Exam Status': personalDetails.qualifyingExamStatus || '',
+        'Qualifying Board': personalDetails.qualifyingBoard || '',
+        'Qualifying Year': personalDetails.qualifyingYear || '',
+        'Qualifying Subjects': personalDetails.qualifyingSubjects ? JSON.stringify(personalDetails.qualifyingSubjects) : '',
+        'Qualifying Marks Obtained': personalDetails.qualifyingMarksObtained || '',
+        'Qualifying Max Marks': personalDetails.qualifyingMaxMarks || '',
+        'Qualifying Percentage': personalDetails.qualifyingPercentage || '',
+        
+        // Intermediate/Equivalent Exam Details (for BPharm)
+        'Intermediate Board': personalDetails.intermediateBoard || '',
+        'Intermediate Year': personalDetails.intermediateYear || '',
+        'Intermediate Subjects': personalDetails.intermediateSubjects ? JSON.stringify(personalDetails.intermediateSubjects) : '',
+        'Intermediate Marks Obtained': personalDetails.intermediateMarksObtained || '',
+        'Intermediate Max Marks': personalDetails.intermediateMaxMarks || '',
+        'Intermediate Percentage': personalDetails.intermediatePercentage || '',
+        
+        // BPharm Year Details (for MPharm)
+        'BPharm Year 1 Marks Obtained': personalDetails.bpharmYear1MarksObtained || '',
+        'BPharm Year 1 Max Marks': personalDetails.bpharmYear1MaxMarks || '',
+        'BPharm Year 1 Percentage': personalDetails.bpharmYear1Percentage || '',
+        'BPharm Year 2 Marks Obtained': personalDetails.bpharmYear2MarksObtained || '',
+        'BPharm Year 2 Max Marks': personalDetails.bpharmYear2MaxMarks || '',
+        'BPharm Year 2 Percentage': personalDetails.bpharmYear2Percentage || '',
+        'BPharm Year 3 Marks Obtained': personalDetails.bpharmYear3MarksObtained || '',
+        'BPharm Year 3 Max Marks': personalDetails.bpharmYear3MaxMarks || '',
+        'BPharm Year 3 Percentage': personalDetails.bpharmYear3Percentage || '',
+        'BPharm Year 4 Marks Obtained': personalDetails.bpharmYear4MarksObtained || '',
+        'BPharm Year 4 Max Marks': personalDetails.bpharmYear4MaxMarks || '',
+        'BPharm Year 4 Percentage': personalDetails.bpharmYear4Percentage || '',
+        
+        // Documents
+        'Photo File': documents.photo || '',
+        'Signature File': documents.signature || '',
+        'Category Certificate File': documents.categoryCertificate || '',
+        'High School Certificate File': documents.highSchoolCertificate || '',
+        'Intermediate Certificate File': documents.intermediateCertificate || '',
+        'BPharm Year 1 Marksheet File': documents.bpharmYear1Marksheet || '',
+        'BPharm Year 2 Marksheet File': documents.bpharmYear2Marksheet || '',
+        'BPharm Year 3 Marksheet File': documents.bpharmYear3Marksheet || '',
+        'BPharm Year 4 Marksheet File': documents.bpharmYear4Marksheet || '',
+        
+        // Payment Information
+        'Payment Status': app.payment?.status || '',
+        'Payment Amount': app.payment?.amount || '',
+        'Payment Date': app.payment?.date ? new Date(app.payment.date).toLocaleDateString() : '',
+        'Payment Receipt': app.payment?.receipt || '',
+        
+        // Additional Fields
+        'Application ID': app._id || '',
+        'User ID': app.userId?._id || ''
+      };
+    });
+    
+    // Create CSV file
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `applications_export_${timestamp}.csv`;
+    const filepath = `/tmp/${filename}`;
+    
+    const csvWriter = createCsvWriter({
+      path: filepath,
+      header: Object.keys(csvData[0]).map(key => ({
+        id: key,
+        title: key
+      }))
+    });
+    
+    await csvWriter.writeRecords(csvData);
+    
+    // Send file
+    res.download(filepath, filename, (err) => {
+      // Clean up file after download
+      fs.unlink(filepath, (unlinkErr) => {
+        if (unlinkErr) console.error('Error deleting CSV file:', unlinkErr);
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error exporting applications to CSV:', error);
+    res.status(500).json({ error: 'Failed to export applications to CSV' });
+  }
+});
+
+// Export applicants to CSV
+router.get('/export-applicants-csv', isAdmin, async (req, res) => {
+  try {
+    const { search } = req.query;
+    
+    // Build filters
+    const filters = {};
+    if (search) {
+      filters.$or = [
+        { email: { $regex: search, $options: 'i' } },
+        { name: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Get all applicants
+    const applicants = await User.find(filters, '-password')
+      .sort({ createdAt: -1 });
+    
+    if (applicants.length === 0) {
+      return res.status(404).json({ error: 'No applicants found for export' });
+    }
+    
+    // Prepare CSV data
+    const csvData = applicants.map(user => {
+      return {
+        'User ID': user._id || '',
+        'Name': user.name || '',
+        'Email': user.email || '',
+        'Status': user.status || 'active',
+        'Created Date': user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '',
+        'Updated Date': user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : ''
+      };
+    });
+    
+    // Create CSV file
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `applicants_export_${timestamp}.csv`;
+    const filepath = `/tmp/${filename}`;
+    
+    const csvWriter = createCsvWriter({
+      path: filepath,
+      header: Object.keys(csvData[0]).map(key => ({
+        id: key,
+        title: key
+      }))
+    });
+    
+    await csvWriter.writeRecords(csvData);
+    
+    // Send file
+    res.download(filepath, filename, (err) => {
+      // Clean up file after download
+      fs.unlink(filepath, (unlinkErr) => {
+        if (unlinkErr) console.error('Error deleting CSV file:', unlinkErr);
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error exporting applicants to CSV:', error);
+    res.status(500).json({ error: 'Failed to export applicants to CSV' });
+  }
+});
+
+// Export transactions to CSV
+router.get('/export-transactions-csv', isAdmin, async (req, res) => {
+  try {
+    const { status, search } = req.query;
+    
+    // Build filters
+    const filters = {};
+    if (status) filters.status = status;
+    if (search) {
+      filters.$or = [
+        { 'applicationId.applicationNumber': { $regex: search, $options: 'i' } },
+        { 'userId.name': { $regex: search, $options: 'i' } },
+        { 'userId.email': { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Get all payments
+    const payments = await Payment.find(filters)
+      .populate('applicationId', 'applicationNumber courseType')
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+    
+    if (payments.length === 0) {
+      return res.status(404).json({ error: 'No transactions found for export' });
+    }
+    
+    // Prepare CSV data
+    const csvData = payments.map(payment => {
+      return {
+        'Payment ID': payment.razorpayPaymentId || payment.razorpayOrderId || '',
+        'Razorpay Order ID': payment.razorpayOrderId || '',
+        'Razorpay Payment ID': payment.razorpayPaymentId || '',
+        'Application ID': payment.applicationId?._id || '',
+        'Application Number': payment.applicationId?.applicationNumber || '',
+        'Course Type': payment.applicationId?.courseType || '',
+        'User ID': payment.userId?._id || '',
+        'User Name': payment.userId?.name || '',
+        'User Email': payment.userId?.email || '',
+        'Amount': payment.amount || '',
+        'Currency': payment.currency || 'INR',
+        'Status': payment.status || '',
+        'Receipt': payment.receipt || '',
+        'Error Message': payment.errorMessage || '',
+        'Created Date': payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '',
+        'Updated Date': payment.updatedAt ? new Date(payment.updatedAt).toLocaleDateString() : ''
+      };
+    });
+    
+    // Create CSV file
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `transactions_export_${timestamp}.csv`;
+    const filepath = `/tmp/${filename}`;
+    
+    const csvWriter = createCsvWriter({
+      path: filepath,
+      header: Object.keys(csvData[0]).map(key => ({
+        id: key,
+        title: key
+      }))
+    });
+    
+    await csvWriter.writeRecords(csvData);
+    
+    // Send file
+    res.download(filepath, filename, (err) => {
+      // Clean up file after download
+      fs.unlink(filepath, (unlinkErr) => {
+        if (unlinkErr) console.error('Error deleting CSV file:', unlinkErr);
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error exporting transactions to CSV:', error);
+    res.status(500).json({ error: 'Failed to export transactions to CSV' });
   }
 });
 

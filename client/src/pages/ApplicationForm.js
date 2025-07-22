@@ -89,6 +89,7 @@ const ApplicationForm = () => {
   const [existingApplication, setExistingApplication] = useState(null);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   useEffect(() => {
     checkExistingApplication();
@@ -392,6 +393,13 @@ const ApplicationForm = () => {
 
   const handleNext = async () => {
     if (currentStep === 1) {
+      // Validate disclaimer
+      if (!disclaimerAccepted) {
+        setTouched(prev => ({ ...prev, disclaimer: true }));
+        alert('Please accept the declaration to proceed with the application.');
+        return;
+      }
+
       // Validate all fields for step 1
       const stepErrors = validateStep1();
       
@@ -1773,10 +1781,32 @@ const ApplicationForm = () => {
           </div>
         </div>
 
+        {/* Disclaimer Checkbox */}
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <input
+              type="checkbox"
+              id="disclaimer"
+              checked={disclaimerAccepted}
+              onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+              className="mt-1 h-4 w-4 text-[#101418] border-gray-300 rounded focus:ring-[#101418] focus:ring-2"
+              required
+            />
+            <label htmlFor="disclaimer" className="text-sm text-[#5c728a] leading-relaxed">
+              <span className="font-semibold text-[#101418]">Declaration:</span> I hereby declare that all the information provided in this application form is true, correct, and complete to the best of my knowledge. I understand that any false or misleading information may result in the rejection of my application or cancellation of admission if discovered later. I also confirm that I have read and understood all the instructions and terms of the application process.
+            </label>
+          </div>
+          {!disclaimerAccepted && touched.disclaimer && (
+            <p className="mt-2 text-sm text-red-600">
+              You must accept the declaration to proceed with the application.
+            </p>
+          )}
+        </div>
+
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            disabled={loading}
+            disabled={loading || !disclaimerAccepted}
             className="bg-[#101418] text-white py-3 px-8 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : 'Proceed to Payment'}

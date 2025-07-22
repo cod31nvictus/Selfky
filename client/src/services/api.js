@@ -237,11 +237,25 @@ export const authAPI = {
 
 // Admin API functions
 export const adminAPI = {
-  // Get all applications
-  getApplications: () => adminApiCall('/admin/applications'),
+  // Get all applications with pagination
+  getApplications: (page = 1, limit = 20, status = '', courseType = '', category = '') => {
+    const params = new URLSearchParams();
+    if (page) params.append('page', page);
+    if (limit) params.append('limit', limit);
+    if (status) params.append('status', status);
+    if (courseType) params.append('courseType', courseType);
+    if (category) params.append('category', category);
+    return adminApiCall(`/admin/applications?${params.toString()}`);
+  },
 
-  // Get all applicants (users)
-  getApplicants: () => adminApiCall('/admin/applicants'),
+  // Get all applicants (users) with pagination
+  getApplicants: (page = 1, limit = 20, search = '') => {
+    const params = new URLSearchParams();
+    if (page) params.append('page', page);
+    if (limit) params.append('limit', limit);
+    if (search) params.append('search', search);
+    return adminApiCall(`/admin/applicants?${params.toString()}`);
+  },
 
   // Update application status
   updateApplicationStatus: (applicationId, status) => 
@@ -314,8 +328,30 @@ export const adminAPI = {
     }).then(response => response.json());
   },
 
-  // Payment-related functions
-  getPayments: () => adminApiCall('/payment/admin/payments'),
+  // Payment-related functions with pagination
+  getPayments: (page = 1, limit = 20, status = '', search = '') => {
+    const params = new URLSearchParams();
+    if (page) params.append('page', page);
+    if (limit) params.append('limit', limit);
+    if (status) params.append('status', status);
+    if (search) params.append('search', search);
+    return adminApiCall(`/payment/admin/payments?${params.toString()}`);
+  },
+
+  // Log failed payment attempt
+  logFailedPaymentAttempt: (applicationId, userId, orderId, amount, error, receipt) => {
+    return apiCall('/payment/log-failed-attempt', {
+      method: 'POST',
+      body: JSON.stringify({
+        applicationId,
+        userId,
+        orderId,
+        amount,
+        error,
+        receipt
+      })
+    });
+  },
   
   getPaymentStatistics: () => adminApiCall('/payment/admin/statistics'),
 
@@ -329,6 +365,50 @@ export const adminAPI = {
   downloadInvigilatorSheet: () => {
     const adminToken = getAdminToken();
     return fetch(`${API_BASE_URL}/admin/invigilator-sheet-pdf`, {
+      method: 'GET',
+      headers: {
+        'x-admin-token': adminToken
+      }
+    });
+  },
+
+  // Export applications to CSV
+  exportApplicationsCSV: (courseType = '', status = '') => {
+    const adminToken = getAdminToken();
+    const params = new URLSearchParams();
+    if (courseType) params.append('courseType', courseType);
+    if (status) params.append('status', status);
+    
+    return fetch(`${API_BASE_URL}/admin/export-applications-csv?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'x-admin-token': adminToken
+      }
+    });
+  },
+
+  // Export applicants to CSV
+  exportApplicantsCSV: (search = '') => {
+    const adminToken = getAdminToken();
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    
+    return fetch(`${API_BASE_URL}/admin/export-applicants-csv?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'x-admin-token': adminToken
+      }
+    });
+  },
+
+  // Export transactions to CSV
+  exportTransactionsCSV: (status = '', search = '') => {
+    const adminToken = getAdminToken();
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (search) params.append('search', search);
+    
+    return fetch(`${API_BASE_URL}/admin/export-transactions-csv?${params.toString()}`, {
       method: 'GET',
       headers: {
         'x-admin-token': adminToken

@@ -63,6 +63,35 @@ const DocumentViewer = ({ documents, onClose }) => {
               <a href={`/api/files/${documents.intermediateCertificate}`} download target="_blank" rel="noopener noreferrer">{documents.intermediateCertificate}</a>
             </div>
           )}
+          
+          {/* BPharm Year Marksheets for MPharm applications */}
+          {documents.bpharmYear1Marksheet && (
+            <div className="document-item">
+              <h3>BPharm Year 1 Marksheet</h3>
+              <a href={`/api/files/${documents.bpharmYear1Marksheet}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmYear1Marksheet}</a>
+            </div>
+          )}
+          
+          {documents.bpharmYear2Marksheet && (
+            <div className="document-item">
+              <h3>BPharm Year 2 Marksheet</h3>
+              <a href={`/api/files/${documents.bpharmYear2Marksheet}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmYear2Marksheet}</a>
+            </div>
+          )}
+          
+          {documents.bpharmYear3Marksheet && (
+            <div className="document-item">
+              <h3>BPharm Year 3 Marksheet</h3>
+              <a href={`/api/files/${documents.bpharmYear3Marksheet}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmYear3Marksheet}</a>
+            </div>
+          )}
+          
+          {documents.bpharmYear4Marksheet && (
+            <div className="document-item">
+              <h3>BPharm Year 4 Marksheet</h3>
+              <a href={`/api/files/${documents.bpharmYear4Marksheet}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmYear4Marksheet}</a>
+            </div>
+          )}
         </div>
         
         {selectedDocument && (

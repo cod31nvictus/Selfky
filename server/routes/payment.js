@@ -56,7 +56,7 @@ router.post('/create-order', async (req, res) => {
 
     const order = await razorpay.orders.create(options);
 
-    // Track payment attempt in Payment model
+    // Track payment attempt in Payment model - ALWAYS create record
     if (notes && notes.applicationId && notes.userId) {
       try {
         const application = await Application.findById(notes.applicationId);
@@ -70,26 +70,39 @@ router.post('/create-order', async (req, res) => {
         });
         
         if (application && user) {
-                  // Create payment record
-        console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id });
-        const paymentRecord = new Payment({
-          applicationId: notes.applicationId,
-          userId: notes.userId,
-          razorpayOrderId: order.id,
-          amount: amount,
-          currency: currency,
-          status: 'pending',
-          receipt: receipt,
-          notes: notes
-        });
-        await paymentRecord.save();
-        console.log('Payment record created successfully:', paymentRecord._id);
+          // Create payment record
+          console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id });
+          const paymentRecord = new Payment({
+            applicationId: notes.applicationId,
+            userId: notes.userId,
+            razorpayOrderId: order.id,
+            amount: amount,
+            currency: currency,
+            status: 'pending',
+            receipt: receipt,
+            notes: notes
+          });
+          await paymentRecord.save();
+          console.log('Payment record created successfully:', paymentRecord._id);
 
           // Update application status
           application.status = 'payment_pending';
           await application.save();
         } else {
           console.error('Application or User not found:', { applicationId: notes.applicationId, userId: notes.userId });
+          // Still create a payment record even if application/user not found
+          const paymentRecord = new Payment({
+            applicationId: notes.applicationId,
+            userId: notes.userId,
+            razorpayOrderId: order.id,
+            amount: amount,
+            currency: currency,
+            status: 'pending',
+            receipt: receipt,
+            notes: { ...notes, error: 'Application or User not found during creation' }
+          });
+          await paymentRecord.save();
+          console.log('Payment record created with error:', paymentRecord._id);
         }
       } catch (dbError) {
         console.error('Error recording payment attempt:', dbError);
@@ -98,7 +111,9 @@ router.post('/create-order', async (req, res) => {
           code: dbError.code,
           stack: dbError.stack
         });
-        // Don't fail the payment order creation if DB update fails
+        
+        // Even if database fails, we should still return the order
+        // The payment will be tracked when verification happens
       }
     } else {
       console.error('Missing required fields for payment tracking:', { notes });
@@ -324,6 +339,56 @@ router.post('/webhook', async (req, res) => {
   }
 });
 
+// Log failed payment attempt (for frontend errors, network failures, etc.)
+router.post('/log-failed-attempt', async (req, res) => {
+  try {
+    const { applicationId, userId, orderId, amount, error, receipt } = req.body;
+    
+    if (!applicationId || !userId || !orderId) {
+      return res.status(400).json({ error: 'Application ID, User ID, and Order ID are required' });
+    }
+
+    // Check if payment record already exists
+    let paymentRecord = await Payment.findOne({
+      razorpayOrderId: orderId,
+      applicationId: applicationId
+    });
+
+    if (!paymentRecord) {
+      // Create new payment record for failed attempt
+      paymentRecord = new Payment({
+        applicationId: applicationId,
+        userId: userId,
+        razorpayOrderId: orderId,
+        amount: amount || 0,
+        currency: 'INR',
+        status: 'failed',
+        receipt: receipt || `failed_${orderId}`,
+        errorMessage: error || 'Payment attempt failed',
+        notes: { loggedFromFrontend: true, failureType: 'frontend_error' }
+      });
+      await paymentRecord.save();
+      console.log('Created payment record for failed attempt:', paymentRecord._id);
+    } else {
+      // Update existing record to failed status
+      paymentRecord.status = 'failed';
+      paymentRecord.errorMessage = error || 'Payment attempt failed';
+      paymentRecord.updatedAt = new Date();
+      paymentRecord.notes = { ...paymentRecord.notes, loggedFromFrontend: true, failureType: 'frontend_error' };
+      await paymentRecord.save();
+      console.log('Updated payment record to failed status:', paymentRecord._id);
+    }
+
+    res.json({
+      success: true,
+      message: 'Failed payment attempt logged successfully'
+    });
+  } catch (error) {
+    console.error('Error logging failed payment attempt:', error);
+    res.status(500).json({ error: 'Failed to log payment attempt' });
+  }
+});
+
 // Get payment status
 router.get('/status/:paymentId', async (req, res) => {
   try {
@@ -352,14 +417,34 @@ router.get('/status/:paymentId', async (req, res) => {
   }
 });
 
-// Get all payments for admin
+// Get all payments for admin with pagination
 router.get('/admin/payments', async (req, res) => {
   try {
-    // Get all payment attempts from Payment model
-    const payments = await Payment.find({})
+    const { page = 1, limit = 20, status, search = '' } = req.query;
+    
+    // Create filters
+    const filters = {};
+    if (status) filters.status = status;
+    
+    // Add search functionality
+    if (search) {
+      filters.$or = [
+        { 'applicationId.applicationNumber': { $regex: search, $options: 'i' } },
+        { 'userId.name': { $regex: search, $options: 'i' } },
+        { 'userId.email': { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Get total count
+    const total = await Payment.countDocuments(filters);
+    
+    // Get paginated payments
+    const payments = await Payment.find(filters)
       .populate('applicationId', 'applicationNumber courseType')
       .populate('userId', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     const formattedPayments = payments.map(payment => ({
       id: payment.razorpayPaymentId || payment.razorpayOrderId,
@@ -375,12 +460,22 @@ router.get('/admin/payments', async (req, res) => {
       razorpayOrderId: payment.razorpayOrderId,
       razorpayPaymentId: payment.razorpayPaymentId,
       receipt: payment.receipt,
-      errorMessage: payment.errorMessage
+      errorMessage: payment.errorMessage,
+      attemptType: payment.notes?.loggedFromFrontend ? 'Frontend Error' : 
+                   payment.notes?.retroactive ? 'Retroactive' : 
+                   payment.notes?.createdDuringVerification ? 'Verification' : 'Normal',
+      failureType: payment.notes?.failureType || null
     }));
 
     res.json({
       success: true,
-      payments: formattedPayments
+      payments: formattedPayments,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
     });
   } catch (error) {
     console.error('Error fetching payments:', error);
