@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { applicationAPI } from '../services/api';
-import { logFailedPaymentAttempt } from '../services/api';
+import { adminAPI } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const Payment = () => {
       
       // Log failed payment verification attempt
       try {
-        await logFailedPaymentAttempt(
+        await adminAPI.logFailedPaymentAttempt(
           applicationId,
           user._id,
           orderId || `failed_verification_${Date.now()}`,
@@ -165,7 +165,7 @@ const Payment = () => {
         modal: {
           ondismiss: function() {
             // Log cancelled payment attempt
-            logFailedPaymentAttempt(
+            adminAPI.logFailedPaymentAttempt(
               applicationId,
               user._id,
               orderId || `cancelled_${Date.now()}`,
@@ -195,7 +195,7 @@ const Payment = () => {
       
       // Log failed payment attempt
       try {
-        await logFailedPaymentAttempt(
+        await adminAPI.logFailedPaymentAttempt(
           applicationId,
           user._id,
           `failed_order_${Date.now()}`,
