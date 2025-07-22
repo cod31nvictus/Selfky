@@ -71,11 +71,13 @@ router.post('/create-order', async (req, res) => {
         
         if (application && user) {
           // Create payment record
-          console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id });
+          const uniqueTransactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id, transactionId: uniqueTransactionId });
           const paymentRecord = new Payment({
             applicationId: notes.applicationId,
             userId: notes.userId,
             razorpayOrderId: order.id,
+            transactionId: uniqueTransactionId,
             amount: amount,
             currency: currency,
             status: 'pending',
@@ -91,10 +93,12 @@ router.post('/create-order', async (req, res) => {
         } else {
           console.error('Application or User not found:', { applicationId: notes.applicationId, userId: notes.userId });
           // Still create a payment record even if application/user not found
+          const uniqueTransactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           const paymentRecord = new Payment({
             applicationId: notes.applicationId,
             userId: notes.userId,
             razorpayOrderId: order.id,
+            transactionId: uniqueTransactionId,
             amount: amount,
             currency: currency,
             status: 'pending',
@@ -356,10 +360,12 @@ router.post('/log-failed-attempt', async (req, res) => {
 
     if (!paymentRecord) {
       // Create new payment record for failed attempt
+      const uniqueTransactionId = `failed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       paymentRecord = new Payment({
         applicationId: applicationId,
         userId: userId,
         razorpayOrderId: orderId,
+        transactionId: uniqueTransactionId,
         amount: amount || 0,
         currency: 'INR',
         status: 'failed',

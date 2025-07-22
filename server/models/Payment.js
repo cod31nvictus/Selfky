@@ -19,6 +19,11 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  transactionId: {
+    type: String,
+    required: true,
+    unique: true
+  },
   amount: {
     type: Number,
     required: true
@@ -65,5 +70,6 @@ paymentSchema.pre('save', function(next) {
 paymentSchema.index({ applicationId: 1, createdAt: -1 });
 paymentSchema.index({ userId: 1, createdAt: -1 });
 paymentSchema.index({ status: 1, createdAt: -1 });
+paymentSchema.index({ transactionId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Payment', paymentSchema); 

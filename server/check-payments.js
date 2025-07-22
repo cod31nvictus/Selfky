@@ -32,8 +32,8 @@ async function checkPayments() {
       console.log('\nPayment records:');
       payments.forEach((payment, index) => {
         console.log(`\n${index + 1}. Payment ID: ${payment._id}`);
-        console.log(`   Order ID: ${payment.orderId}`);
-        console.log(`   Transaction ID: ${payment.transactionId}`);
+        console.log(`   Order ID: ${payment.razorpayOrderId}`);
+        console.log(`   Transaction ID: ${payment.transactionId || 'N/A'}`);
         console.log(`   Amount: ${payment.amount}`);
         console.log(`   Status: ${payment.status}`);
         console.log(`   Created: ${payment.createdAt}`);
