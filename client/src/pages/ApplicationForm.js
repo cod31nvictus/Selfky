@@ -1532,7 +1532,139 @@ const ApplicationForm = () => {
                   📁 Formats: JPG, PNG | Images will be automatically optimized
                 </p>
               </div>
-            </div>
+                        </div>
+
+            {/* BPharm Year Marksheets for MPharm applications */}
+            {courseType === 'mpharm' && (
+              <div className="mt-6">
+                <h4 className="text-md font-medium text-[#101418] mb-4">BPharm Year Marksheets (Mandatory for MPharm)</h4>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* BPharm Year 1 Marksheet */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#101418] mb-2">
+                      BPharm Year 1 Marksheet *
+                    </label>
+                    <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                      <input
+                        type="file"
+                        name="bpharmYear1Marksheet"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        id="bpharm-year1-marksheet-upload"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                      <label htmlFor="bpharm-year1-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                        <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="mt-1 text-xs text-gray-600">
+                          {formData.bpharmYear1Marksheet ? formData.bpharmYear1Marksheet.name : 
+                           (existingApplication?.documents?.bpharmYear1Marksheet ? 'BPharm Year 1 Marksheet uploaded ✓' : 'Click to upload')}
+                        </p>
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                    </p>
+                  </div>
+
+                  {/* BPharm Year 2 Marksheet */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#101418] mb-2">
+                      BPharm Year 2 Marksheet *
+                    </label>
+                    <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                      <input
+                        type="file"
+                        name="bpharmYear2Marksheet"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        id="bpharm-year2-marksheet-upload"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                      <label htmlFor="bpharm-year2-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                        <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="mt-1 text-xs text-gray-600">
+                          {formData.bpharmYear2Marksheet ? formData.bpharmYear2Marksheet.name : 
+                           (existingApplication?.documents?.bpharmYear2Marksheet ? 'BPharm Year 2 Marksheet uploaded ✓' : 'Click to upload')}
+                        </p>
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                    </p>
+                  </div>
+
+                  {/* BPharm Year 3 Marksheet */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#101418] mb-2">
+                      BPharm Year 3 Marksheet *
+                    </label>
+                    <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                      <input
+                        type="file"
+                        name="bpharmYear3Marksheet"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        id="bpharm-year3-marksheet-upload"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                      <label htmlFor="bpharm-year3-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                        <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="mt-1 text-xs text-gray-600">
+                          {formData.bpharmYear3Marksheet ? formData.bpharmYear3Marksheet.name : 
+                           (existingApplication?.documents?.bpharmYear3Marksheet ? 'BPharm Year 3 Marksheet uploaded ✓' : 'Click to upload')}
+                        </p>
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                    </p>
+                  </div>
+
+                  {/* BPharm Year 4 Marksheet */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#101418] mb-2">
+                      BPharm Year 4 Marksheet *
+                    </label>
+                    <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                      <input
+                        type="file"
+                        name="bpharmYear4Marksheet"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        id="bpharm-year4-marksheet-upload"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                      <label htmlFor="bpharm-year4-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                        <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="mt-1 text-xs text-gray-600">
+                          {formData.bpharmYear4Marksheet ? formData.bpharmYear4Marksheet.name : 
+                           (existingApplication?.documents?.bpharmYear4Marksheet ? 'BPharm Year 4 Marksheet uploaded ✓' : 'Click to upload')}
+                        </p>
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Additional Documents (Optional) */}
             <div className="mt-6">
@@ -1627,135 +1759,6 @@ const ApplicationForm = () => {
                     📁 Formats: JPG, PNG, PDF | Optional
                   </p>
                 </div>
-
-                {/* BPharm Year Marksheets for MPharm applications */}
-                {courseType === 'mpharm' && (
-                  <>
-                    {/* BPharm Year 1 Marksheet */}
-                    <div>
-                      <label className="block text-sm font-medium text-[#101418] mb-2">
-                        BPharm Year 1 Marksheet *
-                      </label>
-                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                        <input
-                          type="file"
-                          name="bpharmYear1Marksheet"
-                          onChange={handleFileChange}
-                          accept="image/*,.pdf"
-                          className="hidden"
-                          id="bpharm-year1-marksheet-upload"
-                          required
-                          disabled={!isStepEditable(1) || loading}
-                        />
-                        <label htmlFor="bpharm-year1-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <p className="mt-1 text-xs text-gray-600">
-                            {formData.bpharmYear1Marksheet ? formData.bpharmYear1Marksheet.name : 
-                             (existingApplication?.documents?.bpharmYear1Marksheet ? 'BPharm Year 1 Marksheet uploaded ✓' : 'Click to upload')}
-                          </p>
-                        </label>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
-                      </p>
-                    </div>
-
-                    {/* BPharm Year 2 Marksheet */}
-                    <div>
-                      <label className="block text-sm font-medium text-[#101418] mb-2">
-                        BPharm Year 2 Marksheet *
-                      </label>
-                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                        <input
-                          type="file"
-                          name="bpharmYear2Marksheet"
-                          onChange={handleFileChange}
-                          accept="image/*,.pdf"
-                          className="hidden"
-                          id="bpharm-year2-marksheet-upload"
-                          required
-                          disabled={!isStepEditable(1) || loading}
-                        />
-                        <label htmlFor="bpharm-year2-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <p className="mt-1 text-xs text-gray-600">
-                            {formData.bpharmYear2Marksheet ? formData.bpharmYear2Marksheet.name : 
-                             (existingApplication?.documents?.bpharmYear2Marksheet ? 'BPharm Year 2 Marksheet uploaded ✓' : 'Click to upload')}
-                          </p>
-                        </label>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
-                      </p>
-                    </div>
-
-                    {/* BPharm Year 3 Marksheet */}
-                    <div>
-                      <label className="block text-sm font-medium text-[#101418] mb-2">
-                        BPharm Year 3 Marksheet *
-                      </label>
-                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                        <input
-                          type="file"
-                          name="bpharmYear3Marksheet"
-                          onChange={handleFileChange}
-                          accept="image/*,.pdf"
-                          className="hidden"
-                          id="bpharm-year3-marksheet-upload"
-                          required
-                          disabled={!isStepEditable(1) || loading}
-                        />
-                        <label htmlFor="bpharm-year3-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <p className="mt-1 text-xs text-gray-600">
-                            {formData.bpharmYear3Marksheet ? formData.bpharmYear3Marksheet.name : 
-                             (existingApplication?.documents?.bpharmYear3Marksheet ? 'BPharm Year 3 Marksheet uploaded ✓' : 'Click to upload')}
-                          </p>
-                        </label>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
-                      </p>
-                    </div>
-
-                    {/* BPharm Year 4 Marksheet */}
-                    <div>
-                      <label className="block text-sm font-medium text-[#101418] mb-2">
-                        BPharm Year 4 Marksheet *
-                      </label>
-                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
-                        <input
-                          type="file"
-                          name="bpharmYear4Marksheet"
-                          onChange={handleFileChange}
-                          accept="image/*,.pdf"
-                          className="hidden"
-                          id="bpharm-year4-marksheet-upload"
-                          required
-                          disabled={!isStepEditable(1) || loading}
-                        />
-                        <label htmlFor="bpharm-year4-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
-                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                                                     <p className="mt-1 text-xs text-gray-600">
-                             {formData.bpharmYear4Marksheet ? formData.bpharmYear4Marksheet.name : 
-                              (existingApplication?.documents?.bpharmYear4Marksheet ? 'BPharm Year 4 Marksheet uploaded ✓' : 'Click to upload')}
-                           </p>
-                        </label>
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
-                      </p>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           </div>
