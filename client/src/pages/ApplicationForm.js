@@ -1779,45 +1779,8 @@ const ApplicationForm = () => {
               <span className="text-2xl font-bold text-[#101418]">₹{getApplicationFee()}</span>
             </div>
           </div>
-        </div>
 
-        {/* Disclaimer Checkbox */}
-        <div className="mt-6 bg-red-100 border-4 border-red-500 rounded-lg p-8" style={{border: '3px solid red', backgroundColor: '#fee2e2'}}>
-          <div style={{backgroundColor: 'yellow', padding: '10px', marginBottom: '10px', textAlign: 'center', fontWeight: 'bold'}}>
-            TEST: DISCLAIMER SECTION IS HERE - PLEASE CHECK THIS BOX
-          </div>
-          <div className="flex items-start space-x-4">
-            <input
-              type="checkbox"
-              id="disclaimer"
-              checked={disclaimerAccepted}
-              onChange={(e) => {
-                console.log('Disclaimer checkbox changed:', e.target.checked);
-                setDisclaimerAccepted(e.target.checked);
-              }}
-              className="mt-1 h-6 w-6 text-[#101418] border-gray-300 rounded focus:ring-[#101418] focus:ring-2"
-              required
-              style={{transform: 'scale(1.5)'}}
-            />
-            <label htmlFor="disclaimer" className="text-base text-[#5c728a] leading-relaxed">
-              <span className="font-bold text-[#101418] text-lg" style={{color: 'red', fontWeight: 'bold'}}>DECLARATION:</span> I hereby declare that all the information provided in this application form is true, correct, and complete to the best of my knowledge. I understand that any false or misleading information may result in the rejection of my application or cancellation of admission if discovered later. I also confirm that I have read and understood all the instructions and terms of the application process.
-            </label>
-          </div>
-          {!disclaimerAccepted && touched.disclaimer && (
-            <p className="mt-2 text-sm text-red-600 font-medium">
-              You must accept the declaration to proceed with the application.
-            </p>
-          )}
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={handleNext}
-            disabled={loading || !disclaimerAccepted}
-            className="bg-[#101418] text-white py-3 px-8 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Proceed to Payment'}
-          </button>
+          
         </div>
       </div>
     </div>
