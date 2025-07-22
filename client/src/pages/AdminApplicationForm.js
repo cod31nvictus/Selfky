@@ -259,9 +259,10 @@ const AdminApplicationForm = () => {
                     >
                       <option value="General">General</option>
                       <option value="OBC">OBC</option>
+                      <option value="EWS">EWS</option>
                       <option value="SC">SC</option>
                       <option value="ST">ST</option>
-                      <option value="PH">PH</option>
+                      <option value="PWD">PWD</option>
                     </select>
                   </div>
 

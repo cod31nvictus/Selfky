@@ -26,14 +26,14 @@ const applicationSchema = new mongoose.Schema({
     category: { 
       type: String, 
       required: true, 
-      enum: ['General', 'OBC', 'SC', 'ST', 'PH'] 
+      enum: ['General', 'OBC', 'EWS', 'SC', 'ST', 'PWD'] 
     },
     // Contact Details
     correspondenceAddress: { type: String },
     permanentAddress: { type: String },
     correspondencePhone: { type: String },
     // Qualifying Examination
-    qualifyingExam: { type: String },
+    qualifyingExamRollNo: { type: String },
     qualifyingExamStatus: { type: String, default: 'passed' },
     qualifyingBoard: { type: String },
     qualifyingYear: { type: String },
@@ -42,6 +42,7 @@ const applicationSchema = new mongoose.Schema({
     qualifyingMaxMarks: { type: String },
     qualifyingPercentage: { type: String },
     // High School Details
+    highSchoolRollNo: { type: String },
     highSchoolBoard: { type: String },
     highSchoolYear: { type: String },
     highSchoolSubjects: { type: String },
@@ -62,6 +63,19 @@ const applicationSchema = new mongoose.Schema({
     intermediateMarksObtained: { type: String },
     intermediateMaxMarks: { type: String },
     intermediatePercentage: { type: String },
+    // BPharm Year Details (for MPharm applications)
+    bpharmYear1MarksObtained: { type: String },
+    bpharmYear1MaxMarks: { type: String },
+    bpharmYear1Percentage: { type: String },
+    bpharmYear2MarksObtained: { type: String },
+    bpharmYear2MaxMarks: { type: String },
+    bpharmYear2Percentage: { type: String },
+    bpharmYear3MarksObtained: { type: String },
+    bpharmYear3MaxMarks: { type: String },
+    bpharmYear3Percentage: { type: String },
+    bpharmYear4MarksObtained: { type: String },
+    bpharmYear4MaxMarks: { type: String },
+    bpharmYear4Percentage: { type: String },
     placeOfApplication: { type: String }
   },
   documents: {
@@ -69,7 +83,12 @@ const applicationSchema = new mongoose.Schema({
     signature: { type: String, required: true }, // File path/URL
     categoryCertificate: { type: String }, // Optional - Category Certificate
     highSchoolCertificate: { type: String }, // Optional - High School Certificate
-    intermediateCertificate: { type: String } // Optional - 10+2 Certificate
+    intermediateCertificate: { type: String }, // Optional - 10+2 Certificate
+    // BPharm Year Marksheets (for MPharm applications)
+    bpharmYear1Marksheet: { type: String }, // Mandatory for MPharm
+    bpharmYear2Marksheet: { type: String }, // Mandatory for MPharm
+    bpharmYear3Marksheet: { type: String }, // Mandatory for MPharm
+    bpharmYear4Marksheet: { type: String } // Mandatory for MPharm
   },
   payment: {
     amount: { type: Number, required: true },

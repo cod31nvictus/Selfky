@@ -23,7 +23,7 @@ const ApplicationForm = () => {
     correspondencePhone: '',
     
     // Education Details
-    qualifyingExam: '',
+    qualifyingExamRollNo: '',
     qualifyingExamStatus: 'passed', // passed or appearing
     qualifyingBoard: '',
     qualifyingYear: '',
@@ -33,6 +33,7 @@ const ApplicationForm = () => {
     qualifyingPercentage: '',
     
     // High School Details
+    highSchoolRollNo: '',
     highSchoolBoard: '',
     highSchoolYear: '',
     highSchoolSubjects: '',
@@ -55,6 +56,20 @@ const ApplicationForm = () => {
     intermediateMaxMarks: '',
     intermediatePercentage: '',
     
+    // BPharm Year Details (for MPharm applications)
+    bpharmYear1MarksObtained: '',
+    bpharmYear1MaxMarks: '',
+    bpharmYear1Percentage: '',
+    bpharmYear2MarksObtained: '',
+    bpharmYear2MaxMarks: '',
+    bpharmYear2Percentage: '',
+    bpharmYear3MarksObtained: '',
+    bpharmYear3MaxMarks: '',
+    bpharmYear3Percentage: '',
+    bpharmYear4MarksObtained: '',
+    bpharmYear4MaxMarks: '',
+    bpharmYear4Percentage: '',
+    
     // Application Details
     placeOfApplication: '',
     category: 'General',
@@ -62,7 +77,12 @@ const ApplicationForm = () => {
     signature: null,
     categoryCertificate: null,
     highSchoolCertificate: null,
-    intermediateCertificate: null
+    intermediateCertificate: null,
+    // BPharm Year Marksheets (for MPharm applications)
+    bpharmYear1Marksheet: null,
+    bpharmYear2Marksheet: null,
+    bpharmYear3Marksheet: null,
+    bpharmYear4Marksheet: null
   });
   const [loading, setLoading] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
@@ -111,7 +131,7 @@ const ApplicationForm = () => {
             correspondenceAddress: existing.personalDetails.correspondenceAddress || '',
             permanentAddress: existing.personalDetails.permanentAddress || '',
             correspondencePhone: existing.personalDetails.correspondencePhone || '',
-            qualifyingExam: existing.personalDetails.qualifyingExam || '',
+            qualifyingExamRollNo: existing.personalDetails.qualifyingExamRollNo || '',
             qualifyingExamStatus: existing.personalDetails.qualifyingExamStatus || 'passed',
             qualifyingBoard: existing.personalDetails.qualifyingBoard || '',
             qualifyingYear: existing.personalDetails.qualifyingYear || '',
@@ -119,6 +139,7 @@ const ApplicationForm = () => {
             qualifyingMarksObtained: existing.personalDetails.qualifyingMarksObtained || '',
             qualifyingMaxMarks: existing.personalDetails.qualifyingMaxMarks || '',
             qualifyingPercentage: existing.personalDetails.qualifyingPercentage || '',
+            highSchoolRollNo: existing.personalDetails.highSchoolRollNo || '',
             highSchoolBoard: existing.personalDetails.highSchoolBoard || '',
             highSchoolYear: existing.personalDetails.highSchoolYear || '',
             highSchoolSubjects: existing.personalDetails.highSchoolSubjects || '',
@@ -138,10 +159,30 @@ const ApplicationForm = () => {
             intermediateMarksObtained: existing.personalDetails.intermediateMarksObtained || '',
             intermediateMaxMarks: existing.personalDetails.intermediateMaxMarks || '',
             intermediatePercentage: existing.personalDetails.intermediatePercentage || '',
+            // BPharm Year Details
+            bpharmYear1MarksObtained: existing.personalDetails.bpharmYear1MarksObtained || '',
+            bpharmYear1MaxMarks: existing.personalDetails.bpharmYear1MaxMarks || '',
+            bpharmYear1Percentage: existing.personalDetails.bpharmYear1Percentage || '',
+            bpharmYear2MarksObtained: existing.personalDetails.bpharmYear2MarksObtained || '',
+            bpharmYear2MaxMarks: existing.personalDetails.bpharmYear2MaxMarks || '',
+            bpharmYear2Percentage: existing.personalDetails.bpharmYear2Percentage || '',
+            bpharmYear3MarksObtained: existing.personalDetails.bpharmYear3MarksObtained || '',
+            bpharmYear3MaxMarks: existing.personalDetails.bpharmYear3MaxMarks || '',
+            bpharmYear3Percentage: existing.personalDetails.bpharmYear3Percentage || '',
+            bpharmYear4MarksObtained: existing.personalDetails.bpharmYear4MarksObtained || '',
+            bpharmYear4MaxMarks: existing.personalDetails.bpharmYear4MaxMarks || '',
+            bpharmYear4Percentage: existing.personalDetails.bpharmYear4Percentage || '',
             placeOfApplication: existing.personalDetails.placeOfApplication || '',
             category: existing.personalDetails.category || 'General',
             photo: null, // We can't load files from server, but we can show they exist
-            signature: null
+            signature: null,
+            categoryCertificate: null,
+            highSchoolCertificate: null,
+            intermediateCertificate: null,
+            bpharmYear1Marksheet: null,
+            bpharmYear2Marksheet: null,
+            bpharmYear3Marksheet: null,
+            bpharmYear4Marksheet: null
           }));
         }
 
@@ -175,16 +216,18 @@ const ApplicationForm = () => {
     bpharm: {
       General: 1,
       OBC: 1,
+      EWS: 1,
       SC: 1,
       ST: 1,
-      PH: 1
+      PWD: 1
     },
     mpharm: {
       General: 1,
       OBC: 1,
+      EWS: 1,
       SC: 1,
       ST: 1,
-      PH: 1
+      PWD: 1
     }
   };
 
@@ -379,7 +422,7 @@ const ApplicationForm = () => {
           correspondenceAddress: formData.correspondenceAddress,
           permanentAddress: formData.permanentAddress,
           correspondencePhone: formData.correspondencePhone,
-          qualifyingExam: formData.qualifyingExam,
+          qualifyingExamRollNo: formData.qualifyingExamRollNo,
           qualifyingExamStatus: formData.qualifyingExamStatus,
           qualifyingBoard: formData.qualifyingBoard,
           qualifyingYear: formData.qualifyingYear,
@@ -387,6 +430,7 @@ const ApplicationForm = () => {
           qualifyingMarksObtained: formData.qualifyingMarksObtained,
           qualifyingMaxMarks: formData.qualifyingMaxMarks,
           qualifyingPercentage: formData.qualifyingPercentage,
+          highSchoolRollNo: formData.highSchoolRollNo,
           highSchoolBoard: formData.highSchoolBoard,
           highSchoolYear: formData.highSchoolYear,
           highSchoolSubjects: formData.highSchoolSubjects,
@@ -399,12 +443,29 @@ const ApplicationForm = () => {
           intermediateMarksObtained: formData.intermediateMarksObtained,
           intermediateMaxMarks: formData.intermediateMaxMarks,
           intermediatePercentage: formData.intermediatePercentage,
+          // BPharm Year Details
+          bpharmYear1MarksObtained: formData.bpharmYear1MarksObtained,
+          bpharmYear1MaxMarks: formData.bpharmYear1MaxMarks,
+          bpharmYear1Percentage: formData.bpharmYear1Percentage,
+          bpharmYear2MarksObtained: formData.bpharmYear2MarksObtained,
+          bpharmYear2MaxMarks: formData.bpharmYear2MaxMarks,
+          bpharmYear2Percentage: formData.bpharmYear2Percentage,
+          bpharmYear3MarksObtained: formData.bpharmYear3MarksObtained,
+          bpharmYear3MaxMarks: formData.bpharmYear3MaxMarks,
+          bpharmYear3Percentage: formData.bpharmYear3Percentage,
+          bpharmYear4MarksObtained: formData.bpharmYear4MarksObtained,
+          bpharmYear4MaxMarks: formData.bpharmYear4MaxMarks,
+          bpharmYear4Percentage: formData.bpharmYear4Percentage,
           placeOfApplication: formData.placeOfApplication,
           photo: formData.photo,
           signature: formData.signature,
           categoryCertificate: formData.categoryCertificate,
           highSchoolCertificate: formData.highSchoolCertificate,
-          intermediateCertificate: formData.intermediateCertificate
+          intermediateCertificate: formData.intermediateCertificate,
+          bpharmYear1Marksheet: formData.bpharmYear1Marksheet,
+          bpharmYear2Marksheet: formData.bpharmYear2Marksheet,
+          bpharmYear3Marksheet: formData.bpharmYear3Marksheet,
+          bpharmYear4Marksheet: formData.bpharmYear4Marksheet
         };
 
         console.log('Sending data to backend:', {
@@ -419,7 +480,7 @@ const ApplicationForm = () => {
           correspondenceAddress: apiData.correspondenceAddress,
           permanentAddress: apiData.permanentAddress,
           correspondencePhone: apiData.correspondencePhone,
-          qualifyingExam: apiData.qualifyingExam,
+          qualifyingExamRollNo: apiData.qualifyingExamRollNo,
           qualifyingExamStatus: apiData.qualifyingExamStatus,
           qualifyingBoard: apiData.qualifyingBoard,
           qualifyingYear: apiData.qualifyingYear,
@@ -427,6 +488,7 @@ const ApplicationForm = () => {
           qualifyingMarksObtained: apiData.qualifyingMarksObtained,
           qualifyingMaxMarks: apiData.qualifyingMaxMarks,
           qualifyingPercentage: apiData.qualifyingPercentage,
+          highSchoolRollNo: apiData.highSchoolRollNo,
           highSchoolBoard: apiData.highSchoolBoard,
           highSchoolYear: apiData.highSchoolYear,
           highSchoolSubjects: apiData.highSchoolSubjects,
@@ -439,12 +501,29 @@ const ApplicationForm = () => {
           intermediateMarksObtained: apiData.intermediateMarksObtained,
           intermediateMaxMarks: apiData.intermediateMaxMarks,
           intermediatePercentage: apiData.intermediatePercentage,
+          // BPharm Year Details
+          bpharmYear1MarksObtained: apiData.bpharmYear1MarksObtained,
+          bpharmYear1MaxMarks: apiData.bpharmYear1MaxMarks,
+          bpharmYear1Percentage: apiData.bpharmYear1Percentage,
+          bpharmYear2MarksObtained: apiData.bpharmYear2MarksObtained,
+          bpharmYear2MaxMarks: apiData.bpharmYear2MaxMarks,
+          bpharmYear2Percentage: apiData.bpharmYear2Percentage,
+          bpharmYear3MarksObtained: apiData.bpharmYear3MarksObtained,
+          bpharmYear3MaxMarks: apiData.bpharmYear3MaxMarks,
+          bpharmYear3Percentage: apiData.bpharmYear3Percentage,
+          bpharmYear4MarksObtained: apiData.bpharmYear4MarksObtained,
+          bpharmYear4MaxMarks: apiData.bpharmYear4MaxMarks,
+          bpharmYear4Percentage: apiData.bpharmYear4Percentage,
           placeOfApplication: apiData.placeOfApplication,
           hasPhoto: !!apiData.photo,
           hasSignature: !!apiData.signature,
           hasCategoryCertificate: !!apiData.categoryCertificate,
           hasHighSchoolCertificate: !!apiData.highSchoolCertificate,
-          hasIntermediateCertificate: !!apiData.intermediateCertificate
+          hasIntermediateCertificate: !!apiData.intermediateCertificate,
+          hasBpharmYear1Marksheet: !!apiData.bpharmYear1Marksheet,
+          hasBpharmYear2Marksheet: !!apiData.bpharmYear2Marksheet,
+          hasBpharmYear3Marksheet: !!apiData.bpharmYear3Marksheet,
+          hasBpharmYear4Marksheet: !!apiData.bpharmYear4Marksheet
         });
 
         // Create application in database
@@ -670,9 +749,10 @@ const ApplicationForm = () => {
                 >
                   <option value="General">General</option>
                   <option value="OBC">OBC</option>
+                  <option value="EWS">EWS</option>
                   <option value="SC">SC</option>
                   <option value="ST">ST</option>
-                  <option value="PH">PH</option>
+                  <option value="PWD">PWD</option>
                 </select>
               </div>
             </div>
@@ -771,6 +851,23 @@ const ApplicationForm = () => {
                   <option value="passed">Passed</option>
                   <option value="appearing">Appearing</option>
                 </select>
+              </div>
+
+              {/* Qualifying Exam Roll No */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  Qualifying Exam Roll No. *
+                </label>
+                <input
+                  type="text"
+                  name="qualifyingExamRollNo"
+                  value={formData.qualifyingExamRollNo}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter qualifying exam roll number"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
               </div>
 
               {/* Board */}
@@ -924,6 +1021,23 @@ const ApplicationForm = () => {
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-lg font-semibold text-[#101418] mb-4">High School Details</h3>
             <div className="grid md:grid-cols-2 gap-6">
+              {/* High School Roll No */}
+              <div>
+                <label className="block text-sm font-medium text-[#101418] mb-2">
+                  High School Roll No. *
+                </label>
+                <input
+                  type="text"
+                  name="highSchoolRollNo"
+                  value={formData.highSchoolRollNo}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                  placeholder="Enter high school roll number"
+                  required
+                  disabled={!isStepEditable(1) || loading}
+                />
+              </div>
+
               {/* High School Board */}
               <div>
                 <label className="block text-sm font-medium text-[#101418] mb-2">
@@ -1041,61 +1155,290 @@ const ApplicationForm = () => {
             </div>
           </div>
 
-          {/* Intermediate/Equivalent Exam Section */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-semibold text-[#101418] mb-4">Marks Details for Intermediate or Equivalent Exam</h3>
-            <div className="space-y-4">
-              {Object.entries(formData.intermediateSubjects).map(([subject, marks]) => (
-                <div key={subject} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
+          {/* Conditional Marks Details Section */}
+          {courseType === 'bpharm' ? (
+            /* Intermediate/Equivalent Exam Section for BPharm */
+            <div className="border-b border-gray-200 pb-6">
+              <h3 className="text-lg font-semibold text-[#101418] mb-4">Marks Details for Intermediate or Equivalent Exam</h3>
+              <div className="space-y-4">
+                {Object.entries(formData.intermediateSubjects).map(([subject, marks]) => (
+                  <div key={subject} className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#101418] mb-2">
+                          Marks Obtained
+                        </label>
+                        <input
+                          type="number"
+                          value={marks.marksObtained}
+                          onChange={(e) => handleIntermediateSubjectChange(subject, 'marksObtained', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                          placeholder="Marks obtained"
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#101418] mb-2">
+                          Maximum Marks
+                        </label>
+                        <input
+                          type="number"
+                          value={marks.maxMarks}
+                          onChange={(e) => handleIntermediateSubjectChange(subject, 'maxMarks', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                          placeholder="Maximum marks"
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#101418] mb-2">
+                          Percentage
+                        </label>
+                        <input
+                          type="number"
+                          value={marks.percentage}
+                          onChange={(e) => handleIntermediateSubjectChange(subject, 'percentage', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                          placeholder="Percentage"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* BPharm Year Details Section for MPharm */
+            <div className="border-b border-gray-200 pb-6">
+              <h3 className="text-lg font-semibold text-[#101418] mb-4">Marks Details for 4 Years of BPharm</h3>
+              <div className="space-y-6">
+                {/* BPharm Year 1 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-[#101418] mb-3">BPharm Year 1</h4>
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-[#101418] mb-2">
-                        Marks Obtained
+                        Marks Obtained *
                       </label>
                       <input
                         type="number"
-                        value={marks.marksObtained}
-                        onChange={(e) => handleIntermediateSubjectChange(subject, 'marksObtained', e.target.value)}
+                        name="bpharmYear1MarksObtained"
+                        value={formData.bpharmYear1MarksObtained}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
                         placeholder="Marks obtained"
+                        required
                         disabled={!isStepEditable(1) || loading}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[#101418] mb-2">
-                        Maximum Marks
+                        Total Marks *
                       </label>
                       <input
                         type="number"
-                        value={marks.maxMarks}
-                        onChange={(e) => handleIntermediateSubjectChange(subject, 'maxMarks', e.target.value)}
+                        name="bpharmYear1MaxMarks"
+                        value={formData.bpharmYear1MaxMarks}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
-                        placeholder="Maximum marks"
+                        placeholder="Total marks"
+                        required
                         disabled={!isStepEditable(1) || loading}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[#101418] mb-2">
-                        Percentage
+                        Percentage *
                       </label>
                       <input
                         type="number"
-                        value={marks.percentage}
-                        onChange={(e) => handleIntermediateSubjectChange(subject, 'percentage', e.target.value)}
+                        name="bpharmYear1Percentage"
+                        value={formData.bpharmYear1Percentage}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
                         placeholder="Percentage"
                         step="0.01"
                         min="0"
                         max="100"
+                        required
                         disabled={!isStepEditable(1) || loading}
                       />
                     </div>
                   </div>
                 </div>
-              ))}
+
+                {/* BPharm Year 2 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-[#101418] mb-3">BPharm Year 2</h4>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Marks Obtained *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear2MarksObtained"
+                        value={formData.bpharmYear2MarksObtained}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Marks obtained"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Total Marks *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear2MaxMarks"
+                        value={formData.bpharmYear2MaxMarks}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Total marks"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Percentage *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear2Percentage"
+                        value={formData.bpharmYear2Percentage}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Percentage"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* BPharm Year 3 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-[#101418] mb-3">BPharm Year 3</h4>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Marks Obtained *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear3MarksObtained"
+                        value={formData.bpharmYear3MarksObtained}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Marks obtained"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Total Marks *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear3MaxMarks"
+                        value={formData.bpharmYear3MaxMarks}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Total marks"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Percentage *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear3Percentage"
+                        value={formData.bpharmYear3Percentage}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Percentage"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* BPharm Year 4 */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-[#101418] mb-3">BPharm Year 4</h4>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Marks Obtained *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear4MarksObtained"
+                        value={formData.bpharmYear4MarksObtained}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Marks obtained"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Total Marks *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear4MaxMarks"
+                        value={formData.bpharmYear4MaxMarks}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Total marks"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        Percentage *
+                      </label>
+                      <input
+                        type="number"
+                        name="bpharmYear4Percentage"
+                        value={formData.bpharmYear4Percentage}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#101418] focus:border-transparent"
+                        placeholder="Percentage"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        disabled={!isStepEditable(1) || loading}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Place of Application */}
           <div className="border-b border-gray-200 pb-6">
@@ -1284,6 +1627,135 @@ const ApplicationForm = () => {
                     📁 Formats: JPG, PNG, PDF | Optional
                   </p>
                 </div>
+
+                {/* BPharm Year Marksheets for MPharm applications */}
+                {courseType === 'mpharm' && (
+                  <>
+                    {/* BPharm Year 1 Marksheet */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        BPharm Year 1 Marksheet *
+                      </label>
+                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                        <input
+                          type="file"
+                          name="bpharmYear1Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          id="bpharm-year1-marksheet-upload"
+                          required
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                        <label htmlFor="bpharm-year1-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {formData.bpharmYear1Marksheet ? formData.bpharmYear1Marksheet.name : 
+                             (existingApplication?.documents?.bpharmYear1Marksheet ? 'BPharm Year 1 Marksheet uploaded ✓' : 'Click to upload')}
+                          </p>
+                        </label>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                      </p>
+                    </div>
+
+                    {/* BPharm Year 2 Marksheet */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        BPharm Year 2 Marksheet *
+                      </label>
+                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                        <input
+                          type="file"
+                          name="bpharmYear2Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          id="bpharm-year2-marksheet-upload"
+                          required
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                        <label htmlFor="bpharm-year2-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {formData.bpharmYear2Marksheet ? formData.bpharmYear2Marksheet.name : 
+                             (existingApplication?.documents?.bpharmYear2Marksheet ? 'BPharm Year 2 Marksheet uploaded ✓' : 'Click to upload')}
+                          </p>
+                        </label>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                      </p>
+                    </div>
+
+                    {/* BPharm Year 3 Marksheet */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        BPharm Year 3 Marksheet *
+                      </label>
+                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                        <input
+                          type="file"
+                          name="bpharmYear3Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          id="bpharm-year3-marksheet-upload"
+                          required
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                        <label htmlFor="bpharm-year3-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {formData.bpharmYear3Marksheet ? formData.bpharmYear3Marksheet.name : 
+                             (existingApplication?.documents?.bpharmYear3Marksheet ? 'BPharm Year 3 Marksheet uploaded ✓' : 'Click to upload')}
+                          </p>
+                        </label>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                      </p>
+                    </div>
+
+                    {/* BPharm Year 4 Marksheet */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#101418] mb-2">
+                        BPharm Year 4 Marksheet *
+                      </label>
+                      <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                        <input
+                          type="file"
+                          name="bpharmYear4Marksheet"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          id="bpharm-year4-marksheet-upload"
+                          required
+                          disabled={!isStepEditable(1) || loading}
+                        />
+                        <label htmlFor="bpharm-year4-marksheet-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                          <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                                                     <p className="mt-1 text-xs text-gray-600">
+                             {formData.bpharmYear4Marksheet ? formData.bpharmYear4Marksheet.name : 
+                              (existingApplication?.documents?.bpharmYear4Marksheet ? 'BPharm Year 4 Marksheet uploaded ✓' : 'Click to upload')}
+                           </p>
+                        </label>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

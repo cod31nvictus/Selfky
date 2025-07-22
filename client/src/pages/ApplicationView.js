@@ -159,8 +159,8 @@ const ApplicationView = () => {
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">Qualifying Examination</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Examination</label>
-                    <p className="text-[#101418] font-medium">{personalDetails.qualifyingExam}</p>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Qualifying Exam Roll No</label>
+                    <p className="text-[#101418] font-medium">{personalDetails.qualifyingExamRollNo}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
@@ -190,6 +190,10 @@ const ApplicationView = () => {
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">High School Details</h3>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">High School Roll No</label>
+                    <p className="text-[#101418] font-medium">{personalDetails.highSchoolRollNo}</p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Board</label>
                     <p className="text-[#101418] font-medium">{personalDetails.highSchoolBoard}</p>
                   </div>
@@ -208,55 +212,140 @@ const ApplicationView = () => {
                 </div>
               </div>
 
-              {/* Intermediate Subjects Section */}
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Intermediate/Equivalent Exam Details</h3>
-                <div className="space-y-4">
-                  {(() => {
-                    let subjects = personalDetails.intermediateSubjects;
-                    
-                    // Handle different data formats
-                    if (typeof subjects === 'string') {
-                      try {
-                        subjects = JSON.parse(subjects);
-                      } catch (e) {
-                        // If it's not valid JSON, treat it as a simple string
-                        return (
-                          <div className="border border-gray-200 rounded-lg p-4">
-                            <h4 className="font-medium text-[#101418] mb-3">Subjects</h4>
-                            <p className="text-[#101418] font-medium">{subjects}</p>
-                          </div>
-                        );
+              {/* Conditional Marks Details Section */}
+              {application.courseType === 'bpharm' ? (
+                /* Intermediate Subjects Section for BPharm */
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-semibold text-[#101418] mb-4">Intermediate/Equivalent Exam Details</h3>
+                  <div className="space-y-4">
+                    {(() => {
+                      let subjects = personalDetails.intermediateSubjects;
+                      
+                      // Handle different data formats
+                      if (typeof subjects === 'string') {
+                        try {
+                          subjects = JSON.parse(subjects);
+                        } catch (e) {
+                          // If it's not valid JSON, treat it as a simple string
+                          return (
+                            <div className="border border-gray-200 rounded-lg p-4">
+                              <h4 className="font-medium text-[#101418] mb-3">Subjects</h4>
+                              <p className="text-[#101418] font-medium">{subjects}</p>
+                            </div>
+                          );
+                        }
                       }
-                    }
-                    
-                    // If subjects is an object, display each subject
-                    if (subjects && typeof subjects === 'object') {
-                      return Object.entries(subjects).map(([subject, marks]) => (
-                        <div key={subject} className="border border-gray-200 rounded-lg p-4">
-                          <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
-                          <div className="grid md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
-                              <p className="text-[#101418] font-medium">{marks.marksObtained}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 mb-1">Maximum Marks</label>
-                              <p className="text-[#101418] font-medium">{marks.maxMarks}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
-                              <p className="text-[#101418] font-medium">{marks.percentage}%</p>
+                      
+                      // If subjects is an object, display each subject
+                      if (subjects && typeof subjects === 'object') {
+                        return Object.entries(subjects).map(([subject, marks]) => (
+                          <div key={subject} className="border border-gray-200 rounded-lg p-4">
+                            <h4 className="font-medium text-[#101418] mb-3 capitalize">{subject}</h4>
+                            <div className="grid md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                                <p className="text-[#101418] font-medium">{marks.marksObtained}</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Maximum Marks</label>
+                                <p className="text-[#101418] font-medium">{marks.maxMarks}</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                                <p className="text-[#101418] font-medium">{marks.percentage}%</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ));
-                    }
-                    
-                    return null;
-                  })()}
+                        ));
+                      }
+                      
+                      return null;
+                    })()}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* BPharm Year Details Section for MPharm */
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-semibold text-[#101418] mb-4">BPharm Year Details</h3>
+                  <div className="space-y-4">
+                    {/* BPharm Year 1 */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-[#101418] mb-3">BPharm Year 1</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear1MarksObtained}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear1MaxMarks}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear1Percentage}%</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BPharm Year 2 */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-[#101418] mb-3">BPharm Year 2</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear2MarksObtained}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear2MaxMarks}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear2Percentage}%</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BPharm Year 3 */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-[#101418] mb-3">BPharm Year 3</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear3MarksObtained}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear3MaxMarks}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear3Percentage}%</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BPharm Year 4 */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-[#101418] mb-3">BPharm Year 4</h4>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Marks Obtained</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear4MarksObtained}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear4MaxMarks}</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Percentage</label>
+                          <p className="text-[#101418] font-medium">{personalDetails.bpharmYear4Percentage}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Place of Application */}
               <div className="border-b border-gray-200 pb-6">

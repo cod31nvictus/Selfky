@@ -99,7 +99,7 @@ export const applicationAPI = {
     data.append('correspondenceAddress', formData.correspondenceAddress || '');
     data.append('permanentAddress', formData.permanentAddress || '');
     data.append('correspondencePhone', formData.correspondencePhone || '');
-    data.append('qualifyingExam', formData.qualifyingExam || '');
+    data.append('qualifyingExamRollNo', formData.qualifyingExamRollNo || '');
     data.append('qualifyingExamStatus', formData.qualifyingExamStatus || 'passed');
     data.append('qualifyingBoard', formData.qualifyingBoard || '');
     data.append('qualifyingYear', formData.qualifyingYear || '');
@@ -107,6 +107,7 @@ export const applicationAPI = {
     data.append('qualifyingMarksObtained', formData.qualifyingMarksObtained || '');
     data.append('qualifyingMaxMarks', formData.qualifyingMaxMarks || '');
     data.append('qualifyingPercentage', formData.qualifyingPercentage || '');
+    data.append('highSchoolRollNo', formData.highSchoolRollNo || '');
     data.append('highSchoolBoard', formData.highSchoolBoard || '');
     data.append('highSchoolYear', formData.highSchoolYear || '');
     data.append('highSchoolSubjects', formData.highSchoolSubjects || '');
@@ -119,6 +120,19 @@ export const applicationAPI = {
     data.append('intermediateMarksObtained', formData.intermediateMarksObtained || '');
     data.append('intermediateMaxMarks', formData.intermediateMaxMarks || '');
     data.append('intermediatePercentage', formData.intermediatePercentage || '');
+    // BPharm Year Details
+    data.append('bpharmYear1MarksObtained', formData.bpharmYear1MarksObtained || '');
+    data.append('bpharmYear1MaxMarks', formData.bpharmYear1MaxMarks || '');
+    data.append('bpharmYear1Percentage', formData.bpharmYear1Percentage || '');
+    data.append('bpharmYear2MarksObtained', formData.bpharmYear2MarksObtained || '');
+    data.append('bpharmYear2MaxMarks', formData.bpharmYear2MaxMarks || '');
+    data.append('bpharmYear2Percentage', formData.bpharmYear2Percentage || '');
+    data.append('bpharmYear3MarksObtained', formData.bpharmYear3MarksObtained || '');
+    data.append('bpharmYear3MaxMarks', formData.bpharmYear3MaxMarks || '');
+    data.append('bpharmYear3Percentage', formData.bpharmYear3Percentage || '');
+    data.append('bpharmYear4MarksObtained', formData.bpharmYear4MarksObtained || '');
+    data.append('bpharmYear4MaxMarks', formData.bpharmYear4MaxMarks || '');
+    data.append('bpharmYear4Percentage', formData.bpharmYear4Percentage || '');
     data.append('placeOfApplication', formData.placeOfApplication || '');
     data.append('photo', formData.photo);
     data.append('signature', formData.signature);
@@ -132,6 +146,19 @@ export const applicationAPI = {
     }
     if (formData.intermediateCertificate) {
       data.append('intermediateCertificate', formData.intermediateCertificate);
+    }
+    // BPharm Year Marksheets
+    if (formData.bpharmYear1Marksheet) {
+      data.append('bpharmYear1Marksheet', formData.bpharmYear1Marksheet);
+    }
+    if (formData.bpharmYear2Marksheet) {
+      data.append('bpharmYear2Marksheet', formData.bpharmYear2Marksheet);
+    }
+    if (formData.bpharmYear3Marksheet) {
+      data.append('bpharmYear3Marksheet', formData.bpharmYear3Marksheet);
+    }
+    if (formData.bpharmYear4Marksheet) {
+      data.append('bpharmYear4Marksheet', formData.bpharmYear4Marksheet);
     }
 
     const response = await fetch(`${API_BASE_URL}/applications`, {
