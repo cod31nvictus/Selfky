@@ -1780,7 +1780,46 @@ const ApplicationForm = () => {
             </div>
           </div>
 
-          
+          {/* Disclaimer Checkbox */}
+          <div className="mt-6 bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6">
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                id="disclaimer"
+                checked={disclaimerAccepted}
+                onChange={(e) => {
+                  console.log('Disclaimer checkbox changed:', e.target.checked);
+                  setDisclaimerAccepted(e.target.checked);
+                }}
+                className="mt-1 h-5 w-5 text-[#101418] border-gray-300 rounded focus:ring-[#101418] focus:ring-2"
+                required
+              />
+              <label htmlFor="disclaimer" className="text-sm text-[#5c728a] leading-relaxed">
+                <span className="font-semibold text-[#101418] text-base">Declaration:</span> I hereby declare that all the information provided in this application form is true, correct, and complete to the best of my knowledge. I understand that any false or misleading information may result in the rejection of my application.
+              </label>
+            </div>
+            {touched.disclaimerAccepted && !disclaimerAccepted && (
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                You must accept the declaration to proceed.
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <div className="mt-8 flex justify-end">
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={loading || !disclaimerAccepted}
+              className={`px-8 py-3 rounded-lg font-semibold text-white transition-colors ${
+                loading || !disclaimerAccepted
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-[#101418] hover:bg-[#2a2a2a]'
+              }`}
+            >
+              {loading ? 'Processing...' : 'Proceed to Payment'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
