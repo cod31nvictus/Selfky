@@ -748,6 +748,7 @@ router.get('/export-applications-csv', isAdmin, async (req, res) => {
         'BPharm Year 2 Marksheet File': documents.bpharmYear2Marksheet || '',
         'BPharm Year 3 Marksheet File': documents.bpharmYear3Marksheet || '',
         'BPharm Year 4 Marksheet File': documents.bpharmYear4Marksheet || '',
+        'BPharm Degree File': documents.bpharmDegree || '',
         
         // Payment Information
         'Payment Status': app.payment?.status || '',

@@ -88,7 +88,8 @@ const applicationSchema = new mongoose.Schema({
     bpharmYear1Marksheet: { type: String }, // Mandatory for MPharm
     bpharmYear2Marksheet: { type: String }, // Mandatory for MPharm
     bpharmYear3Marksheet: { type: String }, // Mandatory for MPharm
-    bpharmYear4Marksheet: { type: String } // Mandatory for MPharm
+    bpharmYear4Marksheet: { type: String }, // Mandatory for MPharm
+    bpharmDegree: { type: String } // Mandatory for MPharm - BPharm Degree
   },
   payment: {
     amount: { type: Number, required: true },

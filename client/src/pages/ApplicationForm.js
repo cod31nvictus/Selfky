@@ -82,7 +82,8 @@ const ApplicationForm = () => {
     bpharmYear1Marksheet: null,
     bpharmYear2Marksheet: null,
     bpharmYear3Marksheet: null,
-    bpharmYear4Marksheet: null
+    bpharmYear4Marksheet: null,
+    bpharmDegree: null
   });
   const [loading, setLoading] = useState(false);
   const [applicationId, setApplicationId] = useState(null);
@@ -473,7 +474,8 @@ const ApplicationForm = () => {
           bpharmYear1Marksheet: formData.bpharmYear1Marksheet,
           bpharmYear2Marksheet: formData.bpharmYear2Marksheet,
           bpharmYear3Marksheet: formData.bpharmYear3Marksheet,
-          bpharmYear4Marksheet: formData.bpharmYear4Marksheet
+          bpharmYear4Marksheet: formData.bpharmYear4Marksheet,
+          bpharmDegree: formData.bpharmDegree
         };
 
         console.log('Sending data to backend:', {
@@ -1670,6 +1672,37 @@ const ApplicationForm = () => {
                       📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
                     </p>
                   </div>
+                </div>
+
+                {/* BPharm Degree */}
+                <div>
+                  <label className="block text-sm font-medium text-[#101418] mb-2">
+                    BPharm Degree <span className="text-red-500">*</span>
+                  </label>
+                  <div className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#101418] transition-colors ${!isStepEditable(1) || loading ? 'opacity-50' : ''}`}>
+                    <input
+                      type="file"
+                      name="bpharmDegree"
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      id="bpharm-degree-upload"
+                      required
+                      disabled={!isStepEditable(1) || loading}
+                    />
+                    <label htmlFor="bpharm-degree-upload" className={`cursor-pointer ${!isStepEditable(1) || loading ? 'pointer-events-none' : ''}`}>
+                      <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {formData.bpharmDegree ? formData.bpharmDegree.name :
+                         (existingApplication?.documents?.bpharmDegree ? 'BPharm Degree uploaded ✓' : 'Click to upload')}
+                      </p>
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    📁 Formats: JPG, PNG, PDF | Mandatory for MPharm
+                  </p>
                 </div>
               </div>
             )}

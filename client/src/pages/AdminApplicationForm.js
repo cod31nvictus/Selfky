@@ -60,7 +60,8 @@ const AdminApplicationForm = () => {
     bpharmYear1Marksheet: null,
     bpharmYear2Marksheet: null,
     bpharmYear3Marksheet: null,
-    bpharmYear4Marksheet: null
+    bpharmYear4Marksheet: null,
+    bpharmDegree: null
   });
 
   useEffect(() => {
@@ -946,6 +947,21 @@ const AdminApplicationForm = () => {
                         />
                         <p className="text-xs text-gray-500 mt-1">Upload BPharm Year 4 marksheet (mandatory for MPharm)</p>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        BPharm Degree <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="file"
+                        name="bpharmDegree"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Upload BPharm Degree (mandatory for MPharm)</p>
                     </div>
                   </div>
                 )}

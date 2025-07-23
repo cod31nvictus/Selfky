@@ -160,6 +160,9 @@ export const applicationAPI = {
     if (formData.bpharmYear4Marksheet) {
       data.append('bpharmYear4Marksheet', formData.bpharmYear4Marksheet);
     }
+    if (formData.bpharmDegree) {
+      data.append('bpharmDegree', formData.bpharmDegree);
+    }
 
     const response = await fetch(`${API_BASE_URL}/applications`, {
       method: 'POST',

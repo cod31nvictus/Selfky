@@ -92,6 +92,13 @@ const DocumentViewer = ({ documents, onClose }) => {
               <a href={`/api/files/${documents.bpharmYear4Marksheet}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmYear4Marksheet}</a>
             </div>
           )}
+          
+          {documents.bpharmDegree && (
+            <div className="document-item">
+              <h3>BPharm Degree</h3>
+              <a href={`/api/files/${documents.bpharmDegree}`} download target="_blank" rel="noopener noreferrer">{documents.bpharmDegree}</a>
+            </div>
+          )}
         </div>
         
         {selectedDocument && (

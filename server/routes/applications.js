@@ -296,6 +296,119 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
+    // Process BPharm documents for MPharm applications
+    let bpharmYear1MarksheetUpload = null;
+    let bpharmYear2MarksheetUpload = null;
+    let bpharmYear3MarksheetUpload = null;
+    let bpharmYear4MarksheetUpload = null;
+    let bpharmDegreeUpload = null;
+
+    if (courseType === 'mpharm') {
+      // Check for required BPharm documents
+      const bpharmYear1Marksheet = req.files.bpharmYear1Marksheet;
+      const bpharmYear2Marksheet = req.files.bpharmYear2Marksheet;
+      const bpharmYear3Marksheet = req.files.bpharmYear3Marksheet;
+      const bpharmYear4Marksheet = req.files.bpharmYear4Marksheet;
+      const bpharmDegree = req.files.bpharmDegree;
+
+      // Validate required BPharm documents for MPharm
+      if (!bpharmYear1Marksheet || !bpharmYear2Marksheet || !bpharmYear3Marksheet || !bpharmYear4Marksheet || !bpharmDegree) {
+        return res.status(400).json({ 
+          error: 'All BPharm documents are required for MPharm applications: Year 1-4 Marksheets and BPharm Degree' 
+        });
+      }
+
+      // Process BPharm Year 1 Marksheet
+      if (bpharmYear1Marksheet.mimetype.startsWith('image/')) {
+        const bpharmYear1Result = await processUploadedImage(bpharmYear1Marksheet, null, 'bpharm-year1.jpg');
+        if (bpharmYear1Result.success) {
+          bpharmYear1MarksheetUpload = await S3Service.uploadFile({
+            data: bpharmYear1Result.processedBuffer,
+            name: `bpharm-year1-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        bpharmYear1MarksheetUpload = await S3Service.uploadFile({
+          data: bpharmYear1Marksheet.data,
+          name: `bpharm-year1-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+
+      // Process BPharm Year 2 Marksheet
+      if (bpharmYear2Marksheet.mimetype.startsWith('image/')) {
+        const bpharmYear2Result = await processUploadedImage(bpharmYear2Marksheet, null, 'bpharm-year2.jpg');
+        if (bpharmYear2Result.success) {
+          bpharmYear2MarksheetUpload = await S3Service.uploadFile({
+            data: bpharmYear2Result.processedBuffer,
+            name: `bpharm-year2-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        bpharmYear2MarksheetUpload = await S3Service.uploadFile({
+          data: bpharmYear2Marksheet.data,
+          name: `bpharm-year2-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+
+      // Process BPharm Year 3 Marksheet
+      if (bpharmYear3Marksheet.mimetype.startsWith('image/')) {
+        const bpharmYear3Result = await processUploadedImage(bpharmYear3Marksheet, null, 'bpharm-year3.jpg');
+        if (bpharmYear3Result.success) {
+          bpharmYear3MarksheetUpload = await S3Service.uploadFile({
+            data: bpharmYear3Result.processedBuffer,
+            name: `bpharm-year3-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        bpharmYear3MarksheetUpload = await S3Service.uploadFile({
+          data: bpharmYear3Marksheet.data,
+          name: `bpharm-year3-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+
+      // Process BPharm Year 4 Marksheet
+      if (bpharmYear4Marksheet.mimetype.startsWith('image/')) {
+        const bpharmYear4Result = await processUploadedImage(bpharmYear4Marksheet, null, 'bpharm-year4.jpg');
+        if (bpharmYear4Result.success) {
+          bpharmYear4MarksheetUpload = await S3Service.uploadFile({
+            data: bpharmYear4Result.processedBuffer,
+            name: `bpharm-year4-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        bpharmYear4MarksheetUpload = await S3Service.uploadFile({
+          data: bpharmYear4Marksheet.data,
+          name: `bpharm-year4-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+
+      // Process BPharm Degree
+      if (bpharmDegree.mimetype.startsWith('image/')) {
+        const bpharmDegreeResult = await processUploadedImage(bpharmDegree, null, 'bpharm-degree.jpg');
+        if (bpharmDegreeResult.success) {
+          bpharmDegreeUpload = await S3Service.uploadFile({
+            data: bpharmDegreeResult.processedBuffer,
+            name: `bpharm-degree-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`,
+            mimetype: 'image/jpeg'
+          }, 'certificates');
+        }
+      } else {
+        bpharmDegreeUpload = await S3Service.uploadFile({
+          data: bpharmDegree.data,
+          name: `bpharm-degree-${Date.now()}-${Math.round(Math.random() * 1E9)}.pdf`,
+          mimetype: 'application/pdf'
+        }, 'certificates');
+      }
+    }
+
     // Generate unique application number
     const applicationNumber = await generateApplicationNumber(courseType);
 
@@ -356,7 +469,13 @@ router.post('/', authenticateToken, async (req, res) => {
         signature: signatureUpload.key,
         categoryCertificate: categoryCertificateUpload?.key || null,
         highSchoolCertificate: highSchoolCertificateUpload?.key || null,
-        intermediateCertificate: intermediateCertificateUpload?.key || null
+        intermediateCertificate: intermediateCertificateUpload?.key || null,
+        // BPharm documents for MPharm applications
+        bpharmYear1Marksheet: bpharmYear1MarksheetUpload?.key || null,
+        bpharmYear2Marksheet: bpharmYear2MarksheetUpload?.key || null,
+        bpharmYear3Marksheet: bpharmYear3MarksheetUpload?.key || null,
+        bpharmYear4Marksheet: bpharmYear4MarksheetUpload?.key || null,
+        bpharmDegree: bpharmDegreeUpload?.key || null
       },
       payment: {
         amount: category === 'General' 

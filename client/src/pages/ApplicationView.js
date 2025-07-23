@@ -384,6 +384,90 @@ const ApplicationView = () => {
                     )}
                   </div>
                 </div>
+
+                {/* BPharm Documents for MPharm applications */}
+                {courseType === 'mpharm' && (
+                  <div className="mt-6">
+                    <h4 className="text-md font-semibold text-[#101418] mb-4">BPharm Documents</h4>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {documents?.bpharmYear1Marksheet && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">BPharm Year 1 Marksheet</label>
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <a 
+                              href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${documents.bpharmYear1Marksheet}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {documents?.bpharmYear2Marksheet && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">BPharm Year 2 Marksheet</label>
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <a 
+                              href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${documents.bpharmYear2Marksheet}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {documents?.bpharmYear3Marksheet && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">BPharm Year 3 Marksheet</label>
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <a 
+                              href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${documents.bpharmYear3Marksheet}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {documents?.bpharmYear4Marksheet && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">BPharm Year 4 Marksheet</label>
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <a 
+                              href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${documents.bpharmYear4Marksheet}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {documents?.bpharmDegree && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-2">BPharm Degree</label>
+                          <div className="border border-gray-200 rounded-lg p-4">
+                            <a 
+                              href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/files/${documents.bpharmDegree}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Payment Information */}
