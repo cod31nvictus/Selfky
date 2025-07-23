@@ -7,7 +7,11 @@ const path = require('path');
 async function checkImages() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority');
+    const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  throw new Error('MONGODB_URI environment variable is required');
+}
+await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
     // Find the application with roll number RN1603

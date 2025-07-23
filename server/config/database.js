@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 // MongoDB Atlas Database Configuration
 const dbConfig = {
-  uri: process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority',
+  uri: process.env.MONGODB_URI,
   options: {
     // Connection pooling for Atlas
     maxPoolSize: 50,

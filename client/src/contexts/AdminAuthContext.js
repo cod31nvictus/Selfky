@@ -1,17 +1,20 @@
-// Do not commit real credentials. Use .env files and .gitignore.
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { adminAPI } from '../services/api';
 
-import React, { createContext, useState, useEffect } from 'react';
+const AdminAuthContext = createContext();
 
-export const AdminAuthContext = createContext();
+export const useAdminAuth = () => {
+  const context = useContext(AdminAuthContext);
+  if (!context) {
+    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
+  }
+  return context;
+};
 
 export const AdminAuthProvider = ({ children }) => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Admin credentials - must be configured via environment variables
-  const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL;
-  const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
 
   useEffect(() => {
     checkAdminAuthStatus();
@@ -24,8 +27,11 @@ export const AdminAuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
+      
+      // For now, just check if token exists
+      // In a more secure implementation, you'd verify the token with the server
       setIsAdminLoggedIn(true);
-      setAdminUser({ email: ADMIN_EMAIL });
+      setAdminUser({ email: 'admin@selfky.com' }); // Placeholder
     } catch (error) {
       console.error('Admin auth check failed:', error);
       localStorage.removeItem('adminToken');
@@ -36,16 +42,21 @@ export const AdminAuthProvider = ({ children }) => {
     }
   };
 
-  const adminLogin = (email, password) => {
-    // Only allow login with environment-based credentials
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      const adminToken = 'admin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('adminToken', adminToken);
-      setIsAdminLoggedIn(true);
-      setAdminUser({ email });
-      return { success: true };
-    } else {
-      return { success: false, error: 'Invalid credentials' };
+  const adminLogin = async (email, password) => {
+    try {
+      const response = await adminAPI.login({ email, password });
+      
+      if (response.success && response.adminToken) {
+        localStorage.setItem('adminToken', response.adminToken);
+        setIsAdminLoggedIn(true);
+        setAdminUser(response.admin);
+        return { success: true };
+      } else {
+        return { success: false, error: response.error || 'Login failed' };
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      return { success: false, error: error.message || 'Login failed' };
     }
   };
 
@@ -60,13 +71,4 @@ export const AdminAuthProvider = ({ children }) => {
       {children}
     </AdminAuthContext.Provider>
   );
-};
-
-// Custom hook to use admin auth context
-export const useAdminAuth = () => {
-  const context = React.useContext(AdminAuthContext);
-  if (context === undefined) {
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
-  }
-  return context;
 }; 

@@ -1,93 +1,64 @@
+// Do not commit real credentials. Use .env files and .gitignore.
+require('dotenv').config({ path: './.env' });
+
 const mongoose = require('mongoose');
 
-// Use the exact same MongoDB URI that the server uses
-const MONGODB_URI = 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.e5jmlu.mongodb.net/selfky?retryWrites=true&w=majority&appName=selfky-cluster';
+// Use environment variable for MongoDB URI
+const MONGODB_URI = process.env.MONGODB_URI;
 
-async function purgeDatabase() {
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable is required');
+  console.error('Please set MONGODB_URI in your .env file');
+  process.exit(1);
+}
+
+console.log('🧹 Database Purge Script');
+console.log('⚠️  WARNING: This will DELETE ALL DATA from the database');
+console.log('');
+
+// Confirmation prompt
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+rl.question('Are you sure you want to purge the database? Type "YES" to confirm: ', async (answer) => {
+  if (answer !== 'YES') {
+    console.log('❌ Database purge cancelled');
+    rl.close();
+    process.exit(0);
+  }
+
   try {
-    console.log('Connecting to MongoDB Atlas...');
-    
-    await mongoose.connect(MONGODB_URI, {
-      maxPoolSize: 50,
-      minPoolSize: 10,
-      maxIdleTimeMS: 30000,
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
-      writeConcern: {
-        w: 'majority',
-        j: true
-      },
-      readPreference: 'primaryPreferred',
-      bufferCommands: false,
-      compressors: ['zlib'],
-      retryWrites: true,
-      retryReads: true,
-      ssl: true,
-      tlsAllowInvalidCertificates: false
-    });
-    
-    console.log('Connected to MongoDB Atlas successfully');
-    
-    const db = mongoose.connection.db;
-    
+    console.log('🔌 Connecting to MongoDB...');
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB');
+
     // Get all collections
-    const collections = await db.listCollections().toArray();
-    console.log('Available collections:', collections.map(c => c.name));
-    
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    console.log(`📊 Found ${collections.length} collections`);
+
     // Purge each collection
     for (const collection of collections) {
       const collectionName = collection.name;
-      console.log(`\nPurging collection: ${collectionName}`);
+      console.log(`🗑️  Purging collection: ${collectionName}`);
       
-      const result = await db.collection(collectionName).deleteMany({});
-      console.log(`Deleted ${result.deletedCount} documents from ${collectionName}`);
+      const result = await mongoose.connection.db.collection(collectionName).deleteMany({});
+      console.log(`   ✅ Deleted ${result.deletedCount} documents from ${collectionName}`);
     }
-    
-    // Drop all indexes except _id
-    for (const collection of collections) {
-      const collectionName = collection.name;
-      console.log(`\nDropping indexes for collection: ${collectionName}`);
-      
-      const indexes = await db.collection(collectionName).indexes();
-      for (const index of indexes) {
-        if (index.name !== '_id_') {
-          try {
-            await db.collection(collectionName).dropIndex(index.name);
-            console.log(`Dropped index: ${index.name}`);
-          } catch (error) {
-            console.log(`Could not drop index ${index.name}: ${error.message}`);
-          }
-        }
-      }
-    }
-    
-    console.log('\n✅ Database purge completed successfully!');
-    console.log('All collections have been emptied and indexes dropped.');
-    console.log('The database is now clean and ready for fresh data.');
-    
+
+    console.log('');
+    console.log('🎉 Database purge completed successfully!');
+    console.log('📝 All collections have been emptied');
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error during database purge:', error.message);
+    process.exit(1);
   } finally {
-    await mongoose.connection.close();
-    console.log('Connection closed');
-  }
-}
-
-// Add confirmation prompt
-console.log('⚠️  WARNING: This will delete ALL data from the database!');
-console.log('This action cannot be undone.');
-console.log('Are you sure you want to proceed? (y/N)');
-
-// For safety, we'll require manual confirmation
-process.stdin.once('data', (data) => {
-  const input = data.toString().trim().toLowerCase();
-  
-  if (input === 'y' || input === 'yes') {
-    console.log('Proceeding with database purge...');
-    purgeDatabase();
-  } else {
-    console.log('Database purge cancelled.');
+    await mongoose.disconnect();
+    console.log('🔌 Disconnected from MongoDB');
+    rl.close();
     process.exit(0);
   }
 }); 

@@ -237,6 +237,30 @@ export const authAPI = {
 
 // Admin API functions
 export const adminAPI = {
+  // Admin login
+  login: async (credentials) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Admin login failed');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Admin login error:', error);
+      throw error;
+    }
+  },
+
   // Get all applications with pagination
   getApplications: (page = 1, limit = 20, status = '', courseType = '', category = '') => {
     const params = new URLSearchParams();
@@ -249,12 +273,31 @@ export const adminAPI = {
   },
 
   // Get all applicants (users) with pagination
-  getApplicants: (page = 1, limit = 20, search = '') => {
-    const params = new URLSearchParams();
-    if (page) params.append('page', page);
-    if (limit) params.append('limit', limit);
-    if (search) params.append('search', search);
-    return adminApiCall(`/admin/applicants?${params.toString()}`);
+  getApplicants: async (page = 1, limit = 20, search = '') => {
+    const adminToken = getAdminToken();
+    
+    if (!adminToken) {
+      throw new Error('Admin authentication required');
+    }
+
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(search && { search })
+    });
+
+    const response = await fetch(`${API_BASE_URL}/admin/applicants?${params}`, {
+      headers: {
+        'x-admin-token': adminToken,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch applicants');
+    }
+
+    return response.json();
   },
 
   // Update application status

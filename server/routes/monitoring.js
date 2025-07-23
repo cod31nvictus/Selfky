@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const monitor = require('../utils/monitor');
 const logger = require('../utils/logger');
+const jwt = require('jsonwebtoken'); // Added for admin token verification
 // Middleware to check if admin
 const isAdmin = (req, res, next) => {
   const adminToken = req.headers['x-admin-token'];
@@ -10,13 +11,26 @@ const isAdmin = (req, res, next) => {
     return res.status(401).json({ error: 'Admin token required' });
   }
   
-  // For now, we'll accept any admin token that starts with 'admin_'
-  // In production, you should validate the token properly
-  if (!adminToken.startsWith('admin_')) {
-    return res.status(401).json({ error: 'Invalid admin token' });
+  try {
+    // Verify the admin token using JWT
+    const decoded = jwt.verify(adminToken, process.env.JWT_SECRET);
+    
+    // Check if the token has admin role
+    if (!decoded.role || decoded.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin privileges required' });
+    }
+    
+    // Add admin info to request
+    req.admin = {
+      id: decoded.adminId,
+      email: decoded.email,
+      role: decoded.role
+    };
+    
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid or expired admin token' });
   }
-  
-  next();
 };
 
 // Apply admin authentication to all monitoring routes

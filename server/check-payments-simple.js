@@ -1,7 +1,13 @@
 const mongoose = require('mongoose');
 
 // Use the exact same MongoDB URI that the server uses
-const MONGODB_URI = 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.e5jmlu.mongodb.net/selfky?retryWrites=true&w=majority&appName=selfky-cluster';
+require('dotenv').config({ path: './.env' });
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable is required');
+  process.exit(1);
+}
 
 async function checkPayments() {
   try {

@@ -19,18 +19,81 @@ const isAdmin = (req, res, next) => {
     return res.status(401).json({ error: 'Admin token required' });
   }
   
-  // For now, we'll accept any admin token that starts with 'admin_'
-  // In production, you should validate the token properly
-  if (!adminToken.startsWith('admin_')) {
-    return res.status(401).json({ error: 'Invalid admin token' });
+  try {
+    // Verify the admin token using JWT
+    const decoded = jwt.verify(adminToken, process.env.JWT_SECRET);
+    
+    // Check if the token has admin role
+    if (!decoded.role || decoded.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin privileges required' });
+    }
+    
+    // Add admin info to request
+    req.admin = {
+      id: decoded.adminId,
+      email: decoded.email,
+      role: decoded.role
+    };
+    
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid or expired admin token' });
   }
-  
-  next();
 };
 
 // Debug route to check admin authentication
 router.get('/debug', isAdmin, (req, res) => {
   res.json({ message: 'Admin authentication working', token: req.headers['x-admin-token'] });
+});
+
+// Admin login endpoint
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    // Check admin credentials from environment variables
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminEmail || !adminPassword) {
+      console.error('Admin credentials not configured in environment variables');
+      return res.status(500).json({ error: 'Admin authentication not configured' });
+    }
+    
+    // Verify admin credentials
+    if (email !== adminEmail || password !== adminPassword) {
+      return res.status(401).json({ error: 'Invalid admin credentials' });
+    }
+    
+    // Generate secure admin JWT token
+    const adminToken = jwt.sign(
+      {
+        adminId: 'admin',
+        email: adminEmail,
+        role: 'admin'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' } // Short expiration for admin tokens
+    );
+    
+    res.json({
+      success: true,
+      adminToken,
+      admin: {
+        email: adminEmail,
+        role: 'admin'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Get all applicants (users) with optimization

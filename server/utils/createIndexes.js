@@ -25,7 +25,11 @@ const atlasOptions = {
 const createIndexes = async () => {
   try {
     // Connect to MongoDB Atlas
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://selfky-user:ZnAD0kF6FxvGB8oT@selfky-cluster.mongodb.net/selfky?retryWrites=true&w=majority', atlasOptions);
+    const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  throw new Error('MONGODB_URI environment variable is required');
+}
+await mongoose.connect(mongoUri, atlasOptions);
     
     logger.info('Connected to MongoDB Atlas for index creation');
 
