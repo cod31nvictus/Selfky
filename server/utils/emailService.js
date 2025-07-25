@@ -252,9 +252,9 @@ const emailTemplates = {
             <h3 style="color: #101418; margin-bottom: 15px;">Admit Card Details</h3>
             <p><strong>Application Number:</strong> ${applicationNumber}</p>
             <p><strong>Course:</strong> ${courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)'}</p>
-            <p><strong>Exam Date:</strong> March 15, 2025</p>
+            <p><strong>Exam Date:</strong> ${courseType === 'bpharm' ? 'August 31, 2025' : 'March 15, 2025'}</p>
             <p><strong>Exam Time:</strong> 10:00 AM - 01:00 PM</p>
-            <p><strong>Exam Center:</strong> Banaras Hindu University, Varanasi</p>
+            <p><strong>Exam Center:</strong> ${courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi'}</p>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">

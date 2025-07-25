@@ -521,8 +521,8 @@ router.get('/admit-card/:applicationId', isAdmin, async (req, res) => {
       dateOfBirth: application.personalDetails.dateOfBirth,
       photo: application.documents.photo,
       signature: application.documents.signature,
-      examDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      examCenter: 'Main Campus, Selfky University',
+      examDate: application.courseType === 'bpharm' ? new Date('2025-08-31') : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      examCenter: application.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Main Campus, Selfky University',
       examTime: '10:00 AM - 1:00 PM',
       generatedAt: new Date(),
       isAdminView: true,

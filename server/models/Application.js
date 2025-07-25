@@ -104,15 +104,15 @@ const applicationSchema = new mongoose.Schema({
   },
   admitCard: {
     rollNumber: String,
-    examDate: { type: Date, default: () => new Date('2025-03-15') },
+    examDate: { type: Date, default: () => new Date('2025-08-31') },
     examTime: { type: String, default: '10:00 AM - 01:00 PM' },
     examCenter: { 
       type: String, 
-      default: 'Banaras Hindu University, Varanasi' 
+      default: 'BHU, Varanasi' 
     },
     examCenterAddress: { 
       type: String, 
-      default: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005' 
+      default: 'BHU, Varanasi, Uttar Pradesh - 221005' 
     }
   },
   status: { 

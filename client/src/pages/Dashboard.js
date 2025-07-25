@@ -277,18 +277,17 @@ const Dashboard = () => {
                     </svg>
                     <span>Session: 2025</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Duration: 4 Years</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Seats: 60</span>
+                  <div className="flex items-center gap-2">
+                    <a 
+                      href="/B Pharm pdf 2025.pdf" 
+                      download="B Pharm pdf 2025.pdf"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Download Brochure</span>
+                    </a>
                   </div>
                 </div>
 
@@ -323,18 +322,17 @@ const Dashboard = () => {
                     </svg>
                     <span>Session: 2025</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Duration: 2 Years</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Seats: 30</span>
+                  <div className="flex items-center gap-2">
+                    <a 
+                      href="/M Pharm pdf 2025.pdf" 
+                      download="M Pharm pdf 2025.pdf"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Download Brochure</span>
+                    </a>
                   </div>
                 </div>
 

@@ -48,8 +48,6 @@ const ApplicationForm = () => {
       physics: { marksObtained: '', maxMarks: '', percentage: '' },
       chemistry: { marksObtained: '', maxMarks: '', percentage: '' },
       biology: { marksObtained: '', maxMarks: '', percentage: '' },
-      zoology: { marksObtained: '', maxMarks: '', percentage: '' },
-      botany: { marksObtained: '', maxMarks: '', percentage: '' },
       english: { marksObtained: '', maxMarks: '', percentage: '' }
     },
     intermediateMarksObtained: '',
@@ -154,8 +152,6 @@ const ApplicationForm = () => {
               physics: { marksObtained: '', maxMarks: '', percentage: '' },
               chemistry: { marksObtained: '', maxMarks: '', percentage: '' },
               biology: { marksObtained: '', maxMarks: '', percentage: '' },
-              zoology: { marksObtained: '', maxMarks: '', percentage: '' },
-              botany: { marksObtained: '', maxMarks: '', percentage: '' },
               english: { marksObtained: '', maxMarks: '', percentage: '' }
             },
             intermediateMarksObtained: existing.personalDetails.intermediateMarksObtained || '',
@@ -1474,6 +1470,33 @@ const ApplicationForm = () => {
               {touched.placeOfApplication && errors.placeOfApplication && (
                 <p className="text-red-500 text-sm mt-1">{errors.placeOfApplication}</p>
               )}
+            </div>
+          </div>
+
+          {/* Photo and Signature Guidelines */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-[#101418] mb-3">📸 Photo and Signature Guidelines</h3>
+            <div className="space-y-2 text-sm text-[#101418]">
+              <div className="flex items-start">
+                <span className="text-yellow-600 mr-2">•</span>
+                <span>A recent high contrast passport size coloured photograph. Photograph is not to be attested.</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-yellow-600 mr-2">•</span>
+                <span>Photograph must be taken on or after 1st June 2025 with a play card indicating the name of the candidate (as in the application form) and the date of taking photograph.</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-yellow-600 mr-2">•</span>
+                <span>In case name and date are written on the photograph after taking, the application will be rejected.</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-yellow-600 mr-2">•</span>
+                <span>The mentioned date on the photograph must be clear and legible.</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-yellow-600 mr-2">•</span>
+                <span>Keep 6 (six) identical photographs in reserve for the time of Entrance Test/admission.</span>
+              </div>
             </div>
           </div>
 

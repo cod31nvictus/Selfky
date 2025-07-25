@@ -95,22 +95,22 @@ const AdmitCard = () => {
       
       // If we have admit card data from admin API, use it directly
       if (admitCardData) {
-        setAdmitCardData({
-          applicationNumber: admitCardData.applicationNumber,
-          examDate: admitCardData.examDate,
-          examTime: admitCardData.examTime,
-          examCenter: admitCardData.examCenter,
-          examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
-          rollNumber: 'RN' + Math.floor(Math.random() * 10000),
-          instructions: [
-            'Please arrive at the exam center 1 hour before the exam time',
-            'Carry this admit card and a valid photo ID proof',
-            'No electronic devices are allowed in the examination hall',
-            'Follow all COVID-19 protocols as per government guidelines',
-            'Bring your own stationery (pen, pencil, eraser)',
-            'Dress code: Formal attire'
-          ]
-        });
+                  setAdmitCardData({
+            applicationNumber: admitCardData.applicationNumber,
+            examDate: admitCardData.examDate,
+            examTime: admitCardData.examTime,
+            examCenter: admitCardData.examCenter,
+            examCenterAddress: applicationData.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+            rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+            instructions: [
+              'Please arrive at the exam center 1 hour before the exam time',
+              'Carry this admit card and a valid photo ID proof',
+              'No electronic devices are allowed in the examination hall',
+              'Follow all COVID-19 protocols as per government guidelines',
+              'Bring your own stationery (pen, pencil, eraser)',
+              'Dress code: Formal attire'
+            ]
+          });
         setLoading(false);
       } else {
         generateAdmitCard(applicationDataFromAPI);
@@ -133,10 +133,10 @@ const AdmitCard = () => {
           const response = await applicationAPI.generateAdmitCard(data.applicationId);
           setAdmitCardData({
             applicationNumber: response.applicationNumber,
-            examDate: response.admitCard?.examDate || '2025-03-15',
+            examDate: response.admitCard?.examDate || (data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15'),
             examTime: response.admitCard?.examTime || '10:00 AM - 01:00 PM',
-            examCenter: response.admitCard?.examCenter || 'Banaras Hindu University, Varanasi',
-            examCenterAddress: response.admitCard?.examCenterAddress || 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+            examCenter: response.admitCard?.examCenter || (data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi'),
+            examCenterAddress: response.admitCard?.examCenterAddress || (data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005'),
             rollNumber: response.admitCard?.rollNumber || 'RN' + Math.floor(Math.random() * 10000),
             instructions: [
               'Please arrive at the exam center 1 hour before the exam time',
@@ -158,10 +158,10 @@ const AdmitCard = () => {
       if (!admitCardGenerated) {
         const admitCard = {
           applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-          examDate: '2025-03-15',
+          examDate: data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15',
           examTime: '10:00 AM - 01:00 PM',
-          examCenter: 'Banaras Hindu University, Varanasi',
-          examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+          examCenter: data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi',
+          examCenterAddress: data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
           rollNumber: 'RN' + Math.floor(Math.random() * 10000),
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
@@ -179,10 +179,10 @@ const AdmitCard = () => {
       // Generate fallback admit card data
       const admitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-        examDate: '2025-03-15',
+        examDate: data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15',
         examTime: '10:00 AM - 01:00 PM',
-                  examCenter: 'Banaras Hindu University, Varanasi',
-        examCenterAddress: 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+        examCenter: data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi',
+        examCenterAddress: data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
         rollNumber: 'RN' + Math.floor(Math.random() * 10000),
         instructions: [
           'Please arrive at the exam center 1 hour before the exam time',
