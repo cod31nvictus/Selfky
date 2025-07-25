@@ -6,12 +6,14 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [admitCardReleased, setAdmitCardReleased] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   useEffect(() => {
     loadApplications();
     checkCancelledPayments();
+    checkAdmitCardStatus();
   }, []);
 
   const checkCancelledPayments = async () => {
@@ -50,6 +52,18 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error checking cancelled payments:', error);
+    }
+  };
+
+  const checkAdmitCardStatus = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/applications/admit-card-status`);
+      if (response.ok) {
+        const data = await response.json();
+        setAdmitCardReleased(data.admitCardReleased);
+      }
+    } catch (error) {
+      console.error('Error checking admit card status:', error);
     }
   };
 
@@ -159,9 +173,14 @@ const Dashboard = () => {
               </button>
               <button 
                 onClick={() => navigate(`/admit-card/${application._id}`)}
-                className="w-full bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 text-sm"
+                disabled={!admitCardReleased}
+                className={`w-full py-2 px-6 rounded-lg font-medium transition-colors duration-200 text-sm ${
+                  admitCardReleased 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                }`}
               >
-                View Admit Card
+                {admitCardReleased ? 'View Admit Card' : 'Admit Card Not Released'}
               </button>
             </div>
           </div>

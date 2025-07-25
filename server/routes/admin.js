@@ -3,6 +3,7 @@ const router = express.Router();
 const Application = require('../models/Application');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const Setting = require('../models/Setting');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const PDFGenerator = require('../utils/pdfGenerator');
@@ -521,8 +522,8 @@ router.get('/admit-card/:applicationId', isAdmin, async (req, res) => {
       dateOfBirth: application.personalDetails.dateOfBirth,
       photo: application.documents.photo,
       signature: application.documents.signature,
-      examDate: application.courseType === 'bpharm' ? new Date('2025-08-31') : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      examCenter: application.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Main Campus, Selfky University',
+      examDate: new Date('2025-08-31'),
+      examCenter: 'BHU, Varanasi',
       examTime: '10:00 AM - 1:00 PM',
       generatedAt: new Date(),
       isAdminView: true,
@@ -928,6 +929,50 @@ router.get('/export-transactions-csv', isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error exporting transactions to CSV:', error);
     res.status(500).json({ error: 'Failed to export transactions to CSV' });
+  }
+});
+
+// Settings management endpoints
+router.get('/settings', isAdmin, async (req, res) => {
+  try {
+    let settings = await Setting.findOne();
+    
+    if (!settings) {
+      // Create default settings if none exist
+      settings = new Setting({
+        admitCardReleased: false
+      });
+      await settings.save();
+    }
+    
+    res.json({ success: true, settings });
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+router.put('/settings', isAdmin, async (req, res) => {
+  try {
+    const { admitCardReleased } = req.body;
+    
+    if (typeof admitCardReleased !== 'boolean') {
+      return res.status(400).json({ error: 'admitCardReleased must be a boolean' });
+    }
+    
+    let settings = await Setting.findOne();
+    
+    if (!settings) {
+      settings = new Setting();
+    }
+    
+    settings.admitCardReleased = admitCardReleased;
+    await settings.save();
+    
+    res.json({ success: true, settings });
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
   }
 });
 

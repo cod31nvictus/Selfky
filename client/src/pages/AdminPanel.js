@@ -5,6 +5,7 @@ import ApplicantsSection from '../components/admin/ApplicantsSection';
 import ApplicationsSection from '../components/admin/ApplicationsSection';
 import TransactionsSection from '../components/admin/TransactionsSection';
 import MonitoringDashboard from '../components/admin/MonitoringDashboard';
+import SettingsSection from '../components/admin/SettingsSection';
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('applications');
@@ -26,6 +27,8 @@ const AdminPanel = () => {
         return <TransactionsSection />;
       case 'monitoring':
         return <MonitoringDashboard />;
+      case 'settings':
+        return <SettingsSection />;
       default:
         return <ApplicationsSection />;
     }
@@ -105,6 +108,16 @@ const AdminPanel = () => {
               }`}
             >
               Monitoring
+            </button>
+            <button
+              onClick={() => setActiveSection('settings')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeSection === 'settings'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Settings
             </button>
           </div>
         </div>

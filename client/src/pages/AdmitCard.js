@@ -97,10 +97,10 @@ const AdmitCard = () => {
       if (admitCardData) {
                   setAdmitCardData({
             applicationNumber: admitCardData.applicationNumber,
-            examDate: admitCardData.examDate,
-            examTime: admitCardData.examTime,
-            examCenter: admitCardData.examCenter,
-            examCenterAddress: applicationData.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+            examDate: '2025-08-31',
+            examTime: '10:00 AM - 01:00 PM',
+            examCenter: 'BHU, Varanasi',
+            examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
             rollNumber: 'RN' + Math.floor(Math.random() * 10000),
             instructions: [
               'Please arrive at the exam center 1 hour before the exam time',
@@ -131,12 +131,12 @@ const AdmitCard = () => {
       if (data.applicationId) {
         try {
           const response = await applicationAPI.generateAdmitCard(data.applicationId);
-          setAdmitCardData({
-            applicationNumber: response.applicationNumber,
-            examDate: response.admitCard?.examDate || (data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15'),
-            examTime: response.admitCard?.examTime || '10:00 AM - 01:00 PM',
-            examCenter: response.admitCard?.examCenter || (data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi'),
-            examCenterAddress: response.admitCard?.examCenterAddress || (data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005'),
+                  setAdmitCardData({
+          applicationNumber: response.applicationNumber,
+          examDate: '2025-08-31',
+          examTime: '10:00 AM - 01:00 PM',
+          examCenter: 'BHU, Varanasi',
+          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
             rollNumber: response.admitCard?.rollNumber || 'RN' + Math.floor(Math.random() * 10000),
             instructions: [
               'Please arrive at the exam center 1 hour before the exam time',
@@ -158,10 +158,10 @@ const AdmitCard = () => {
       if (!admitCardGenerated) {
         const admitCard = {
           applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-          examDate: data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15',
+          examDate: '2025-08-31',
           examTime: '10:00 AM - 01:00 PM',
-          examCenter: data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi',
-          examCenterAddress: data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+          examCenter: 'BHU, Varanasi',
+          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
           rollNumber: 'RN' + Math.floor(Math.random() * 10000),
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
@@ -179,10 +179,10 @@ const AdmitCard = () => {
       // Generate fallback admit card data
       const admitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-        examDate: data.courseType === 'bpharm' ? '2025-08-31' : '2025-03-15',
+        examDate: '2025-08-31',
         examTime: '10:00 AM - 01:00 PM',
-        examCenter: data.courseType === 'bpharm' ? 'BHU, Varanasi' : 'Banaras Hindu University, Varanasi',
-        examCenterAddress: data.courseType === 'bpharm' ? 'BHU, Varanasi, Uttar Pradesh - 221005' : 'Banaras Hindu University, Varanasi, Uttar Pradesh - 221005',
+        examCenter: 'BHU, Varanasi',
+        examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
         rollNumber: 'RN' + Math.floor(Math.random() * 10000),
         instructions: [
           'Please arrive at the exam center 1 hour before the exam time',
@@ -450,11 +450,11 @@ const AdmitCard = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Exam Date:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.examDate ? new Date(admitCardData.examDate).toLocaleDateString('en-GB') : ''}</span>
+                    <span className="font-semibold text-[#101418]">31-08-2025</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Exam Time:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
+                    <span className="font-medium text-[#5c728a]">Exam Center:</span>
+                    <span className="font-semibold text-[#101418]">BHU, Varanasi</span>
                   </div>
 
                 </div>

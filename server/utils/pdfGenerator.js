@@ -78,10 +78,9 @@ class PDFGenerator {
           .moveDown(1);
 
         const examTable = [
-          ['Exam Date:', this.formatDate(admitCardData.examDate)],
-          ['Exam Time:', admitCardData.examTime],
-          ['Exam Center:', admitCardData.examCenter],
-          ['Center Address:', admitCardData.examCenterAddress]
+          ['Exam Date:', '31-08-2025'],
+          ['Exam Center:', 'BHU, Varanasi'],
+          ['Admit Card Release Date:', '22-08-2025']
         ];
 
         this.createTable(examTable, 50, this.doc.y, 500, 20);

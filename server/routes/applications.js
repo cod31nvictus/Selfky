@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Application = require('../models/Application');
 const User = require('../models/User');
+const Setting = require('../models/Setting');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
@@ -652,6 +653,29 @@ router.get('/stats/admin', authenticateToken, async (req, res) => {
     res.json(stats);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
+// Public endpoint to check admit card release status
+router.get('/admit-card-status', async (req, res) => {
+  try {
+    let settings = await Setting.findOne();
+    
+    if (!settings) {
+      // Create default settings if none exist
+      settings = new Setting({
+        admitCardReleased: false
+      });
+      await settings.save();
+    }
+    
+    res.json({ 
+      success: true, 
+      admitCardReleased: settings.admitCardReleased 
+    });
+  } catch (error) {
+    console.error('Error fetching admit card status:', error);
+    res.status(500).json({ error: 'Failed to fetch admit card status' });
   }
 });
 
