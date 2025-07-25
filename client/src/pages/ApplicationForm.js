@@ -585,7 +585,13 @@ const ApplicationForm = () => {
   };
 
   const getApplicationFee = () => {
-    return feeStructure[courseType][formData.category];
+    if (
+      feeStructure[courseType] &&
+      feeStructure[courseType][formData.category]
+    ) {
+      return feeStructure[courseType][formData.category];
+    }
+    return 0; // Show 0 if not selected
   };
 
   const isStepCompleted = (step) => {
