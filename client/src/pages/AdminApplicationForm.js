@@ -119,7 +119,9 @@ const AdminApplicationForm = () => {
       let errorMessage = 'Invalid file type! Please use JPG or PNG format. Images will be automatically optimized for size.';
       
       // For document fields, also allow PDF files
-      if (name === 'categoryCertificate' || name === 'highSchoolCertificate' || name === 'intermediateCertificate') {
+      if (name === 'categoryCertificate' || name === 'highSchoolCertificate' || name === 'intermediateCertificate' || 
+          name === 'bpharmYear1Marksheet' || name === 'bpharmYear2Marksheet' || name === 'bpharmYear3Marksheet' || 
+          name === 'bpharmYear4Marksheet' || name === 'bpharmDegree') {
         allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
         errorMessage = 'Invalid file type! Please use JPG, PNG, or PDF format.';
       }
