@@ -64,6 +64,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
+      console.log('AuthContext: Setting token and user');
       localStorage.setItem('token', response.token);
       setUser(response.user);
       startHeartbeat();

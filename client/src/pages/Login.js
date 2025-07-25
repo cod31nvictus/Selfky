@@ -35,6 +35,7 @@ const Login = () => {
       const result = await login(formData);
       console.log('Login successful:', result);
       
+      console.log('Navigating to:', from);
       // Redirect to the page they were trying to access, or dashboard
       navigate(from, { replace: true });
     } catch (error) {
