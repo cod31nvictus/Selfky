@@ -31,16 +31,17 @@ const Login = () => {
     setError('');
 
     try {
+      console.log('Attempting login with:', { email: formData.email });
       const result = await login(formData);
+      console.log('Login successful:', result);
       
-      if (result.success) {
-        // Redirect to the page they were trying to access, or dashboard
-        navigate(from, { replace: true });
-      } else {
-        setError(result.error);
-      }
+      // Redirect to the page they were trying to access, or dashboard
+      navigate(from, { replace: true });
     } catch (error) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', error);
+      console.error('Error message:', error.message);
+      // Display the specific error message from the server
+      setError(error.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }

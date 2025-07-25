@@ -24,8 +24,11 @@ const apiCall = async (endpoint, options = {}) => {
   };
 
   try {
+    console.log('Making API call to:', `${API_BASE_URL}${endpoint}`);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     const data = await response.json();
+    console.log('API response status:', response.status);
+    console.log('API response data:', data);
 
     if (!response.ok) {
       throw new Error(data.error || 'API request failed');
@@ -207,11 +210,13 @@ export const applicationAPI = {
 
 // Auth API functions
 export const authAPI = {
-  login: (credentials) => 
-    apiCall('/auth/login', {
+  login: (credentials) => {
+    console.log('Making login API call to /auth/login with:', { email: credentials.email });
+    return apiCall('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
-    }),
+    });
+  },
 
   register: (userData) => 
     apiCall('/auth/register', {

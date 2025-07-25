@@ -52,16 +52,13 @@ const Register = () => {
         password: formData.password
       });
       
-      if (result.success) {
-        setSuccess('Registration successful! You can now login.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else {
-        setError(result.error);
-      }
+      setSuccess('Registration successful! You can now login.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
-      setError('Registration failed. Please try again.');
+      // Display the specific error message from the server
+      setError(error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
