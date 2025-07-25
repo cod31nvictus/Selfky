@@ -180,11 +180,30 @@ router.post('/health-report', async (req, res) => {
   }
 });
 
+// Get active users count
+router.get('/active-users', async (req, res) => {
+  try {
+    const activeUsers = await monitor.getActiveUsers();
+    res.json({
+      success: true,
+      data: activeUsers,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Error getting active users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get active users'
+    });
+  }
+});
+
 // Get real-time monitoring data (for dashboard)
 router.get('/dashboard', async (req, res) => {
   try {
     const metrics = monitor.getMetrics();
     const healthStatus = monitor.getHealthStatus();
+    const activeUsers = await monitor.getActiveUsers();
     
     const dashboardData = {
       health: healthStatus,
@@ -195,13 +214,15 @@ router.get('/dashboard', async (req, res) => {
         averageResponseTime: Math.round(metrics.performance.averageResponseTime),
         errorRate: metrics.requests.total > 0 ? 
           (metrics.errors.total / metrics.requests.total * 100).toFixed(2) : 0,
-        uptime: Math.round((Date.now() - metrics.startTime) / 1000 / 60) // minutes
+        uptime: Math.round((Date.now() - metrics.startTime) / 1000 / 60), // minutes
+        activeUsers: activeUsers.count
       },
       system: {
         memory: metrics.system.memory,
         redis: metrics.redis.connected,
         database: metrics.database.connections > 0
       },
+      users: activeUsers,
       alerts: []
     };
 

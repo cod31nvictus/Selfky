@@ -34,6 +34,11 @@ class ApplicationMonitor {
         connected: false,
         operations: 0,
         errors: 0
+      },
+      users: {
+        active: 0,
+        total: 0,
+        sessions: {}
       }
     };
     
@@ -46,6 +51,7 @@ class ApplicationMonitor {
     setInterval(() => this.collectSystemMetrics(), 30000); // Every 30 seconds
     setInterval(() => this.cleanupOldData(), 300000); // Every 5 minutes
     setInterval(() => this.logHealthReport(), 600000); // Every 10 minutes
+    setInterval(() => this.cleanupInactiveUsers(), 60000); // Every 1 minute - cleanup inactive users
     
     logger.info('Application monitoring initialized');
   }
@@ -153,6 +159,135 @@ class ApplicationMonitor {
     }
   }
 
+  // User session tracking
+  async trackUserLogin(userId, userEmail) {
+    try {
+      const redisClient = getRedisClient();
+      const sessionKey = `user_session:${userId}`;
+      const sessionData = {
+        userId,
+        email: userEmail,
+        loginTime: Date.now(),
+        lastActivity: Date.now()
+      };
+      
+      // Set session with 30 minute expiry
+      await redisClient.setex(sessionKey, 1800, JSON.stringify(sessionData));
+      
+      // Update active users count
+      await this.updateActiveUserCount();
+      
+      logger.info(`User ${userEmail} logged in. Active users: ${this.metrics.users.active}`);
+    } catch (error) {
+      logger.error('Error tracking user login:', error);
+    }
+  }
+
+  async trackUserLogout(userId) {
+    try {
+      const redisClient = getRedisClient();
+      const sessionKey = `user_session:${userId}`;
+      
+      // Remove session
+      await redisClient.del(sessionKey);
+      
+      // Update active users count
+      await this.updateActiveUserCount();
+      
+      logger.info(`User ${userId} logged out. Active users: ${this.metrics.users.active}`);
+    } catch (error) {
+      logger.error('Error tracking user logout:', error);
+    }
+  }
+
+  async updateUserActivity(userId) {
+    try {
+      const redisClient = getRedisClient();
+      const sessionKey = `user_session:${userId}`;
+      
+      // Get current session data
+      const sessionData = await redisClient.get(sessionKey);
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        session.lastActivity = Date.now();
+        
+        // Update session with new activity time
+        await redisClient.setex(sessionKey, 1800, JSON.stringify(session));
+      }
+    } catch (error) {
+      logger.error('Error updating user activity:', error);
+    }
+  }
+
+  async updateActiveUserCount() {
+    try {
+      const redisClient = getRedisClient();
+      const pattern = 'user_session:*';
+      const keys = await redisClient.keys(pattern);
+      
+      this.metrics.users.active = keys.length;
+      
+      // Get session details for monitoring
+      const sessions = {};
+      for (const key of keys) {
+        const sessionData = await redisClient.get(key);
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          sessions[session.userId] = {
+            email: session.email,
+            loginTime: session.loginTime,
+            lastActivity: session.lastActivity
+          };
+        }
+      }
+      
+      this.metrics.users.sessions = sessions;
+    } catch (error) {
+      logger.error('Error updating active user count:', error);
+      this.metrics.users.active = 0;
+    }
+  }
+
+  async cleanupInactiveUsers() {
+    try {
+      const redisClient = getRedisClient();
+      const pattern = 'user_session:*';
+      const keys = await redisClient.keys(pattern);
+      
+      const now = Date.now();
+      const inactiveThreshold = 30 * 60 * 1000; // 30 minutes
+      
+      for (const key of keys) {
+        const sessionData = await redisClient.get(key);
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          if (now - session.lastActivity > inactiveThreshold) {
+            await redisClient.del(key);
+            logger.info(`Removed inactive session for user ${session.email}`);
+          }
+        }
+      }
+      
+      // Update count after cleanup
+      await this.updateActiveUserCount();
+    } catch (error) {
+      logger.error('Error cleaning up inactive users:', error);
+    }
+  }
+
+  async getActiveUsers() {
+    try {
+      await this.updateActiveUserCount();
+      return {
+        count: this.metrics.users.active,
+        sessions: this.metrics.users.sessions
+      };
+    } catch (error) {
+      logger.error('Error getting active users:', error);
+      return { count: 0, sessions: {} };
+    }
+  }
+
   // System metrics collection
   async collectSystemMetrics() {
     try {
@@ -254,6 +389,11 @@ class ApplicationMonitor {
         connected: this.metrics.redis.connected,
         operations: this.metrics.redis.operations,
         errors: this.metrics.redis.errors
+      },
+      users: {
+        active: this.metrics.users.active,
+        total: this.metrics.users.total,
+        sessions: this.metrics.users.sessions
       }
     };
 

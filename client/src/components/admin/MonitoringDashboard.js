@@ -127,6 +127,11 @@ const MonitoringDashboard = () => {
                 <div className="metric-value">{dashboardData.summary.uptime}m</div>
                 <div className="metric-label">Minutes</div>
               </div>
+              <div className="metric-card">
+                <h3>Live Users</h3>
+                <div className="metric-value">{dashboardData.summary.activeUsers}</div>
+                <div className="metric-label">Active</div>
+              </div>
             </div>
           </div>
         )}

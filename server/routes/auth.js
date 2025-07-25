@@ -4,6 +4,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailService = require('../utils/emailService');
+const monitor = require('../utils/monitor');
 
 // Helper for password validation
 function validatePassword(password) {
@@ -39,6 +40,10 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ error: 'Invalid email or password' });
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    
+    // Track user login for monitoring
+    await monitor.trackUserLogin(user._id.toString(), user.email);
+    
     res.json({ 
       token,
       user: {
@@ -48,6 +53,36 @@ router.post('/login', async (req, res) => {
         phone: user.phone
       }
     });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Logout
+router.post('/logout', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Track user logout for monitoring
+      await monitor.trackUserLogout(decoded.userId.toString());
+    }
+    res.json({ message: 'Logged out successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user activity (heartbeat)
+router.post('/heartbeat', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Update user activity for monitoring
+      await monitor.updateUserActivity(decoded.userId.toString());
+    }
+    res.json({ message: 'Activity updated' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

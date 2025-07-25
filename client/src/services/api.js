@@ -219,6 +219,19 @@ export const authAPI = {
       body: JSON.stringify(userData),
     }),
 
+  getProfile: () => 
+    apiCall('/auth/profile'),
+
+  logout: () => 
+    apiCall('/auth/logout', {
+      method: 'POST',
+    }),
+
+  heartbeat: () => 
+    apiCall('/auth/heartbeat', {
+      method: 'POST',
+    }),
+
   forgotPassword: (email) => 
     apiCall('/auth/forgot-password', {
       method: 'POST',
@@ -406,6 +419,9 @@ export const adminAPI = {
 
   // Monitoring dashboard
   getMonitoringDashboard: () => adminApiCall('/monitoring/dashboard'),
+
+  // Get active users
+  getActiveUsers: () => adminApiCall('/monitoring/active-users'),
 
   // Download invigilator sheet PDF
   downloadInvigilatorSheet: () => {

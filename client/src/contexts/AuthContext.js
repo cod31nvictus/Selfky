@@ -14,87 +14,94 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [heartbeatInterval, setHeartbeatInterval] = useState(null);
 
-  // Check if user is authenticated on app startup
   useEffect(() => {
-    checkAuthStatus();
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Verify token and get user info
+      authAPI.getProfile()
+        .then(response => {
+          setUser(response.user);
+          startHeartbeat();
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+          setUser(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const checkAuthStatus = async () => {
-    try {
+  const startHeartbeat = () => {
+    // Send heartbeat every 5 minutes to keep session alive
+    const interval = setInterval(() => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
+      if (token) {
+        authAPI.heartbeat()
+          .catch(error => {
+            console.error('Heartbeat failed:', error);
+            // If heartbeat fails, user might be logged out
+            logout();
+          });
       }
+    }, 5 * 60 * 1000); // 5 minutes
 
-      // Get user profile data
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    setHeartbeatInterval(interval);
+  };
 
-      if (response.ok) {
-        const data = await response.json();
-        setIsAuthenticated(true);
-        setUser({ token, ...data.user });
-      } else {
-        // Token is invalid, clear it
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      setIsAuthenticated(false);
-      setUser(null);
-    } finally {
-      setLoading(false);
+  const stopHeartbeat = () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      setHeartbeatInterval(null);
     }
   };
 
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
-      const { token, user } = response;
-      
-      localStorage.setItem('token', token);
-      setUser({ token, ...user });
-      setIsAuthenticated(true);
-      
-      return { success: true };
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+      startHeartbeat();
+      return response;
     } catch (error) {
-      return { success: false, error: error.message };
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // Send logout request to server
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local state regardless of server response
+      localStorage.removeItem('token');
+      setUser(null);
+      stopHeartbeat();
     }
   };
 
   const register = async (userData) => {
     try {
-      await authAPI.register(userData);
-      return { success: true };
+      const response = await authAPI.register(userData);
+      return response;
     } catch (error) {
-      return { success: false, error: error.message };
+      throw error;
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
   };
 
   const value = {
     user,
-    isAuthenticated,
-    loading,
     login,
-    register,
     logout,
-    checkAuthStatus
+    register,
+    loading
   };
 
   return (
