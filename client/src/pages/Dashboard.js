@@ -277,10 +277,17 @@ const Dashboard = () => {
                     </svg>
                     <span>Session: 2025</span>
                   </div>
+                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Last Date: 14-08-2025 (5pm)</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <a 
-                      href="/B Pharm pdf 2025.pdf" 
-                      download="B Pharm pdf 2025.pdf"
+                      href="https://drive.google.com/file/d/1uiXdSR1VwWJ2_K48oCDW5swVHtZiO_xn/view?usp=drive_link" 
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,10 +329,17 @@ const Dashboard = () => {
                     </svg>
                     <span>Session: 2025</span>
                   </div>
+                  <div className="flex items-center gap-2 text-sm text-[#5c728a]">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Last Date: 14-08-2025 (5pm)</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <a 
-                      href="/M Pharm pdf 2025.pdf" 
-                      download="M Pharm pdf 2025.pdf"
+                      href="https://drive.google.com/file/d/1Pql8u6ID761sAx-lHmREw3AtVDruLlgJ/view?usp=drive_link" 
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
