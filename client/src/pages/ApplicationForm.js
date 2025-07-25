@@ -209,23 +209,23 @@ const ApplicationForm = () => {
     }
   };
 
-  // Fee structure - Set to ₹1 for testing
+  // Fee structure - Updated with new category-based fees
   const feeStructure = {
     bpharm: {
-      General: 1,
-      OBC: 1,
-      EWS: 1,
-      SC: 1,
-      ST: 1,
-      PWD: 1
+      General: 1200,
+      OBC: 1200,
+      EWS: 1200,
+      SC: 900,
+      ST: 900,
+      PWD: 900
     },
     mpharm: {
-      General: 1,
-      OBC: 1,
-      EWS: 1,
-      SC: 1,
-      ST: 1,
-      PWD: 1
+      General: 1500,
+      OBC: 1500,
+      EWS: 1500,
+      SC: 1000,
+      ST: 1000,
+      PWD: 1000
     }
   };
 

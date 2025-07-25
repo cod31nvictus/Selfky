@@ -479,9 +479,26 @@ router.post('/', authenticateToken, async (req, res) => {
         bpharmDegree: bpharmDegreeUpload?.key || null
       },
       payment: {
-        amount: category === 'General' 
-          ? (courseType === 'bpharm' ? 1000 : 1200)
-          : (courseType === 'bpharm' ? 800 : 1000),
+        amount: (() => {
+          // New fee structure based on category and course type
+          if (courseType === 'bpharm') {
+            // BPharm fees
+            if (['General', 'OBC', 'EWS'].includes(category)) {
+              return 1200;
+            } else if (['SC', 'ST', 'PWD'].includes(category)) {
+              return 900;
+            }
+          } else if (courseType === 'mpharm') {
+            // MPharm fees
+            if (['General', 'OBC', 'EWS'].includes(category)) {
+              return 1500;
+            } else if (['SC', 'ST', 'PWD'].includes(category)) {
+              return 1000;
+            }
+          }
+          // Default fallback
+          return courseType === 'bpharm' ? 1200 : 1500;
+        })(),
         status: 'pending'
       },
       status: 'submitted'

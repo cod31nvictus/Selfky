@@ -192,16 +192,24 @@ const AdminApplicationForm = () => {
   };
 
   const calculateFee = () => {
-    const baseFee = formData.courseType === 'bpharm' ? 1000 : 1500;
-    const categoryDiscount = {
-      'General': 0,
-      'OBC': 0.1,
-      'SC': 0.2,
-      'ST': 0.2,
-      'PH': 0.25
-    };
-    const discount = categoryDiscount[formData.category] || 0;
-    return Math.round(baseFee * (1 - discount));
+    // New fee structure based on category and course type
+    if (formData.courseType === 'bpharm') {
+      // BPharm fees
+      if (['General', 'OBC', 'EWS'].includes(formData.category)) {
+        return 1200;
+      } else if (['SC', 'ST', 'PWD'].includes(formData.category)) {
+        return 900;
+      }
+    } else if (formData.courseType === 'mpharm') {
+      // MPharm fees
+      if (['General', 'OBC', 'EWS'].includes(formData.category)) {
+        return 1500;
+      } else if (['SC', 'ST', 'PWD'].includes(formData.category)) {
+        return 1000;
+      }
+    }
+    // Default fallback
+    return formData.courseType === 'bpharm' ? 1200 : 1500;
   };
 
   if (loading) {

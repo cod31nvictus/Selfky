@@ -356,16 +356,26 @@ router.post('/applications', isAdmin, async (req, res) => {
     }
 
     // Calculate fee
-    const baseFee = courseType === 'bpharm' ? 1000 : 1500;
-    const categoryDiscount = {
-      'General': 0,
-      'OBC': 0.1,
-      'SC': 0.2,
-      'ST': 0.2,
-      'PH': 0.25
-    };
-    const discount = categoryDiscount[category] || 0;
-    const fee = Math.round(baseFee * (1 - discount));
+    const fee = (() => {
+      // New fee structure based on category and course type
+      if (courseType === 'bpharm') {
+        // BPharm fees
+        if (['General', 'OBC', 'EWS'].includes(category)) {
+          return 1200;
+        } else if (['SC', 'ST', 'PWD'].includes(category)) {
+          return 900;
+        }
+      } else if (courseType === 'mpharm') {
+        // MPharm fees
+        if (['General', 'OBC', 'EWS'].includes(category)) {
+          return 1500;
+        } else if (['SC', 'ST', 'PWD'].includes(category)) {
+          return 1000;
+        }
+      }
+      // Default fallback
+      return courseType === 'bpharm' ? 1200 : 1500;
+    })();
 
     const application = new Application({
       applicationNumber: finalApplicationNumber,
