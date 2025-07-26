@@ -12,7 +12,7 @@ const Payment = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [amount] = useState(location.state?.feeAmount || 1); // Use fee from ApplicationForm or default to ₹1
+  const [amount] = useState(location.state?.feeAmount || 0); // Use fee from ApplicationForm or default to 0
   const [orderId, setOrderId] = useState(null);
 
   const applicationId = location.state?.applicationId || params?.applicationId;
