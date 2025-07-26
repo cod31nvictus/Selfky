@@ -591,7 +591,8 @@ const ApplicationForm = () => {
     ) {
       return feeStructure[courseType][formData.category];
     }
-    return 0; // Show 0 if not selected
+    // Return the default fee for the course type if category is not selected
+    return courseType === 'bpharm' ? 1200 : 1500;
   };
 
   const isStepCompleted = (step) => {
