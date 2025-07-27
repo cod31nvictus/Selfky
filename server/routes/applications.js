@@ -163,6 +163,17 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'All required fields are required' });
     }
 
+    // Validate course type
+    if (!['bpharm', 'mpharm'].includes(courseType)) {
+      return res.status(400).json({ error: 'Invalid course type. Must be bpharm or mpharm' });
+    }
+
+    // Validate category
+    const validCategories = ['General', 'OBC', 'EWS', 'SC', 'ST', 'PWD'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ error: 'Invalid category. Must be one of: General, OBC, EWS, SC, ST, PWD' });
+    }
+
     // Check if required files were uploaded
     console.log('Checking required files...');
     if (!req.files || !req.files.photo || !req.files.signature) {
@@ -481,23 +492,31 @@ router.post('/', authenticateToken, async (req, res) => {
       payment: {
         amount: (() => {
           // New fee structure based on category and course type
+          let calculatedFee = 0;
+          
           if (courseType === 'bpharm') {
             // BPharm fees
             if (['General', 'OBC', 'EWS'].includes(category)) {
-              return 1200;
+              calculatedFee = 1200;
             } else if (['SC', 'ST', 'PWD'].includes(category)) {
-              return 900;
+              calculatedFee = 900;
             }
           } else if (courseType === 'mpharm') {
             // MPharm fees
             if (['General', 'OBC', 'EWS'].includes(category)) {
-              return 1500;
+              calculatedFee = 1500;
             } else if (['SC', 'ST', 'PWD'].includes(category)) {
-              return 1000;
+              calculatedFee = 1000;
             }
           }
+          
           // Default fallback
-          return courseType === 'bpharm' ? 1200 : 1500;
+          if (calculatedFee === 0) {
+            calculatedFee = courseType === 'bpharm' ? 1200 : 1500;
+          }
+          
+          console.log(`Fee calculation for ${courseType}/${category}: ₹${calculatedFee}`);
+          return calculatedFee;
         })(),
         status: 'pending'
       },

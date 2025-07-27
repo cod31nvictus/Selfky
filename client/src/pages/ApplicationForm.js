@@ -366,6 +366,11 @@ const ApplicationForm = () => {
   const validateStep1 = () => {
     const newErrors = {};
     
+    // Validate course type
+    if (!courseType || !['bpharm', 'mpharm'].includes(courseType)) {
+      newErrors.courseType = 'Invalid course type selected';
+    }
+    
     // Required fields validation - only check what backend actually expects
     const requiredFields = ['fullName', 'fathersName', 'dateOfBirth', 'category'];
     
@@ -585,13 +590,23 @@ const ApplicationForm = () => {
   };
 
   const getApplicationFee = () => {
+    // Ensure we have valid course type and category
+    if (!courseType || !formData.category) {
+      console.warn('Missing course type or category:', { courseType: courseType, category: formData.category });
+      // Return default fee based on course type if available, otherwise highest fee
+      return courseType === 'bpharm' ? 1200 : 1500;
+    }
+
+    // Check if the fee structure exists for this combination
     if (
       feeStructure[courseType] &&
       feeStructure[courseType][formData.category]
     ) {
       return feeStructure[courseType][formData.category];
     }
-    // Return the default fee for the course type if category is not selected
+
+    // Fallback to default fee for the course type
+    console.warn('Invalid fee structure combination:', { courseType: courseType, category: formData.category });
     return courseType === 'bpharm' ? 1200 : 1500;
   };
 
@@ -1840,9 +1855,19 @@ const ApplicationForm = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold text-[#101418] mb-2">Application Fee</h3>
             <div className="flex justify-between items-center">
-              <span className="text-[#5c728a]">Fee Amount ({formData.category} Category):</span>
-              <span className="text-2xl font-bold text-[#101418]">₹{getApplicationFee()}</span>
+              <span className="text-[#5c728a]">Fee Amount ({formData.category || 'Not Selected'} Category):</span>
+              <span className={`text-2xl font-bold ${getApplicationFee() === 0 ? 'text-red-600' : 'text-[#101418]'}`}>
+                ₹{getApplicationFee()}
+                {getApplicationFee() === 0 && (
+                  <span className="text-sm text-red-500 ml-2">⚠️ Please select a category</span>
+                )}
+              </span>
             </div>
+            {getApplicationFee() === 0 && (
+              <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded text-sm text-red-700">
+                <strong>Debug Info:</strong> Course Type: {courseType || 'undefined'}, Category: {formData.category || 'undefined'}
+              </div>
+            )}
           </div>
 
           {/* Disclaimer Checkbox */}
