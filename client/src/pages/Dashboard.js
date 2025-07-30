@@ -61,6 +61,16 @@ const Dashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setAdmitCardReleased(data.admitCardReleased);
+        
+        // Log additional info for debugging
+        if (data.releaseDate && data.currentDate) {
+          console.log('Admit card status:', {
+            released: data.admitCardReleased,
+            releaseDate: data.releaseDate,
+            currentDate: data.currentDate,
+            isAfterReleaseDate: data.isAfterReleaseDate
+          });
+        }
       }
     } catch (error) {
       console.error('Error checking admit card status:', error);
@@ -180,7 +190,7 @@ const Dashboard = () => {
                     : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                 }`}
               >
-                {admitCardReleased ? 'View Admit Card' : 'Admit Card Not Released'}
+                {admitCardReleased ? 'View Admit Card' : 'Available from 22-08-2025'}
               </button>
             </div>
           </div>

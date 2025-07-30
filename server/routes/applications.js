@@ -601,6 +601,27 @@ router.post('/:id/admit-card', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Payment must be completed to generate admit card' });
     }
 
+    // Check if admit cards are released (from settings)
+    let settings = await Setting.findOne();
+    if (!settings) {
+      settings = new Setting({ admitCardReleased: false });
+      await settings.save();
+    }
+
+    if (!settings.admitCardReleased) {
+      return res.status(400).json({ error: 'Admit cards are not yet released' });
+    }
+
+    // Check if current date is after the release date (22-08-2025)
+    const releaseDate = new Date('2025-08-22');
+    const currentDate = new Date();
+    
+    if (currentDate < releaseDate) {
+      return res.status(400).json({ 
+        error: 'Admit cards will be available from 22-08-2025. Current date is before the release date.' 
+      });
+    }
+
     // Generate roll number if not already generated
     if (!application.admitCard.rollNumber) {
       const year = '25';
@@ -647,6 +668,27 @@ router.get('/:id/admit-card-pdf', authenticateToken, async (req, res) => {
 
     if (application.payment.status !== 'completed') {
       return res.status(400).json({ error: 'Payment must be completed to download admit card' });
+    }
+
+    // Check if admit cards are released (from settings)
+    let settings = await Setting.findOne();
+    if (!settings) {
+      settings = new Setting({ admitCardReleased: false });
+      await settings.save();
+    }
+
+    if (!settings.admitCardReleased) {
+      return res.status(400).json({ error: 'Admit cards are not yet released' });
+    }
+
+    // Check if current date is after the release date (22-08-2025)
+    const releaseDate = new Date('2025-08-22');
+    const currentDate = new Date();
+    
+    if (currentDate < releaseDate) {
+      return res.status(400).json({ 
+        error: 'Admit cards will be available from 22-08-2025. Current date is before the release date.' 
+      });
     }
 
     // Generate PDF
@@ -704,10 +746,18 @@ router.get('/admit-card-status', async (req, res) => {
       });
       await settings.save();
     }
+
+    // Check if current date is after the release date (22-08-2025)
+    const releaseDate = new Date('2025-08-22');
+    const currentDate = new Date();
+    const isAfterReleaseDate = currentDate >= releaseDate;
     
     res.json({ 
       success: true, 
-      admitCardReleased: settings.admitCardReleased 
+      admitCardReleased: settings.admitCardReleased && isAfterReleaseDate,
+      releaseDate: '2025-08-22',
+      currentDate: currentDate.toISOString().split('T')[0],
+      isAfterReleaseDate: isAfterReleaseDate
     });
   } catch (error) {
     console.error('Error fetching admit card status:', error);
