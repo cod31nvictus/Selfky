@@ -494,28 +494,46 @@ router.post('/', authenticateToken, async (req, res) => {
           // New fee structure based on category and course type
           let calculatedFee = 0;
           
+          // Normalize category to handle edge cases
+          const normalizedCategory = category ? category.trim() : '';
+          
+          console.log(`Fee calculation input: courseType=${courseType}, category="${category}", normalizedCategory="${normalizedCategory}"`);
+          
           if (courseType === 'bpharm') {
             // BPharm fees
-            if (['General', 'OBC', 'EWS'].includes(category)) {
+            if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
               calculatedFee = 1200;
-            } else if (['SC', 'ST', 'PWD'].includes(category)) {
+            } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
               calculatedFee = 900;
+            } else {
+              // Fallback for unknown categories
+              console.warn(`Unknown category "${normalizedCategory}" for BPharm, using default fee`);
+              calculatedFee = 1200;
             }
           } else if (courseType === 'mpharm') {
             // MPharm fees
-            if (['General', 'OBC', 'EWS'].includes(category)) {
+            if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
               calculatedFee = 1500;
-            } else if (['SC', 'ST', 'PWD'].includes(category)) {
+            } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
               calculatedFee = 1000;
+            } else {
+              // Fallback for unknown categories
+              console.warn(`Unknown category "${normalizedCategory}" for MPharm, using default fee`);
+              calculatedFee = 1500;
             }
+          } else {
+            // Fallback for unknown course type
+            console.warn(`Unknown course type "${courseType}", using default fee`);
+            calculatedFee = 1500;
           }
           
-          // Default fallback
+          // Final safety check
           if (calculatedFee === 0) {
+            console.error(`Fee calculation resulted in 0 for ${courseType}/${normalizedCategory}, using fallback`);
             calculatedFee = courseType === 'bpharm' ? 1200 : 1500;
           }
           
-          console.log(`Fee calculation for ${courseType}/${category}: ₹${calculatedFee}`);
+          console.log(`Fee calculation result for ${courseType}/${normalizedCategory}: ₹${calculatedFee}`);
           return calculatedFee;
         })(),
         status: 'pending'

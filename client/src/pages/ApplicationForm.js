@@ -597,17 +597,26 @@ const ApplicationForm = () => {
       return courseType === 'bpharm' ? 1200 : 1500;
     }
 
+    // Normalize category to handle edge cases
+    const normalizedCategory = formData.category.trim();
+    
+    console.log('Fee calculation input:', { courseType: courseType, category: formData.category, normalizedCategory: normalizedCategory });
+
     // Check if the fee structure exists for this combination
     if (
       feeStructure[courseType] &&
-      feeStructure[courseType][formData.category]
+      feeStructure[courseType][normalizedCategory]
     ) {
-      return feeStructure[courseType][formData.category];
+      const fee = feeStructure[courseType][normalizedCategory];
+      console.log('Fee found in structure:', fee);
+      return fee;
     }
 
     // Fallback to default fee for the course type
-    console.warn('Invalid fee structure combination:', { courseType: courseType, category: formData.category });
-    return courseType === 'bpharm' ? 1200 : 1500;
+    console.warn('Invalid fee structure combination:', { courseType: courseType, category: normalizedCategory });
+    const fallbackFee = courseType === 'bpharm' ? 1200 : 1500;
+    console.log('Using fallback fee:', fallbackFee);
+    return fallbackFee;
   };
 
   const isStepCompleted = (step) => {
