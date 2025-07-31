@@ -12,7 +12,54 @@ const Payment = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [amount] = useState(location.state?.feeAmount || 0); // Use fee from ApplicationForm or default to 0
+  
+  // Calculate fee amount - use provided fee or calculate based on course type and category
+  const calculateFeeAmount = () => {
+    // If feeAmount is provided in location state, use it
+    if (location.state?.feeAmount && location.state.feeAmount > 0) {
+      return location.state.feeAmount;
+    }
+    
+    // If we have course type and category, calculate the fee
+    const courseType = location.state?.courseType || location.state?.formData?.courseType;
+    const category = location.state?.formData?.category;
+    
+    if (courseType && category) {
+      console.log('Calculating fee for:', { courseType, category });
+      
+      // Fee calculation logic (same as ApplicationForm)
+      const normalizedCategory = category.trim();
+      
+      if (courseType === 'bpharm') {
+        if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
+          return 1200;
+        } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
+          return 900;
+        } else {
+          console.warn(`Unknown category "${normalizedCategory}" for BPharm, using default fee`);
+          return 1200;
+        }
+      } else if (courseType === 'mpharm') {
+        if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
+          return 1500;
+        } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
+          return 1000;
+        } else {
+          console.warn(`Unknown category "${normalizedCategory}" for MPharm, using default fee`);
+          return 1500;
+        }
+      } else {
+        console.warn(`Unknown course type "${courseType}", using default fee`);
+        return 1500;
+      }
+    }
+    
+    // Fallback to default fee
+    console.warn('No course type or category available, using default fee');
+    return 1200; // Default to BPharm fee
+  };
+  
+  const [amount] = useState(calculateFeeAmount());
   const [orderId, setOrderId] = useState(null);
 
   const applicationId = location.state?.applicationId || params?.applicationId;

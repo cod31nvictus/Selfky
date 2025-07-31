@@ -43,12 +43,71 @@ router.post('/create-order', async (req, res) => {
 
     const { amount, currency = 'INR', receipt, notes } = req.body;
 
-    if (!amount || !receipt) {
-      return res.status(400).json({ error: 'Amount and receipt are required' });
+    if (!receipt) {
+      return res.status(400).json({ error: 'Receipt is required' });
+    }
+
+    // Safety check: If amount is 0, null, or undefined, calculate the correct fee
+    let finalAmount = amount;
+    if (!amount || amount === 0) {
+      console.warn('Amount is 0 or missing, calculating correct fee based on application data');
+      
+      if (notes && notes.applicationId) {
+        try {
+          const application = await Application.findById(notes.applicationId);
+          if (application) {
+            const courseType = application.courseType;
+            const category = application.personalDetails?.category;
+            
+            console.log('Calculating fee for application:', { 
+              applicationNumber: application.applicationNumber,
+              courseType, 
+              category 
+            });
+            
+            // Calculate fee based on course type and category
+            const normalizedCategory = category ? category.trim() : '';
+            
+            if (courseType === 'bpharm') {
+              if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
+                finalAmount = 1200;
+              } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
+                finalAmount = 900;
+              } else {
+                console.warn(`Unknown category "${normalizedCategory}" for BPharm, using default fee`);
+                finalAmount = 1200;
+              }
+            } else if (courseType === 'mpharm') {
+              if (['General', 'OBC', 'EWS'].includes(normalizedCategory)) {
+                finalAmount = 1500;
+              } else if (['SC', 'ST', 'PWD'].includes(normalizedCategory)) {
+                finalAmount = 1000;
+              } else {
+                console.warn(`Unknown category "${normalizedCategory}" for MPharm, using default fee`);
+                finalAmount = 1500;
+              }
+            } else {
+              console.warn(`Unknown course type "${courseType}", using default fee`);
+              finalAmount = 1500;
+            }
+            
+            console.log(`Calculated fee: ₹${finalAmount} for ${courseType}/${normalizedCategory}`);
+          } else {
+            console.error('Application not found for fee calculation');
+            finalAmount = 1200; // Default fallback
+          }
+        } catch (error) {
+          console.error('Error calculating fee:', error);
+          finalAmount = 1200; // Default fallback
+        }
+      } else {
+        console.warn('No application ID provided, using default fee');
+        finalAmount = 1200; // Default fallback
+      }
     }
 
     const options = {
-      amount: amount * 100, // Razorpay expects amount in paise
+      amount: finalAmount * 100, // Razorpay expects amount in paise
       currency,
       receipt,
       notes: notes || {}
@@ -72,13 +131,13 @@ router.post('/create-order', async (req, res) => {
         if (application && user) {
           // Create payment record
           const uniqueTransactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id, transactionId: uniqueTransactionId });
+          console.log('Creating payment record for:', { applicationId: notes.applicationId, userId: notes.userId, orderId: order.id, transactionId: uniqueTransactionId, amount: finalAmount });
           const paymentRecord = new Payment({
             applicationId: notes.applicationId,
             userId: notes.userId,
             razorpayOrderId: order.id,
             transactionId: uniqueTransactionId,
-            amount: amount,
+            amount: finalAmount,
             currency: currency,
             status: 'pending',
             receipt: receipt,
@@ -99,7 +158,7 @@ router.post('/create-order', async (req, res) => {
             userId: notes.userId,
             razorpayOrderId: order.id,
             transactionId: uniqueTransactionId,
-            amount: amount,
+            amount: finalAmount,
             currency: currency,
             status: 'pending',
             receipt: receipt,
