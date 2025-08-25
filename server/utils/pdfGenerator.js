@@ -276,7 +276,7 @@ class PDFGenerator {
             .fontSize(9)
             .font('Helvetica')
             .text((index + 1).toString(), startX, rowY)
-            .text(app.admitCard?.rollNumber || 'N/A', startX + colWidth, rowY)
+            .text(app.applicationNumber || 'N/A', startX + colWidth, rowY)
             .text(app.personalDetails.fullName, startX + (colWidth * 2), rowY)
             .text(app.courseType === 'bpharm' ? 'BPharm' : 'MPharm', startX + (colWidth * 3), rowY)
             .text(app.personalDetails.category, startX + (colWidth * 4), rowY)

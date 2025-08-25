@@ -219,8 +219,8 @@ router.patch('/:id/payment', authenticateToken, async (req, res) => {
   }
 });
 
-// Generate admit card
-router.post('/:id/admit-card', authenticateToken, async (req, res) => {
+// Get admit card
+router.get('/:id/admit-card', authenticateToken, async (req, res) => {
   try {
     const application = await Application.findOne({
       _id: req.params.id,
@@ -231,37 +231,33 @@ router.post('/:id/admit-card', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    if (application.payment.status !== 'completed') {
-      return res.status(400).json({ error: 'Payment must be completed to generate admit card' });
-    }
-
-    // Generate roll number if not already generated
-    if (!application.admitCard.rollNumber) {
-      const year = '25';
-      const coursePrefix = application.courseType === 'bpharm' ? 'BPH' : 'MPH';
-      const rollNumber = `${coursePrefix}${year}${application.applicationNumber.slice(-4)}`;
-      application.admitCard.rollNumber = rollNumber;
-      application.status = 'admit_card_generated';
-      await application.save();
-
-      // Send admit card ready email
-      try {
-        const user = await User.findById(application.userId);
-        if (user) {
-          await emailService.sendAdmitCardReadyEmail(
-            user.email,
-            application.applicationNumber,
-            application.courseType,
-            user.name || user.email
-          );
-        }
-      } catch (emailError) {
-        console.error('Error sending admit card ready email:', emailError);
-        // Don't fail the admit card generation if email fails
-      }
-    }
-
     res.json(application);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch admit card' });
+  }
+});
+
+// Generate admit card
+router.post('/:id/generate-admit-card', authenticateToken, async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Update application status to admit card generated
+    application.status = 'admit_card_generated';
+    await application.save();
+
+    res.json({
+      message: 'Admit card generated successfully',
+      applicationNumber: application.applicationNumber,
+      admitCard: application.admitCard
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to generate admit card' });
   }

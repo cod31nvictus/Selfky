@@ -134,18 +134,15 @@ const AdmitCard = () => {
           const response = await applicationAPI.generateAdmitCard(data.applicationId);
           setAdmitCardData({
             applicationNumber: response.applicationNumber,
-            examDate: response.admitCard?.examDate || '2025-03-15',
-            examTime: response.admitCard?.examTime || '10:00 AM - 01:00 PM',
-            examCenter: response.admitCard?.examCenter || 'Selfky Institute of Pharmacy, Lucknow',
-            examCenterAddress: response.admitCard?.examCenterAddress || '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
-            rollNumber: response.admitCard?.rollNumber || 'RN' + Math.floor(Math.random() * 10000),
+            examDate: response.admitCard?.examDate || '31-08-2025',
+            examCenter: response.admitCard?.examCenter || 'NLT Institute of Medical Sciences BHU',
+            examCenterAddress: response.admitCard?.examCenterAddress || 'BHU, Varanasi, Uttar Pradesh - 221005',
             instructions: [
               'Please arrive at the exam center 1 hour before the exam time',
               'Carry this admit card and a valid photo ID proof',
               'No electronic devices are allowed in the examination hall',
-              'Follow all COVID-19 protocols as per government guidelines',
-              'Bring your own stationery (pen, pencil, eraser)',
-              'Dress code: Formal attire'
+              'Follow all COVID-19 safety protocols as per institute guidelines',
+              'Report to the examination hall 30 minutes before the exam starts'
             ]
           });
           admitCardGenerated = true;
@@ -159,18 +156,15 @@ const AdmitCard = () => {
       if (!admitCardGenerated) {
         const admitCard = {
           applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-          examDate: '2025-03-15',
-          examTime: '10:00 AM - 01:00 PM',
-          examCenter: 'Selfky Institute of Pharmacy, Lucknow',
-          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
-          rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+          examDate: '31-08-2025',
+          examCenter: 'NLT Institute of Medical Sciences BHU',
+          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
             'Carry this admit card and a valid photo ID proof',
             'No electronic devices are allowed in the examination hall',
-            'Follow all COVID-19 protocols as per government guidelines',
-            'Bring your own stationery (pen, pencil, eraser)',
-            'Dress code: Formal attire'
+            'Follow all COVID-19 safety protocols as per institute guidelines',
+            'Report to the examination hall 30 minutes before the exam starts'
           ]
         };
         setAdmitCardData(admitCard);
@@ -180,18 +174,15 @@ const AdmitCard = () => {
       // Generate fallback admit card data
       const admitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-        examDate: '2025-03-15',
-        examTime: '10:00 AM - 01:00 PM',
-        examCenter: 'Selfky Institute of Pharmacy, Lucknow',
-        examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
-        rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+        examDate: '31-08-2025',
+        examCenter: 'NLT Institute of Medical Sciences BHU',
+        examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
         instructions: [
           'Please arrive at the exam center 1 hour before the exam time',
           'Carry this admit card and a valid photo ID proof',
           'No electronic devices are allowed in the examination hall',
-          'Follow all COVID-19 protocols as per government guidelines',
-          'Bring your own stationery (pen, pencil, eraser)',
-          'Dress code: Formal attire'
+          'Follow all COVID-19 safety protocols as per institute guidelines',
+          'Report to the examination hall 30 minutes before the exam starts'
         ]
       };
       setAdmitCardData(admitCard);
