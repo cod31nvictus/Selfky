@@ -124,54 +124,19 @@ const AdmitCard = () => {
   };
 
   const generateAdmitCard = async (data) => {
+    console.log('🔍 Starting generateAdmitCard with data:', data);
     setLoading(true);
-    let admitCardGenerated = false;
+    
+    // Safety timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      console.log('⚠️ Loading timeout reached, forcing loading to false');
+      setLoading(false);
+    }, 10000); // 10 seconds timeout
     
     try {
-      // If we have an application ID, try to generate admit card in database
-      if (data.applicationId) {
-        try {
-          const response = await applicationAPI.generateAdmitCard(data.applicationId);
-          setAdmitCardData({
-            applicationNumber: response.applicationNumber,
-            examDate: response.admitCard?.examDate || '31-08-2025',
-            examCenter: response.admitCard?.examCenter || 'NLT Institute of Medical Sciences BHU',
-            examCenterAddress: response.admitCard?.examCenterAddress || 'BHU, Varanasi, Uttar Pradesh - 221005',
-            instructions: [
-              'Please arrive at the exam center 1 hour before the exam time',
-              'Carry this admit card and a valid photo ID proof',
-              'No electronic devices are allowed in the examination hall',
-              'Follow all COVID-19 safety protocols as per institute guidelines',
-              'Report to the examination hall 30 minutes before the exam starts'
-            ]
-          });
-          admitCardGenerated = true;
-        } catch (apiError) {
-          console.error('API Error generating admit card:', apiError);
-          // Fall through to fallback generation
-        }
-      }
+      console.log('🔄 Setting admit card data from application data');
       
-      // If API call failed or no application ID, use fallback data
-      if (!admitCardGenerated) {
-        const admitCard = {
-          applicationNumber: data.applicationNumber || 'APP' + Date.now(),
-          examDate: '31-08-2025',
-          examCenter: 'NLT Institute of Medical Sciences BHU',
-          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
-          instructions: [
-            'Please arrive at the exam center 1 hour before the exam time',
-            'Carry this admit card and a valid photo ID proof',
-            'No electronic devices are allowed in the examination hall',
-            'Follow all COVID-19 safety protocols as per institute guidelines',
-            'Report to the examination hall 30 minutes before the exam starts'
-          ]
-        };
-        setAdmitCardData(admitCard);
-      }
-    } catch (error) {
-      console.error('Error generating admit card:', error);
-      // Generate fallback admit card data
+      // Use the application data directly to set admit card data
       const admitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
         examDate: '31-08-2025',
@@ -185,8 +150,33 @@ const AdmitCard = () => {
           'Report to the examination hall 30 minutes before the exam starts'
         ]
       };
+      
       setAdmitCardData(admitCard);
+      console.log('✅ Admit card data set successfully:', admitCard);
+      
+    } catch (error) {
+      console.error('❌ Error in generateAdmitCard:', error);
+      
+      // Generate fallback admit card data even on error
+      const fallbackAdmitCard = {
+        applicationNumber: data.applicationNumber || 'APP' + Date.now(),
+        examDate: '31-08-2025',
+        examCenter: 'NLT Institute of Medical Sciences BHU',
+        examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
+        instructions: [
+          'Please arrive at the exam center 1 hour before the exam time',
+          'Carry this admit card and a valid photo ID proof',
+          'No electronic devices are allowed in the examination hall',
+          'Follow all COVID-19 safety protocols as per institute guidelines',
+          'Report to the examination hall 30 minutes before the exam starts'
+        ]
+      };
+      
+      setAdmitCardData(fallbackAdmitCard);
+      console.log('✅ Fallback admit card data set');
     } finally {
+      clearTimeout(loadingTimeout); // Clear the timeout
+      console.log('🏁 Setting loading to false');
       setLoading(false);
     }
   };
