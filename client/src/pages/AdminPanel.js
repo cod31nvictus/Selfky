@@ -4,6 +4,7 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ApplicantsSection from '../components/admin/ApplicantsSection';
 import ApplicationsSection from '../components/admin/ApplicationsSection';
 import TransactionsSection from '../components/admin/TransactionsSection';
+import InvigilatorSheetsSection from '../components/admin/InvigilatorSheetsSection';
 import MasterLogin from '../components/MasterLogin';
 
 const AdminPanel = () => {
@@ -31,6 +32,8 @@ const AdminPanel = () => {
         return <ApplicationsSection />;
       case 'transactions':
         return <TransactionsSection />;
+      case 'invigilator-sheets':
+        return <InvigilatorSheetsSection />;
       default:
         return <ApplicationsSection />;
     }
@@ -106,6 +109,16 @@ const AdminPanel = () => {
               }`}
             >
               Transactions
+            </button>
+            <button
+              onClick={() => setActiveSection('invigilator-sheets')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeSection === 'invigilator-sheets'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Invigilator Sheets
             </button>
           </div>
         </div>
