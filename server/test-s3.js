@@ -1,11 +1,24 @@
+// Load environment variables FIRST, before any other imports
+require('dotenv').config({ path: './.env' });
+
 const s3Service = require('./utils/s3Service');
 const { ListObjectsV2Command } = require('@aws-sdk/client-s3');
 
 async function testS3Connection() {
   try {
     console.log('🔍 Testing S3 Connection...');
-    console.log('Bucket:', process.env.S3_BUCKET_NAME);
-    console.log('Region:', process.env.AWS_REGION);
+    console.log('Environment variables loaded:');
+    console.log('AWS_REGION:', process.env.AWS_REGION);
+    console.log('S3_BUCKET_NAME:', process.env.S3_BUCKET_NAME);
+    console.log('AWS_ACCESS_KEY_ID:', process.env.AWS_ACCESS_KEY_ID ? 'Present' : 'Missing');
+    console.log('AWS_SECRET_ACCESS_KEY:', process.env.AWS_SECRET_ACCESS_KEY ? 'Present' : 'Missing');
+    
+    if (!process.env.AWS_REGION || !process.env.S3_BUCKET_NAME) {
+      console.error('❌ Missing required environment variables');
+      console.error('Current working directory:', process.cwd());
+      console.error('Env file path:', require('path').resolve('./.env'));
+      return;
+    }
     
     // Test listing objects in the bucket
     const command = new ListObjectsV2Command({
