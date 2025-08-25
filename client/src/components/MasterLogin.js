@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const MasterLogin = ({ onMasterLogin, onClose }) => {
   const [masterPassword, setMasterPassword] = useState('');
   const [targetEmail, setTargetEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleMasterLogin = async (e) => {
     e.preventDefault();
@@ -39,10 +41,11 @@ const MasterLogin = ({ onMasterLogin, onClose }) => {
         throw new Error(data.error || 'Master login failed');
       }
 
-      // Store the master token
+      // Store the master token and user info
       localStorage.setItem('masterToken', data.masterToken);
       localStorage.setItem('masterUser', JSON.stringify(data.targetUser));
       localStorage.setItem('accessType', 'master');
+      localStorage.setItem('token', data.masterToken); // Also store as regular token for compatibility
 
       toast.success(`Master access granted to ${data.targetUser.email}`);
       
@@ -55,6 +58,9 @@ const MasterLogin = ({ onMasterLogin, onClose }) => {
       if (onClose) {
         onClose();
       }
+
+      // Redirect to the user's dashboard
+      navigate('/dashboard');
 
     } catch (error) {
       console.error('Master login error:', error);

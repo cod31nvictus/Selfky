@@ -7,6 +7,8 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [isMasterAccess, setIsMasterAccess] = useState(false);
+  const [masterUser, setMasterUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -19,6 +21,15 @@ const Dashboard = () => {
       setMessage(location.state.message);
       // Clear the message from location state
       navigate(location.pathname, { replace: true });
+    }
+
+    // Check if this is a master access session
+    const accessType = localStorage.getItem('accessType');
+    const masterUserData = localStorage.getItem('masterUser');
+    
+    if (accessType === 'master' && masterUserData) {
+      setIsMasterAccess(true);
+      setMasterUser(JSON.parse(masterUserData));
     }
   }, [location.state, navigate, location.pathname]);
 
@@ -132,15 +143,39 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-[#101418] text-sm font-medium">Welcome back!</span>
+          {isMasterAccess && masterUser && (
+            <div className="bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-800 text-sm font-medium">🔐 Master Access</span>
+                <span className="text-yellow-600 text-xs">Viewing as: {masterUser.email}</span>
+              </div>
+            </div>
+          )}
+          <span className="text-[#101418] text-sm font-medium">
+            {isMasterAccess && masterUser 
+              ? `Welcome, ${masterUser.name || masterUser.email} (Master Access)`
+              : 'Welcome back!'
+            }
+          </span>
           <button 
             onClick={() => {
+              // Clear master access data if it exists
+              if (isMasterAccess) {
+                localStorage.removeItem('masterToken');
+                localStorage.removeItem('masterUser');
+                localStorage.removeItem('accessType');
+                localStorage.removeItem('token');
+                setIsMasterAccess(false);
+                setMasterUser(null);
+                navigate('/cpanel');
+                return;
+              }
               logout();
               navigate('/');
             }}
             className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#eaedf1] text-[#101418] text-sm font-medium hover:bg-[#d4dbe2] transition-colors"
           >
-            Logout
+            {isMasterAccess ? 'Exit Master Access' : 'Logout'}
           </button>
         </div>
       </header>
