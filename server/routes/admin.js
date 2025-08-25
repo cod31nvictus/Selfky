@@ -342,19 +342,25 @@ router.get('/invigilator-sheet-pdf', isAdmin, async (req, res) => {
 
     // Generate PDF
     const pdfGenerator = new PDFGenerator();
-    const pdfResult = await pdfGenerator.generateInvigilatorSheet(applications);
+    
+    // Convert applications to the format expected by the PDF generator
+    const applicationsForPDF = applications.map(app => ({
+      applicationNumber: app.applicationNumber,
+      formData: {
+        fullName: app.personalDetails?.fullName || 'N/A',
+        category: app.personalDetails?.category || 'N/A'
+      }
+    }));
 
-    if (pdfResult.success) {
-      // Send file
-      res.download(pdfResult.filepath, pdfResult.filename, (err) => {
-        // Clean up file after download
-        fs.unlink(pdfResult.filepath, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting PDF file:', unlinkErr);
-        });
-      });
-    } else {
-      res.status(500).json({ error: 'Failed to generate PDF' });
-    }
+    const pdfBuffer = await pdfGenerator.generateInvigilatorSheet(applicationsForPDF);
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invigilator-sheet-${Date.now()}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    // Send the PDF buffer
+    res.send(pdfBuffer);
   } catch (error) {
     console.error('Error generating invigilator sheet:', error);
     res.status(500).json({ error: 'Failed to generate invigilator sheet' });

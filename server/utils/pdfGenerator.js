@@ -5,16 +5,15 @@ const s3Service = require('./s3Service');
 
 class PDFGenerator {
   constructor() {
-    this.doc = new PDFDocument({
-      size: 'A4',
-      margin: 50
-    });
+    // Default constructor - not used in new implementation
   }
 
   // Generate admit card PDF
   generateAdmitCard(applicationData) {
     return new Promise((resolve, reject) => {
       try {
+        console.log('Starting PDF generation for application:', applicationData.applicationNumber);
+        
         // Create PDF document with A4 size and optimized margins
         const doc = new PDFDocument({
           size: 'A4',
@@ -27,14 +26,30 @@ class PDFGenerator {
         });
 
         const chunks = [];
-        doc.on('data', chunk => chunks.push(chunk));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('data', chunk => {
+          console.log('PDF chunk received, size:', chunk.length);
+          chunks.push(chunk);
+        });
+        
+        doc.on('end', () => {
+          console.log('PDF generation completed, total chunks:', chunks.length);
+          const buffer = Buffer.concat(chunks);
+          console.log('Final PDF buffer size:', buffer.length);
+          resolve(buffer);
+        });
+
+        doc.on('error', (error) => {
+          console.error('PDF generation error:', error);
+          reject(error);
+        });
 
         // Set font sizes for A4 optimization
         const titleFontSize = 18;
         const headingFontSize = 14;
         const bodyFontSize = 10;
         const smallFontSize = 8;
+
+        console.log('Adding content to PDF...');
 
         // Header with logo and title
         doc.fontSize(titleFontSize).font('Helvetica-Bold').text('ADMIT CARD', { align: 'center' });
@@ -126,88 +141,83 @@ class PDFGenerator {
         doc.lineCap('butt').moveTo(300, currentY).lineTo(450, currentY).stroke();
         doc.fontSize(smallFontSize).font('Helvetica').text('Authorized Signature', 350, currentY + 5);
 
+        console.log('Finalizing PDF...');
         doc.end();
+        
       } catch (error) {
+        console.error('Error in generateAdmitCard:', error);
         reject(error);
       }
     });
   }
 
-  // Generate invigilator sheet (for admin)
-  async generateInvigilatorSheet(applications) {
+  // Generate invigilator sheet PDF
+  generateInvigilatorSheet(applications) {
     return new Promise((resolve, reject) => {
       try {
-        const filename = `invigilator-sheet-${Date.now()}.pdf`;
-        const filepath = path.join(__dirname, '../uploads', filename);
-        const stream = fs.createWriteStream(filepath);
+        const doc = new PDFDocument({
+          size: 'A4',
+          margins: {
+            top: 30,
+            bottom: 30,
+            left: 30,
+            right: 30
+          }
+        });
 
-        this.doc.pipe(stream);
+        const chunks = [];
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
 
         // Header
-        this.doc
-          .fontSize(20)
-          .font('Helvetica-Bold')
-          .text('SELFKY INSTITUTE OF PHARMACY', { align: 'center' })
-          .moveDown(0.5);
-
-        this.doc
-          .fontSize(16)
-          .font('Helvetica')
-          .text('INVIGILATOR SHEET', { align: 'center' })
-          .moveDown(1);
-
-        this.doc
-          .fontSize(12)
-          .font('Helvetica')
-          .text(`Exam Date: ${new Date().toLocaleDateString()}`, { align: 'center' })
-          .moveDown(2);
+        doc.fontSize(18).font('Helvetica-Bold').text('INVIGILATOR SHEET', { align: 'center' });
+        doc.moveDown(1);
+        doc.fontSize(12).font('Helvetica').text('NLT Institute of Medical Sciences BHU', { align: 'center' });
+        doc.fontSize(10).font('Helvetica').text('Examination Date: 31-08-2025 | Time: 11:00 AM - 1:00 PM', { align: 'center' });
+        doc.moveDown(2);
 
         // Table headers
-        const headers = ['S.No', 'Roll No', 'Name', 'Course', 'Category', 'Signature'];
-        const startX = 50;
-        const startY = this.doc.y;
-        const colWidth = 80;
+        const headers = ['S.No.', 'Application No.', 'Full Name', 'Category', 'Signature'];
+        const colWidths = [40, 80, 150, 80, 80];
+        let x = 50;
+        let y = 150;
 
+        // Draw table headers
         headers.forEach((header, index) => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica-Bold')
-            .text(header, startX + (index * colWidth), startY);
+          doc.fontSize(10).font('Helvetica-Bold').text(header, x, y);
+          x += colWidths[index];
         });
 
-        this.doc.moveDown(1);
+        // Draw header lines
+        y += 20;
+        doc.moveTo(50, y).lineTo(430, y).stroke();
 
-        // Application data
+        // Add application data
         applications.forEach((app, index) => {
-          const rowY = this.doc.y;
+          y += 25;
+          if (y > 700) { // Check if we need a new page
+            doc.addPage();
+            y = 150;
+          }
+
+          x = 50;
+          doc.fontSize(9).font('Helvetica').text((index + 1).toString(), x, y);
+          x += colWidths[0];
           
-          this.doc
-            .fontSize(9)
-            .font('Helvetica')
-            .text((index + 1).toString(), startX, rowY)
-            .text(app.applicationNumber || 'N/A', startX + colWidth, rowY)
-            .text(app.personalDetails.fullName, startX + (colWidth * 2), rowY)
-            .text(app.courseType === 'bpharm' ? 'BPharm' : 'MPharm', startX + (colWidth * 3), rowY)
-            .text(app.personalDetails.category, startX + (colWidth * 4), rowY)
-            .text('', startX + (colWidth * 5), rowY); // Signature column
-
-          this.doc.moveDown(0.8);
+          doc.fontSize(9).font('Helvetica').text(app.applicationNumber || 'N/A', x, y);
+          x += colWidths[1];
+          
+          doc.fontSize(9).font('Helvetica').text(app.formData?.fullName || 'N/A', x, y);
+          x += colWidths[2];
+          
+          doc.fontSize(9).font('Helvetica').text(app.formData?.category || 'N/A', x, y);
+          x += colWidths[3];
+          
+          // Signature space
+          doc.rect(x, y - 5, 70, 20).stroke();
         });
 
-        this.doc.end();
-
-        stream.on('finish', () => {
-          resolve({
-            filename,
-            filepath,
-            success: true
-          });
-        });
-
-        stream.on('error', (error) => {
-          reject(error);
-        });
-
+        doc.end();
       } catch (error) {
         reject(error);
       }

@@ -266,37 +266,64 @@ router.post('/:id/generate-admit-card', authenticateToken, async (req, res) => {
 // Download admit card PDF
 router.get('/:id/admit-card-pdf', authenticateToken, async (req, res) => {
   try {
+    console.log('PDF download requested for application ID:', req.params.id);
+    
     const application = await Application.findOne({
       _id: req.params.id,
       userId: req.user.id
     });
 
     if (!application) {
+      console.log('Application not found for ID:', req.params.id);
       return res.status(404).json({ error: 'Application not found' });
     }
 
+    console.log('Application found:', {
+      id: application._id,
+      applicationNumber: application.applicationNumber,
+      paymentStatus: application.payment?.status
+    });
+
     if (application.payment.status !== 'completed') {
+      console.log('Payment not completed for application:', application.applicationNumber);
       return res.status(400).json({ error: 'Payment must be completed to download admit card' });
     }
 
     // Generate PDF
+    console.log('Starting PDF generation...');
     const pdfGenerator = new PDFGenerator();
-    const pdfResult = await pdfGenerator.generateAdmitCard(application, application.admitCard);
+    
+    // Convert application data to the format expected by the PDF generator
+    const applicationData = {
+      applicationNumber: application.applicationNumber,
+      formData: {
+        fullName: application.personalDetails?.fullName || 'N/A',
+        fathersName: application.personalDetails?.fathersName || 'N/A',
+        category: application.personalDetails?.category || 'N/A',
+        dateOfBirth: application.personalDetails?.dateOfBirth || 'N/A'
+      },
+      courseInfo: {
+        fullName: application.courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025'
+      }
+    };
 
-    if (pdfResult.success) {
-      // Send file
-      res.download(pdfResult.filepath, pdfResult.filename, (err) => {
-        // Clean up file after download
-        fs.unlink(pdfResult.filepath, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting PDF file:', unlinkErr);
-        });
-      });
-    } else {
-      res.status(500).json({ error: 'Failed to generate PDF' });
-    }
+    console.log('Application data prepared for PDF:', applicationData);
+
+    const pdfBuffer = await pdfGenerator.generateAdmitCard(applicationData);
+    console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="admit-card-${application.applicationNumber}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    console.log('Sending PDF response...');
+    // Send the PDF buffer
+    res.send(pdfBuffer);
+
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({ error: 'Failed to generate PDF' });
+    res.status(500).json({ error: 'Failed to generate PDF: ' + error.message });
   }
 });
 
