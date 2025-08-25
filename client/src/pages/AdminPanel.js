@@ -4,15 +4,23 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import ApplicantsSection from '../components/admin/ApplicantsSection';
 import ApplicationsSection from '../components/admin/ApplicationsSection';
 import TransactionsSection from '../components/admin/TransactionsSection';
+import MasterLogin from '../components/MasterLogin';
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('applications');
+  const [showMasterLogin, setShowMasterLogin] = useState(false);
   const { adminLogout, adminUser } = useAdminAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     adminLogout();
     navigate('/cpanel/login');
+  };
+
+  const handleMasterLogin = (masterData) => {
+    console.log('Master access granted:', masterData);
+    // You can add additional logic here if needed
+    // For example, redirect to the user's dashboard or show user info
   };
 
   const renderSection = () => {
@@ -45,6 +53,12 @@ const AdminPanel = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowMasterLogin(true)}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                🔐 Master Access
+              </button>
               <span className="text-sm text-gray-600">
                 Welcome, {adminUser?.email}
               </span>
@@ -103,6 +117,14 @@ const AdminPanel = () => {
           {renderSection()}
         </div>
       </main>
+
+      {/* Master Login Modal */}
+      {showMasterLogin && (
+        <MasterLogin
+          onMasterLogin={handleMasterLogin}
+          onClose={() => setShowMasterLogin(false)}
+        />
+      )}
     </div>
   );
 };

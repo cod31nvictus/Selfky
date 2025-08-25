@@ -321,6 +321,24 @@ const AdmitCard = () => {
     );
   }
 
+  const getImageUrl = (path) => {
+    if (!path) return '';
+    
+    // If it's already a full URL (S3 or other), return as is
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    
+    // If it's just a filename, construct S3 URL
+    if (!path.includes('/')) {
+      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
+    }
+    
+    // If it's a local path, extract filename and construct S3 URL
+    const filename = path.split('/').pop();
+    return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${filename}`;
+  };
+
   return (
     <div className="bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
       {/* Header */}
@@ -462,22 +480,47 @@ const AdmitCard = () => {
             <div className="grid md:grid-cols-2 gap-8 mb-8">
               <div>
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Photo</h3>
-                <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
-                  {applicationData.documents?.photo ? (
-                    <img 
-                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${applicationData.documents.photo.includes('/') ? applicationData.documents.photo.split('/').pop() : applicationData.documents.photo}`}
-                      alt="Applicant Photo"
-                      className="w-32 h-40 object-cover rounded border-2 border-gray-300 shadow-md"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div className="w-32 h-40 bg-gray-200 rounded border-2 border-gray-300 flex items-center justify-center" style={{ display: applicationData.documents?.photo ? 'none' : 'flex' }}>
-                    <span className="text-gray-500 text-sm">No Photo</span>
+                {/* Photo Display */}
+                {applicationData.documents?.photo && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Photo</h4>
+                    <div className="w-32 h-40 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={getImageUrl(applicationData.documents.photo)}
+                        alt="Applicant Photo"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="hidden w-full h-full items-center justify-center text-gray-500 text-xs">
+                        Photo not available
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Signature Display */}
+                {applicationData.documents?.signature && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Signature</h4>
+                    <div className="w-32 h-20 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={getImageUrl(applicationData.documents.signature)}
+                        alt="Applicant Signature"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="hidden w-full h-full items-center justify-center text-gray-500 text-xs">
+                        Signature not available
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

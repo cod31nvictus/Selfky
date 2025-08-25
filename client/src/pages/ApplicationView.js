@@ -7,6 +7,26 @@ const ApplicationView = () => {
   const navigate = useNavigate();
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Helper function to get S3 image URLs
+  const getImageUrl = (path) => {
+    if (!path) return '';
+    
+    // If it's already a full URL (S3 or other), return as is
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    
+    // If it's just a filename, construct S3 URL
+    if (!path.includes('/')) {
+      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
+    }
+    
+    // If it's a local path, extract filename and construct S3 URL
+    const filename = path.split('/').pop();
+    return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${filename}`;
+  };
 
   useEffect(() => {
     fetchApplication();
@@ -251,7 +271,7 @@ const ApplicationView = () => {
                     {documents?.photo && (
                       <div className="border border-gray-200 rounded-lg p-4">
                         <img 
-                          src={`/uploads/${documents.photo}`} 
+                          src={getImageUrl(documents.photo)} 
                           alt="Applicant Photo" 
                           className="w-32 h-40 object-cover rounded-lg"
                         />
@@ -263,7 +283,7 @@ const ApplicationView = () => {
                     {documents?.signature && (
                       <div className="border border-gray-200 rounded-lg p-4">
                         <img 
-                          src={`/uploads/${documents.signature}`} 
+                          src={getImageUrl(documents.signature)} 
                           alt="Applicant Signature" 
                           className="w-32 h-20 object-contain rounded-lg"
                         />

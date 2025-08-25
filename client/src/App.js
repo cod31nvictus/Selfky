@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import Register from './pages/Register';
@@ -117,6 +118,7 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
+          <Toaster />
         </Router>
       </AdminAuthProvider>
     </AuthProvider>

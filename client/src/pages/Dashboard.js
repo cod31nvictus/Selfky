@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { applicationAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
 
   useEffect(() => {
     loadApplications();
-  }, []);
+    
+    // Check for redirect message
+    if (location.state?.message) {
+      setMessage(location.state.message);
+      // Clear the message from location state
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // Refresh applications when component comes into focus
   useEffect(() => {
@@ -52,17 +61,18 @@ const Dashboard = () => {
     }
   };
 
-  const getApplicationButton = (courseType) => {
+  const getAdmitCardButton = (courseType) => {
     const application = applications.find(app => app.courseType === courseType);
     const status = getApplicationStatus(courseType);
 
     if (!application) {
       return (
-        <Link to={`/apply/${courseType}`}>
-          <button className="w-full bg-[#101418] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200">
-            Apply Now
-          </button>
-        </Link>
+        <button 
+          disabled
+          className="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-medium cursor-not-allowed"
+        >
+          No Application Found
+        </button>
       );
     }
 
@@ -70,7 +80,7 @@ const Dashboard = () => {
       return (
         <div className="space-y-2">
           <div className="text-center">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               {status.text}
             </span>
           </div>
@@ -78,7 +88,7 @@ const Dashboard = () => {
             onClick={() => navigate(`/admit-card/${application._id}`)}
             className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200"
           >
-            View Admit Card
+            Download Admit Card
           </button>
         </div>
       );
@@ -91,20 +101,12 @@ const Dashboard = () => {
             {status.text}
           </span>
         </div>
-        <div className="space-y-2">
-          <button 
-            onClick={() => navigate(`/application/${application._id}`)}
-            className="w-full bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 text-sm"
-          >
-            View Application
-          </button>
-          <button 
-            onClick={() => navigate(`/payment/${application._id}`)}
-            className="w-full bg-[#101418] text-white py-2 px-6 rounded-lg font-medium hover:bg-[#2a2f36] transition-colors duration-200 text-sm"
-          >
-            Complete Payment
-          </button>
-        </div>
+        <button 
+          disabled
+          className="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-medium cursor-not-allowed"
+        >
+          Download Admit Card
+        </button>
       </div>
     );
   };
@@ -143,14 +145,34 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Message Display */}
+      {message && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-4 mt-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-blue-800 text-sm">{message}</p>
+            <button 
+              onClick={() => setMessage('')}
+              className="ml-auto text-blue-600 hover:text-blue-800"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="px-4 py-8 md:px-8 lg:px-16">
         <div className="max-w-6xl mx-auto">
           {/* Page Title */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-[#101418] mb-4">Available Courses</h1>
+            <h1 className="text-4xl font-bold text-[#101418] mb-4">Admit Card Download</h1>
             <p className="text-lg text-[#5c728a] max-w-2xl mx-auto">
-              Select a course below to begin your application process. Each course has specific requirements and deadlines.
+              Applications are now closed. Download your admit card if your payment is completed.
             </p>
           </div>
 
@@ -171,8 +193,8 @@ const Dashboard = () => {
                       <p className="text-sm text-[#5c728a]">Bachelor of Pharmacy</p>
                     </div>
                   </div>
-                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    Open
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    Closed
                   </span>
                 </div>
                 
@@ -198,7 +220,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {getApplicationButton('bpharm')}
+                {getAdmitCardButton('bpharm')}
               </div>
             </div>
 
@@ -217,8 +239,8 @@ const Dashboard = () => {
                       <p className="text-sm text-[#5c728a]">Master of Pharmacy</p>
                     </div>
                   </div>
-                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    Open
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    Closed
                   </span>
                 </div>
                 
@@ -244,7 +266,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {getApplicationButton('mpharm')}
+                {getAdmitCardButton('mpharm')}
               </div>
             </div>
           </div>
@@ -252,10 +274,10 @@ const Dashboard = () => {
           {/* Additional Info */}
           <div className="mt-12 text-center">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-[#101418] mb-2">Application Process</h3>
+              <h3 className="text-lg font-semibold text-[#101418] mb-2">Admit Card Information</h3>
               <p className="text-[#5c728a] text-sm">
-                Click "Apply Now" on your preferred course to start the application process. 
-                You'll need to fill out a detailed form and upload required documents.
+                Applications are now closed for the 2025 session. You can only download your admit card if your payment has been completed. 
+                For any issues, please contact the administration.
               </p>
             </div>
           </div>

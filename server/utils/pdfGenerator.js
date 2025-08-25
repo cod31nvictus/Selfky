@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const s3Service = require('./s3Service');
 
 class PDFGenerator {
   constructor() {
@@ -12,7 +13,7 @@ class PDFGenerator {
 
   // Generate admit card PDF
   async generateAdmitCard(applicationData, admitCardData) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const filename = `admit-card-${applicationData.applicationNumber}-${Date.now()}.pdf`;
         const filepath = path.join(__dirname, '../uploads', filename);
@@ -36,21 +37,37 @@ class PDFGenerator {
         // Add photo if available
         if (applicationData.documents && applicationData.documents.photo) {
           try {
-            let photoPath;
-            // Handle both old format (full path) and new format (just filename)
-            if (applicationData.documents.photo.includes(path.sep)) {
-              // Old format: full path
-              photoPath = applicationData.documents.photo;
-            } else {
-              // New format: just filename
-              photoPath = path.join(__dirname, '../uploads', applicationData.documents.photo);
+            let photoPath = null;
+            const photoKey = s3Service.extractS3Key(applicationData.documents.photo);
+            
+            if (photoKey) {
+              // Try to download from S3 first
+              photoPath = await s3Service.downloadToTemp(photoKey);
+              
+              if (!photoPath) {
+                // Fallback to local file if S3 fails
+                if (applicationData.documents.photo.includes(path.sep)) {
+                  photoPath = applicationData.documents.photo;
+                } else {
+                  photoPath = path.join(__dirname, '../uploads', applicationData.documents.photo);
+                }
+              }
             }
             
-            if (fs.existsSync(photoPath)) {
+            if (photoPath && fs.existsSync(photoPath)) {
               // Add photo to the right side of header
               this.doc
                 .image(photoPath, 450, 80, { width: 80, height: 100 })
                 .moveDown(0.5);
+              
+              // Clean up temp file if it was downloaded from S3
+              if (photoPath.startsWith('/tmp/')) {
+                try {
+                  fs.unlinkSync(photoPath);
+                } catch (cleanupError) {
+                  console.error('Error cleaning up temp photo file:', cleanupError);
+                }
+              }
             }
           } catch (photoError) {
             console.error('Error adding photo to PDF:', photoError);
@@ -152,20 +169,37 @@ class PDFGenerator {
         // Add signature if available
         if (applicationData.documents && applicationData.documents.signature) {
           try {
-            let signaturePath;
-            // Handle both old format (full path) and new format (just filename)
-            if (applicationData.documents.signature.includes(path.sep)) {
-              // Old format: full path
-              signaturePath = applicationData.documents.signature;
-            } else {
-              // New format: just filename
-              signaturePath = path.join(__dirname, '../uploads', applicationData.documents.signature);
+            let signaturePath = null;
+            const signatureKey = s3Service.extractS3Key(applicationData.documents.signature);
+            
+            if (signatureKey) {
+              // Try to download from S3 first
+              signaturePath = await s3Service.downloadToTemp(signatureKey);
+              
+              if (!signaturePath) {
+                // Fallback to local file if S3 fails
+                if (applicationData.documents.signature.includes(path.sep)) {
+                  signaturePath = applicationData.documents.signature;
+                } else {
+                  signaturePath = path.join(__dirname, '../uploads', applicationData.documents.signature);
+                }
+              }
             }
-            if (fs.existsSync(signaturePath)) {
+            
+            if (signaturePath && fs.existsSync(signaturePath)) {
               // Add signature at the bottom
               this.doc
                 .image(signaturePath, 100, this.doc.y + 20, { width: 60, height: 30 })
                 .moveDown(1);
+              
+              // Clean up temp file if it was downloaded from S3
+              if (signaturePath.startsWith('/tmp/')) {
+                try {
+                  fs.unlinkSync(signaturePath);
+                } catch (cleanupError) {
+                  console.error('Error cleaning up temp signature file:', cleanupError);
+                }
+              }
             }
           } catch (signatureError) {
             console.error('Error adding signature to PDF:', signatureError);

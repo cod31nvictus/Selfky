@@ -4,6 +4,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailService = require('../utils/emailService');
+const { requireMasterAuth } = require('../middleware/masterAuth');
 
 // Helper for password validation
 function validatePassword(password) {
@@ -187,6 +188,52 @@ router.post('/verify-reset-token', async (req, res) => {
   } catch (error) {
     console.error('Error in verify reset token:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Master Login - Admin access to any user account
+router.post('/master-login', requireMasterAuth, async (req, res) => {
+  try {
+    const { targetEmail } = req.body;
+    
+    if (!targetEmail) {
+      return res.status(400).json({ error: 'Target email is required' });
+    }
+
+    // Find the target user
+    const targetUser = await User.findOne({ email: targetEmail });
+    if (!targetUser) {
+      return res.status(404).json({ error: 'Target user not found' });
+    }
+
+    // Generate a special master token with user info
+    const masterToken = jwt.sign(
+      { 
+        userId: targetUser._id,
+        isMasterAccess: true,
+        adminAccess: true,
+        originalUser: targetUser.email
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' } // Shorter expiry for security
+    );
+
+    res.json({
+      message: 'Master access granted',
+      masterToken,
+      targetUser: {
+        _id: targetUser._id,
+        name: targetUser.name,
+        email: targetUser.email,
+        phone: targetUser.phone
+      },
+      accessType: 'master',
+      expiresIn: '1 hour'
+    });
+
+  } catch (error) {
+    console.error('Master login error:', error);
+    res.status(500).json({ error: 'Master login failed' });
   }
 });
 

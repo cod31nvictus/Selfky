@@ -60,6 +60,16 @@ const ApplicationForm = () => {
   const [applicationId, setApplicationId] = useState(null);
   const [existingApplication, setExistingApplication] = useState(null);
 
+  // Check if applications are closed
+  useEffect(() => {
+    // Applications are now closed - redirect to dashboard
+    navigate('/dashboard', { 
+      state: { 
+        message: 'Applications are now closed for the 2025 session. You can only download your admit card if your payment is completed.' 
+      } 
+    });
+  }, [navigate]);
+
   useEffect(() => {
     checkExistingApplication();
   }, [courseType]);

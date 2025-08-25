@@ -14,6 +14,16 @@ const Payment = () => {
 
   const applicationId = location.state?.applicationId || params?.applicationId;
 
+  // Check if applications are closed
+  useEffect(() => {
+    // Applications are now closed - redirect to dashboard
+    navigate('/dashboard', { 
+      state: { 
+        message: 'Applications are now closed for the 2025 session. You can only download your admit card if your payment is completed.' 
+      } 
+    });
+  }, [navigate]);
+
   const verifyPayment = useCallback(async (response) => {
     try {
       setLoading(true);
