@@ -16,8 +16,8 @@ const requireMasterAuth = async (req, res, next) => {
     }
 
     // Compare master password with admin password
-    const isMasterPasswordValid = await bcrypt.compare(masterPassword, adminPassword) || 
-                                 masterPassword === adminPassword; // Fallback for plain text
+    // Since admin password is stored as plain text in .env, we compare directly
+    const isMasterPasswordValid = masterPassword === adminPassword;
 
     if (!isMasterPasswordValid) {
       return res.status(401).json({ error: 'Invalid master password' });
