@@ -18,12 +18,17 @@ const ApplicationView = () => {
       return path;
     }
     
-    // If it's just a filename, construct S3 URL
+    // If it's an S3 path like 'photos/1755180769534-g0onb.jpg' or 'signatures/1755180769603-qc7dob.jpg'
+    if (path.includes('/') && (path.startsWith('photos/') || path.startsWith('signatures/') || path.startsWith('certificates/'))) {
+      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
+    }
+    
+    // If it's just a filename, construct S3 URL (fallback)
     if (!path.includes('/')) {
       return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
     }
     
-    // If it's a local path, extract filename and construct S3 URL
+    // If it's a local path, extract filename and construct S3 URL (fallback)
     const filename = path.split('/').pop();
     return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${filename}`;
   };

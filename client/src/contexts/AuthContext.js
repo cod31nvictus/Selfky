@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Regular user authentication
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/profile`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/profile-with-application`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

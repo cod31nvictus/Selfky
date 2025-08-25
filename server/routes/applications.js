@@ -57,6 +57,22 @@ router.get('/my-applications', authenticateToken, async (req, res) => {
   }
 });
 
+// Get current user's application (most recent)
+router.get('/my-application/current', authenticateToken, async (req, res) => {
+  try {
+    const application = await Application.findOne({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+    
+    if (!application) {
+      return res.status(404).json({ error: 'No application found for this user' });
+    }
+    
+    res.json(application);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch application' });
+  }
+});
+
 // Get a specific application
 router.get('/:id', authenticateToken, async (req, res) => {
   try {

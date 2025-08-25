@@ -77,6 +77,9 @@ export const applicationAPI = {
   // Get all applications for current user
   getMyApplications: () => apiCall('/applications/my-applications'),
 
+  // Get current user's application (most recent)
+  getCurrentApplication: () => apiCall('/applications/my-application/current'),
+
   // Get specific application
   getApplication: (id) => apiCall(`/applications/${id}`),
   
@@ -104,37 +107,54 @@ export const applicationAPI = {
       body: data,
     });
 
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to create application');
-    }
-
-    return result;
+    return response.json();
   },
 
-  // Update payment status
-  updatePaymentStatus: (applicationId, paymentData) => 
-    apiCall(`/applications/${applicationId}/payment`, {
-      method: 'PATCH',
-      body: JSON.stringify(paymentData),
-    }),
-
-  // Generate admit card
-  generateAdmitCard: (applicationId) => 
-    apiCall(`/applications/${applicationId}/admit-card`, {
-      method: 'POST',
-    }),
-
-  // Download admit card PDF
-  downloadAdmitCardPDF: (applicationId) => {
+  // Update application
+  updateApplication: (id, formData) => {
     const token = getAuthToken();
-    return fetch(`${API_BASE_URL}/applications/${applicationId}/admit-card-pdf`, {
-      method: 'GET',
+    
+    const data = new FormData();
+    data.append('courseType', formData.courseType);
+    data.append('fullName', formData.fullName);
+    data.append('fathersName', formData.fathersName);
+    data.append('category', formData.category);
+    data.append('dateOfBirth', formData.dateOfBirth);
+    if (formData.photo) data.append('photo', formData.photo);
+    if (formData.signature) data.append('signature', formData.signature);
+
+    return fetch(`${API_BASE_URL}/applications/${id}`, {
+      method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+        Authorization: `Bearer ${token}`,
+      },
+      body: data,
+    }).then(response => response.json());
   },
+
+  // Delete application
+  deleteApplication: (id) => apiCall(`/applications/${id}`, { method: 'DELETE' }),
+
+  // Submit application
+  submitApplication: (id) => apiCall(`/applications/${id}/submit`, { method: 'POST' }),
+
+  // Get admit card
+  getAdmitCard: (id) => apiCall(`/applications/${id}/admit-card`),
+};
+
+// User profile API functions
+export const userAPI = {
+  // Get user profile with application data
+  getProfileWithApplication: () => apiCall('/auth/profile-with-application'),
+  
+  // Get user profile (legacy)
+  getProfile: () => apiCall('/auth/profile'),
+  
+  // Update user profile
+  updateProfile: (userData) => apiCall('/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(userData),
+  }),
 };
 
 // Auth API functions
@@ -284,5 +304,6 @@ export default {
   applicationAPI,
   authAPI,
   adminAPI,
+  userAPI,
   uploadFile,
 }; 

@@ -329,12 +329,17 @@ const AdmitCard = () => {
       return path;
     }
     
-    // If it's just a filename, construct S3 URL
+    // If it's an S3 path like 'photos/1755180769534-g0onb.jpg' or 'signatures/1755180769603-qc7dob.jpg'
+    if (path.includes('/') && (path.startsWith('photos/') || path.startsWith('signatures/') || path.startsWith('certificates/'))) {
+      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
+    }
+    
+    // If it's just a filename, construct S3 URL (fallback)
     if (!path.includes('/')) {
       return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
     }
     
-    // If it's a local path, extract filename and construct S3 URL
+    // If it's a local path, extract filename and construct S3 URL (fallback)
     const filename = path.split('/').pop();
     return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${filename}`;
   };
@@ -481,9 +486,8 @@ const AdmitCard = () => {
               <div>
                 <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Photo</h3>
                 {/* Photo Display */}
-                {applicationData.documents?.photo && (
+                {applicationData.documents?.photo ? (
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Photo</h4>
                     <div className="w-32 h-40 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
                       <img
                         src={getImageUrl(applicationData.documents.photo)}
@@ -499,12 +503,18 @@ const AdmitCard = () => {
                       </div>
                     </div>
                   </div>
+                ) : (
+                  <div className="w-32 h-40 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <span className="text-gray-500 text-xs">No Photo</span>
+                  </div>
                 )}
+              </div>
 
+              <div>
+                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Signature</h3>
                 {/* Signature Display */}
-                {applicationData.documents?.signature && (
+                {applicationData.documents?.signature ? (
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Signature</h4>
                     <div className="w-32 h-20 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
                       <img
                         src={getImageUrl(applicationData.documents.signature)}
@@ -520,27 +530,11 @@ const AdmitCard = () => {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Signature</h3>
-                <div className="bg-gray-50 rounded-lg p-4 flex justify-center">
-                  {applicationData.documents?.signature ? (
-                    <img 
-                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/uploads/${applicationData.documents.signature.includes('/') ? applicationData.documents.signature.split('/').pop() : applicationData.documents.signature}`}
-                      alt="Applicant Signature"
-                      className="w-32 h-16 object-contain border-2 border-gray-300 rounded shadow-md"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div className="w-32 h-16 bg-gray-200 border-2 border-gray-300 rounded flex items-center justify-center" style={{ display: applicationData.documents?.signature ? 'none' : 'flex' }}>
-                    <span className="text-gray-500 text-sm">No Signature</span>
+                ) : (
+                  <div className="w-32 h-20 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <span className="text-gray-500 text-xs">No Signature</span>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

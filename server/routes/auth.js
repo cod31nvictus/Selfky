@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Application = require('../models/Application');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailService = require('../utils/emailService');
@@ -54,7 +55,55 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get user profile
+// Get user profile with application data
+router.get('/profile-with-application', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Find the user's application
+    const application = await Application.findOne({ userId: user._id })
+      .sort({ createdAt: -1 }); // Get the most recent application
+
+    // Create a response that matches the old schema structure
+    const userWithApplication = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      application: application ? {
+        _id: application._id,
+        applicationNumber: application.applicationNumber,
+        courseType: application.courseType,
+        status: application.status,
+        photo: application.documents?.photo,
+        signature: application.documents?.signature,
+        personalDetails: application.personalDetails,
+        payment: application.payment,
+        admitCard: application.admitCard,
+        createdAt: application.createdAt,
+        updatedAt: application.updatedAt
+      } : null
+    };
+
+    res.json({
+      user: userWithApplication
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Get user profile (legacy endpoint - kept for backward compatibility)
 router.get('/profile', async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
