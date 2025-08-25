@@ -400,6 +400,23 @@ const AdmitCard = () => {
 
   return (
     <div className="bg-gray-50" style={{fontFamily: '"Public Sans", "Noto Sans", sans-serif'}}>
+      {/* Print Styles */}
+      <style jsx>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 15mm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+        }
+      `}</style>
+      
       {/* Header */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden sticky top-0 z-10">
         <div className="flex items-center gap-4 text-[#101418]">
@@ -458,8 +475,8 @@ const AdmitCard = () => {
       )}
 
       {/* Main Content */}
-      <div className="px-4 py-8 md:px-8 lg:px-16 pb-20">
-        <div className="max-w-4xl mx-auto">
+      <div className="px-4 py-8 md:px-8 lg:px-16 pb-20 print:px-0 print:py-0 print:pb-0">
+        <div className="max-w-4xl mx-auto print:max-w-none">
           {/* Success Message */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 print:hidden">
             <div className="flex items-center">
@@ -474,38 +491,38 @@ const AdmitCard = () => {
           </div>
 
           {/* Admit Card */}
-          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-200 print:p-4 print:shadow-none print:border print:rounded-none print:bg-white print:min-h-0">
             {/* Header */}
-            <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
-              <div className="flex items-center justify-center mb-4">
-                <img src="/bhu-logo.png" alt="IMS BHU Logo" className="h-16 w-auto" />
+            <div className="text-center border-b-2 border-gray-300 pb-4 mb-4 print:pb-2 print:mb-2">
+              <div className="flex items-center justify-center mb-2 print:mb-1">
+                <img src="/bhu-logo.png" alt="IMS BHU Logo" className="h-12 w-auto print:h-10" />
               </div>
-              <h1 className="text-3xl font-bold text-[#101418] mb-2">ADMIT CARD</h1>
-              <p className="text-lg text-[#5c728a]">{applicationData.courseInfo?.fullName}</p>
+              <h1 className="text-2xl font-bold text-[#101418] mb-1 print:text-xl print:mb-0">ADMIT CARD</h1>
+              <p className="text-base text-[#5c728a] print:text-sm">{applicationData.courseInfo?.fullName}</p>
             </div>
 
             {/* Applicant Details and Examination Details */}
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="grid md:grid-cols-2 gap-6 mb-6 print:gap-4 print:mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
+                <h3 className="text-base font-semibold text-[#101418] mb-3 print:text-sm print:mb-2">Applicant Details</h3>
+                <div className="space-y-2 print:space-y-1">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Application Number:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.applicationNumber}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Full Name:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.formData?.fullName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Father's Name:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.formData?.fathersName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Category:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.formData?.category}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Date of Birth:</span>
                     <span className="font-semibold text-[#101418]">
                       {applicationData.formData?.dateOfBirth ? 
@@ -518,21 +535,21 @@ const AdmitCard = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Examination Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
+                <h3 className="text-base font-semibold text-[#101418] mb-3 print:text-sm print:mb-2">Examination Details</h3>
+                <div className="space-y-2 print:space-y-1">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Exam Date:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examDate}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Exam Time:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Exam Center:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examCenter}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm print:text-xs">
                     <span className="font-medium text-[#5c728a]">Center Address:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examCenterAddress}</span>
                   </div>
@@ -541,13 +558,13 @@ const AdmitCard = () => {
             </div>
 
             {/* Photo and Signature Section */}
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="grid md:grid-cols-2 gap-6 mb-6 print:gap-4 print:mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Photo</h3>
+                <h3 className="text-base font-semibold text-[#101418] mb-2 print:text-sm print:mb-1">Applicant Photo</h3>
                 {/* Photo Display */}
                 {applicationData.documents?.photo ? (
-                  <div className="mb-4">
-                    <div className="w-32 h-40 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                  <div className="mb-2 print:mb-1">
+                    <div className="w-24 h-32 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100 print:w-20 print:h-28">
                       <img
                         src={getImageUrl(applicationData.documents.photo)}
                         alt="Applicant Photo"
@@ -563,18 +580,18 @@ const AdmitCard = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-32 h-40 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <div className="w-24 h-32 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center print:w-20 print:h-28">
                     <span className="text-gray-500 text-xs">No Photo</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-[#101418] mb-4">Applicant Signature</h3>
+                <h3 className="text-base font-semibold text-[#101418] mb-2 print:text-sm print:mb-1">Applicant Signature</h3>
                 {/* Signature Display */}
                 {applicationData.documents?.signature ? (
-                  <div className="mb-4">
-                    <div className="w-32 h-20 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                  <div className="mb-2 print:mb-1">
+                    <div className="w-24 h-16 border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100 print:w-20 print:h-14">
                       <img
                         src={getImageUrl(applicationData.documents.signature)}
                         alt="Applicant Signature"
@@ -590,7 +607,7 @@ const AdmitCard = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-32 h-20 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <div className="w-24 h-16 border-2 border-gray-300 rounded-lg bg-gray-100 flex items-center justify-center print:w-20 print:h-14">
                     <span className="text-gray-500 text-xs">No Signature</span>
                   </div>
                 )}
@@ -598,22 +615,22 @@ const AdmitCard = () => {
             </div>
 
             {/* Exam Center */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-[#101418] mb-4">Examination Center</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="font-semibold text-[#101418] mb-2">{admitCardData.examCenter}</p>
-                <p className="text-[#5c728a]">{admitCardData.examCenterAddress}</p>
+            <div className="mb-6 print:mb-4">
+              <h3 className="text-base font-semibold text-[#101418] mb-2 print:text-sm print:mb-1">Examination Center</h3>
+              <div className="bg-gray-50 rounded-lg p-3 print:p-2">
+                <p className="font-semibold text-[#101418] mb-1 print:text-sm print:mb-0">{admitCardData.examCenter}</p>
+                <p className="text-[#5c728a] text-sm print:text-xs">{admitCardData.examCenterAddress}</p>
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-[#101418] mb-4">Important Instructions</h3>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <ul className="space-y-2 text-sm">
+            <div className="mb-6 print:mb-4">
+              <h3 className="text-base font-semibold text-[#101418] mb-2 print:text-sm print:mb-1">Important Instructions</h3>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 print:p-2">
+                <ul className="space-y-1 text-xs print:text-xs">
                   {admitCardData.instructions.map((instruction, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-yellow-600 mr-2">•</span>
+                      <span className="text-yellow-600 mr-2 flex-shrink-0">•</span>
                       <span className="text-[#5c728a]">{instruction}</span>
                     </li>
                   ))}
@@ -622,14 +639,14 @@ const AdmitCard = () => {
             </div>
 
             {/* Signature Section */}
-            <div className="flex justify-between items-end border-t-2 border-gray-300 pt-6">
+            <div className="flex justify-between items-end border-t-2 border-gray-300 pt-4 print:pt-2">
               <div className="text-center">
-                <div className="w-32 h-16 border-b-2 border-gray-400 mb-2"></div>
-                <p className="text-sm text-[#5c728a]">Applicant's Signature</p>
+                <div className="w-24 h-12 border-b-2 border-gray-400 mb-1 print:w-20 print:h-10"></div>
+                <p className="text-xs text-[#5c728a] print:text-xs">Applicant's Signature</p>
               </div>
               <div className="text-center">
-                <div className="w-32 h-16 border-b-2 border-gray-400 mb-2"></div>
-                <p className="text-sm text-[#5c728a]">Authorized Signature</p>
+                <div className="w-24 h-12 border-b-2 border-gray-400 mb-1 print:w-20 print:h-10"></div>
+                <p className="text-xs text-[#5c728a] print:text-xs">Authorized Signature</p>
               </div>
             </div>
           </div>

@@ -12,102 +12,66 @@ class PDFGenerator {
   }
 
   // Generate admit card PDF
-  async generateAdmitCard(applicationData, admitCardData) {
-    return new Promise(async (resolve, reject) => {
+  generateAdmitCard(applicationData) {
+    return new Promise((resolve, reject) => {
       try {
-        const filename = `admit-card-${applicationData.applicationNumber}-${Date.now()}.pdf`;
-        const filepath = path.join(__dirname, '../uploads', filename);
-        const stream = fs.createWriteStream(filepath);
-
-        this.doc.pipe(stream);
-
-        // Header
-        this.doc
-          .fontSize(24)
-          .font('Helvetica-Bold')
-          .text('SELFKY INSTITUTE OF PHARMACY', { align: 'center' })
-          .moveDown(0.5);
-
-        this.doc
-          .fontSize(16)
-          .font('Helvetica')
-          .text('ADMIT CARD', { align: 'center' })
-          .moveDown(2);
-
-        // Add photo if available
-        if (applicationData.documents && applicationData.documents.photo) {
-          try {
-            let photoPath = null;
-            const photoKey = s3Service.extractS3Key(applicationData.documents.photo);
-            
-            if (photoKey) {
-              // Try to download from S3 first
-              photoPath = await s3Service.downloadToTemp(photoKey);
-              
-              if (!photoPath) {
-                // Fallback to local file if S3 fails
-                if (applicationData.documents.photo.includes(path.sep)) {
-                  photoPath = applicationData.documents.photo;
-                } else {
-                  photoPath = path.join(__dirname, '../uploads', applicationData.documents.photo);
-                }
-              }
-            }
-            
-            if (photoPath && fs.existsSync(photoPath)) {
-              // Add photo to the right side of header
-              this.doc
-                .image(photoPath, 450, 80, { width: 80, height: 100 })
-                .moveDown(0.5);
-              
-              // Clean up temp file if it was downloaded from S3
-              if (photoPath.startsWith('/tmp/')) {
-                try {
-                  fs.unlinkSync(photoPath);
-                } catch (cleanupError) {
-                  console.error('Error cleaning up temp photo file:', cleanupError);
-                }
-              }
-            }
-          } catch (photoError) {
-            console.error('Error adding photo to PDF:', photoError);
+        // Create PDF document with A4 size and optimized margins
+        const doc = new PDFDocument({
+          size: 'A4',
+          margins: {
+            top: 30,
+            bottom: 30,
+            left: 30,
+            right: 30
           }
-        }
-
-        // Application Details
-        this.doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('APPLICANT DETAILS', { underline: true })
-          .moveDown(1);
-
-        const details = [
-          ['Application Number:', applicationData.applicationNumber],
-          ['Full Name:', applicationData.personalDetails.fullName],
-          ['Father\'s Name:', applicationData.personalDetails.fathersName],
-          ['Category:', applicationData.personalDetails.category],
-          ['Date of Birth:', new Date(applicationData.personalDetails.dateOfBirth).toLocaleDateString('en-GB')],
-          ['Course:', applicationData.courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)']
-        ];
-
-        details.forEach(([label, value]) => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica-Bold')
-            .text(label, { continued: true })
-            .font('Helvetica')
-            .text(`: ${value}`)
-            .moveDown(0.5);
         });
 
-        this.doc.moveDown(1);
+        const chunks = [];
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
 
-        // Examination Details
-        this.doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('EXAMINATION DETAILS', { underline: true })
-          .moveDown(1);
+        // Set font sizes for A4 optimization
+        const titleFontSize = 18;
+        const headingFontSize = 14;
+        const bodyFontSize = 10;
+        const smallFontSize = 8;
+
+        // Header with logo and title
+        doc.fontSize(titleFontSize).font('Helvetica-Bold').text('ADMIT CARD', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(bodyFontSize).font('Helvetica').text(applicationData.courseInfo?.fullName || 'Course Information', { align: 'center' });
+        doc.moveDown(1);
+
+        // Two-column layout for applicant and exam details
+        const leftX = 50;
+        const rightX = 300;
+        const startY = 120;
+        let currentY = startY;
+
+        // Applicant Details (Left Column)
+        doc.fontSize(headingFontSize).font('Helvetica-Bold').text('Applicant Details', leftX, currentY);
+        currentY += 20;
+
+        const applicantDetails = [
+          ['Application Number:', applicationData.applicationNumber || 'N/A'],
+          ['Full Name:', applicationData.formData?.fullName || 'N/A'],
+          ['Father\'s Name:', applicationData.formData?.fathersName || 'N/A'],
+          ['Category:', applicationData.formData?.category || 'N/A'],
+          ['Date of Birth:', applicationData.formData.dateOfBirth ? 
+            new Date(applicationData.formData.dateOfBirth).toLocaleDateString('en-GB') : 'N/A'
+          ]
+        ];
+
+        applicantDetails.forEach(([label, value]) => {
+          doc.fontSize(bodyFontSize).font('Helvetica').text(label, leftX, currentY);
+          doc.fontSize(bodyFontSize).font('Helvetica-Bold').text(value, leftX + 120, currentY);
+          currentY += 15;
+        });
+
+        // Examination Details (Right Column)
+        currentY = startY;
+        doc.fontSize(headingFontSize).font('Helvetica-Bold').text('Examination Details', rightX, currentY);
+        currentY += 20;
 
         const examDetails = [
           ['Exam Date:', '31-08-2025'],
@@ -117,108 +81,52 @@ class PDFGenerator {
         ];
 
         examDetails.forEach(([label, value]) => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica-Bold')
-            .text(label, { continued: true })
-            .font('Helvetica')
-            .text(`: ${value}`)
-            .moveDown(0.5);
+          doc.fontSize(bodyFontSize).font('Helvetica').text(label, rightX, currentY);
+          doc.fontSize(bodyFontSize).font('Helvetica-Bold').text(value, rightX + 120, currentY);
+          currentY += 15;
         });
 
-        this.doc.moveDown(2);
+        // Photo and Signature Section
+        currentY = Math.max(currentY, startY + 100);
+        doc.fontSize(headingFontSize).font('Helvetica-Bold').text('Applicant Photo', leftX, currentY);
+        doc.fontSize(headingFontSize).font('Helvetica-Bold').text('Applicant Signature', rightX, currentY);
+        currentY += 20;
+
+        // Photo placeholder
+        doc.rect(leftX, currentY, 60, 80).stroke();
+        doc.fontSize(smallFontSize).font('Helvetica').text('Photo', leftX + 25, currentY + 35);
+
+        // Signature placeholder
+        doc.rect(rightX, currentY, 120, 40).stroke();
+        doc.fontSize(smallFontSize).font('Helvetica').text('Signature', rightX + 50, currentY + 20);
 
         // Instructions
-        this.doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text('IMPORTANT INSTRUCTIONS', { underline: true })
-          .moveDown(1);
+        currentY += 100;
+        doc.fontSize(headingFontSize).font('Helvetica-Bold').text('Important Instructions', 50, currentY);
+        currentY += 20;
 
         const instructions = [
-          '1. Please arrive at the exam center 1 hour before the exam time',
-          '2. Carry this admit card and a valid photo ID proof',
-          '3. No electronic devices are allowed in the examination hall',
-          '4. Follow all COVID-19 protocols as per government guidelines',
-          '5. Bring your own stationery (pen, pencil, eraser)',
-          '6. Dress code: Formal attire'
+          'Please arrive at the exam center 1 hour before the exam time',
+          'Carry this admit card and a valid photo ID proof',
+          'No electronic devices are allowed in the examination hall',
+          'Follow all COVID-19 safety protocols as per institute guidelines',
+          'Report to the examination hall 30 minutes before the exam starts'
         ];
 
-        instructions.forEach(instruction => {
-          this.doc
-            .fontSize(10)
-            .font('Helvetica')
-            .text(instruction)
-            .moveDown(0.3);
+        instructions.forEach((instruction, index) => {
+          doc.fontSize(bodyFontSize).font('Helvetica').text(`• ${instruction}`, 50, currentY);
+          currentY += 15;
         });
 
-        this.doc.moveDown(2);
+        // Signature lines at bottom
+        currentY += 20;
+        doc.lineCap('butt').moveTo(50, currentY).lineTo(200, currentY).stroke();
+        doc.fontSize(smallFontSize).font('Helvetica').text('Applicant\'s Signature', 100, currentY + 5);
 
-        // Footer
-        this.doc
-          .fontSize(10)
-          .font('Helvetica')
-          .text('Generated on: ' + new Date().toLocaleString(), { align: 'center' })
-          .moveDown(1);
+        doc.lineCap('butt').moveTo(300, currentY).lineTo(450, currentY).stroke();
+        doc.fontSize(smallFontSize).font('Helvetica').text('Authorized Signature', 350, currentY + 5);
 
-        this.doc
-          .fontSize(8)
-          .text('This is a computer generated document. No signature required.', { align: 'center' });
-
-        // Add signature if available
-        if (applicationData.documents && applicationData.documents.signature) {
-          try {
-            let signaturePath = null;
-            const signatureKey = s3Service.extractS3Key(applicationData.documents.signature);
-            
-            if (signatureKey) {
-              // Try to download from S3 first
-              signaturePath = await s3Service.downloadToTemp(signatureKey);
-              
-              if (!signaturePath) {
-                // Fallback to local file if S3 fails
-                if (applicationData.documents.signature.includes(path.sep)) {
-                  signaturePath = applicationData.documents.signature;
-                } else {
-                  signaturePath = path.join(__dirname, '../uploads', applicationData.documents.signature);
-                }
-              }
-            }
-            
-            if (signaturePath && fs.existsSync(signaturePath)) {
-              // Add signature at the bottom
-              this.doc
-                .image(signaturePath, 100, this.doc.y + 20, { width: 60, height: 30 })
-                .moveDown(1);
-              
-              // Clean up temp file if it was downloaded from S3
-              if (signaturePath.startsWith('/tmp/')) {
-                try {
-                  fs.unlinkSync(signaturePath);
-                } catch (cleanupError) {
-                  console.error('Error cleaning up temp signature file:', cleanupError);
-                }
-              }
-            }
-          } catch (signatureError) {
-            console.error('Error adding signature to PDF:', signatureError);
-          }
-        }
-
-        this.doc.end();
-
-        stream.on('finish', () => {
-          resolve({
-            filename,
-            filepath,
-            success: true
-          });
-        });
-
-        stream.on('error', (error) => {
-          reject(error);
-        });
-
+        doc.end();
       } catch (error) {
         reject(error);
       }
