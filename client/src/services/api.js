@@ -143,17 +143,6 @@ export const applicationAPI = {
 
   // Generate admit card
   generateAdmitCard: (id) => apiCall(`/applications/${id}/generate-admit-card`, { method: 'POST' }),
-
-  // Download admit card PDF
-  downloadAdmitCardPDF: (id) => {
-    const token = getAuthToken();
-    return fetch(`${API_BASE_URL}/applications/${id}/admit-card-pdf`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  },
 };
 
 // User profile API functions
