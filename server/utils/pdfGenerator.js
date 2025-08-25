@@ -111,6 +111,7 @@ class PDFGenerator {
 
         const examDetails = [
           ['Exam Date:', '31-08-2025'],
+          ['Exam Time:', '11:00 am to 1:00 pm'],
           ['Exam Center:', 'NLT Institute of Medical Sciences BHU'],
           ['Center Address:', 'BHU, Varanasi, Uttar Pradesh - 221005']
         ];

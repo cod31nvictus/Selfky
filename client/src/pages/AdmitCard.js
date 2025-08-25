@@ -105,6 +105,7 @@ const AdmitCard = () => {
         setAdmitCardData({
           applicationNumber: application.applicationNumber,
           examDate: '31-08-2025',
+          examTime: '11:00 am to 1:00 pm',
           examCenter: 'NLT Institute of Medical Sciences BHU',
           examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
           instructions: [
@@ -140,6 +141,7 @@ const AdmitCard = () => {
       const admitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
         examDate: '31-08-2025',
+        examTime: '11:00 am to 1:00 pm',
         examCenter: 'NLT Institute of Medical Sciences BHU',
         examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
         instructions: [
@@ -161,6 +163,7 @@ const AdmitCard = () => {
       const fallbackAdmitCard = {
         applicationNumber: data.applicationNumber || 'APP' + Date.now(),
         examDate: '31-08-2025',
+        examTime: '11:00 am to 1:00 pm',
         examCenter: 'NLT Institute of Medical Sciences BHU',
         examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
         instructions: [
@@ -234,6 +237,7 @@ const AdmitCard = () => {
           setAdmitCardData({
             applicationNumber: 'N/A',
             examDate: '31-08-2025',
+            examTime: '11:00 am to 1:00 pm',
             examCenter: 'NLT Institute of Medical Sciences BHU',
             examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
             instructions: [
@@ -399,7 +403,7 @@ const AdmitCard = () => {
       {/* Header */}
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#eaedf1] px-4 py-0 bg-white print:hidden sticky top-0 z-10">
         <div className="flex items-center gap-4 text-[#101418]">
-          <div className="size-20">
+                    <div className="size-20">
             <img src="/selfky-logo.png" alt="Selfky Logo" className="w-full h-full object-contain" />
           </div>
         </div>
@@ -474,7 +478,7 @@ const AdmitCard = () => {
             {/* Header */}
             <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
               <div className="flex items-center justify-center mb-4">
-                <img src="/selfky-logo.png" alt="Selfky Logo" className="h-16 w-auto" />
+                <img src="/bhu-logo.png" alt="IMS BHU Logo" className="h-16 w-auto" />
               </div>
               <h1 className="text-3xl font-bold text-[#101418] mb-2">ADMIT CARD</h1>
               <p className="text-lg text-[#5c728a]">{applicationData.courseInfo?.fullName}</p>
@@ -519,6 +523,18 @@ const AdmitCard = () => {
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Exam Date:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Exam Time:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Exam Center:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examCenter}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-[#5c728a]">Center Address:</span>
+                    <span className="font-semibold text-[#101418]">{admitCardData.examCenterAddress}</span>
                   </div>
                 </div>
               </div>
