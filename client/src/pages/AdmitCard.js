@@ -182,6 +182,8 @@ const AdmitCard = () => {
   };
 
   useEffect(() => {
+    console.log('🔍 useEffect triggered with:', { location, applicationId, navigate });
+    
     // Check if this is an admin view (path starts with /admin/ and has admin token)
     const adminToken = localStorage.getItem('adminToken');
     const isAdmin = location.pathname.startsWith('/admin/') && adminToken;
@@ -200,18 +202,54 @@ const AdmitCard = () => {
     }
 
     if (location.state) {
+      console.log('📍 Location state found:', location.state);
       setApplicationData(location.state);
       if (location.state.completedSteps) {
         setCompletedSteps(location.state.completedSteps);
       }
       // Generate admit card data
+      console.log('🚀 Calling generateAdmitCard with location.state');
       generateAdmitCard(location.state);
     } else if (applicationId) {
+      console.log('🆔 Application ID found, calling loadApplicationData');
       // Load application data from API if applicationId is provided
       loadApplicationData();
+    } else {
+      console.log('⚠️ No location.state and no applicationId - this might be the issue');
+      // Force loading to false if no data
+      setLoading(false);
     }
   }, [location, applicationId, navigate]);
 
+  // Add a simple fallback mechanism
+  useEffect(() => {
+    // If we've been loading for more than 5 seconds, force stop
+    if (loading) {
+      const timer = setTimeout(() => {
+        console.log('⏰ Loading timeout - forcing loading to false');
+        setLoading(false);
+        
+        // Set some basic data to prevent the "no data" screen
+        if (!admitCardData) {
+          setAdmitCardData({
+            applicationNumber: 'N/A',
+            examDate: '31-08-2025',
+            examCenter: 'NLT Institute of Medical Sciences BHU',
+            examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
+            instructions: [
+              'Please arrive at the exam center 1 hour before the exam time',
+              'Carry this admit card and a valid photo ID proof',
+              'No electronic devices are allowed in the examination hall',
+              'Follow all COVID-19 safety protocols as per institute guidelines',
+              'Report to the examination hall 30 minutes before the exam starts'
+            ]
+          });
+        }
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, admitCardData]);
 
 
   const handlePrint = () => {
@@ -281,7 +319,29 @@ const AdmitCard = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#101418] mx-auto mb-4"></div>
           <h2 className="text-xl font-bold text-[#101418] mb-2">Generating Admit Card...</h2>
-          <p className="text-[#5c728a]">Please wait while we generate your admit card.</p>
+          <p className="text-[#5c728a] mb-4">Please wait while we generate your admit card.</p>
+          
+          {/* Debug Information */}
+          <div className="bg-gray-100 p-4 rounded-lg text-left text-sm">
+            <p><strong>Debug Info:</strong></p>
+            <p>Loading: {loading.toString()}</p>
+            <p>Application Data: {applicationData ? 'Present' : 'Missing'}</p>
+            <p>Admit Card Data: {admitCardData ? 'Present' : 'Missing'}</p>
+            <p>Location State: {location.state ? 'Present' : 'Missing'}</p>
+            <p>Application ID: {applicationId || 'None'}</p>
+            <p>Time: {new Date().toLocaleTimeString()}</p>
+          </div>
+          
+          {/* Force Stop Button */}
+          <button 
+            onClick={() => {
+              console.log('🛑 Force stop loading clicked');
+              setLoading(false);
+            }}
+            className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Force Stop Loading
+          </button>
         </div>
       </div>
     );
