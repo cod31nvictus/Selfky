@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isMasterAccess, setIsMasterAccess] = useState(false);
+  const [masterUser, setMasterUser] = useState(null);
 
   // Check if user is authenticated on app startup
   useEffect(() => {
@@ -24,12 +26,26 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('token');
+      const accessType = localStorage.getItem('accessType');
+      const masterUserData = localStorage.getItem('masterUser');
+
       if (!token) {
         setLoading(false);
         return;
       }
 
-      // Get user profile data
+      // Check if this is a master access session
+      if (accessType === 'master' && masterUserData) {
+        const parsedMasterUser = JSON.parse(masterUserData);
+        setIsMasterAccess(true);
+        setMasterUser(parsedMasterUser);
+        setIsAuthenticated(true);
+        setUser({ token, ...parsedMasterUser });
+        setLoading(false);
+        return;
+      }
+
+      // Regular user authentication
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -41,17 +57,27 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setIsAuthenticated(true);
         setUser({ token, ...data.user });
+        setIsMasterAccess(false);
+        setMasterUser(null);
       } else {
         // Token is invalid, clear it
         localStorage.removeItem('token');
+        localStorage.removeItem('accessType');
+        localStorage.removeItem('masterUser');
         setIsAuthenticated(false);
         setUser(null);
+        setIsMasterAccess(false);
+        setMasterUser(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('accessType');
+      localStorage.removeItem('masterUser');
       setIsAuthenticated(false);
       setUser(null);
+      setIsMasterAccess(false);
+      setMasterUser(null);
     } finally {
       setLoading(false);
     }
@@ -65,6 +91,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       setUser({ token, ...user });
       setIsAuthenticated(true);
+      setIsMasterAccess(false);
+      setMasterUser(null);
       
       return { success: true };
     } catch (error) {
@@ -83,17 +111,34 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('accessType');
+    localStorage.removeItem('masterUser');
     setUser(null);
     setIsAuthenticated(false);
+    setIsMasterAccess(false);
+    setMasterUser(null);
+  };
+
+  const exitMasterAccess = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('accessType');
+    localStorage.removeItem('masterUser');
+    setUser(null);
+    setIsAuthenticated(false);
+    setIsMasterAccess(false);
+    setMasterUser(null);
   };
 
   const value = {
     user,
     isAuthenticated,
     loading,
+    isMasterAccess,
+    masterUser,
     login,
     register,
     logout,
+    exitMasterAccess,
     checkAuthStatus
   };
 

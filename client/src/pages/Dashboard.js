@@ -7,11 +7,9 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  const [isMasterAccess, setIsMasterAccess] = useState(false);
-  const [masterUser, setMasterUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, isMasterAccess, masterUser, exitMasterAccess } = useAuth();
 
   useEffect(() => {
     loadApplications();
@@ -21,15 +19,6 @@ const Dashboard = () => {
       setMessage(location.state.message);
       // Clear the message from location state
       navigate(location.pathname, { replace: true });
-    }
-
-    // Check if this is a master access session
-    const accessType = localStorage.getItem('accessType');
-    const masterUserData = localStorage.getItem('masterUser');
-    
-    if (accessType === 'master' && masterUserData) {
-      setIsMasterAccess(true);
-      setMasterUser(JSON.parse(masterUserData));
     }
   }, [location.state, navigate, location.pathname]);
 
@@ -161,12 +150,7 @@ const Dashboard = () => {
             onClick={() => {
               // Clear master access data if it exists
               if (isMasterAccess) {
-                localStorage.removeItem('masterToken');
-                localStorage.removeItem('masterUser');
-                localStorage.removeItem('accessType');
-                localStorage.removeItem('token');
-                setIsMasterAccess(false);
-                setMasterUser(null);
+                exitMasterAccess();
                 navigate('/cpanel');
                 return;
               }
