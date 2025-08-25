@@ -21,6 +21,7 @@ import AdminPanel from './pages/AdminPanel';
 import AdminApplicantDashboard from './pages/AdminApplicantDashboard';
 import AdminApplicationForm from './pages/AdminApplicationForm';
 import ApplicationView from './pages/ApplicationView';
+import InvigilatorSheetPage from './pages/InvigilatorSheetPage';
 
 function App() {
   return (
@@ -116,6 +117,13 @@ function App() {
               <ProtectedRoute>
                 <ApplicationView />
               </ProtectedRoute>
+            } />
+
+            {/* Invigilator Sheet Page */}
+            <Route path="/invigilator-sheet/:courseType" element={
+              <ProtectedAdminRoute>
+                <InvigilatorSheetPage />
+              </ProtectedAdminRoute>
             } />
           </Routes>
           <Toaster />

@@ -1,45 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { adminAPI } from '../../services/api';
+import { useParams, useNavigate } from 'react-router-dom';
+import { adminAPI } from '../services/api';
 
-const InvigilatorSheetsSection = () => {
+const InvigilatorSheetPage = () => {
+  const { courseType } = useParams();
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
-  const [allApplications, setAllApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('bpharm');
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [courseType]);
 
   const fetchApplications = async () => {
     try {
       setLoading(true);
       const response = await adminAPI.getApplications();
       
-      console.log('🔍 Total applications received:', response.length);
-      console.log('🔍 Payment statuses found:', [...new Set(response.map(app => app.payment?.status))]);
-      console.log('🔍 Course types found:', [...new Set(response.map(app => app.courseType))]);
-      
       // Get all applications with completed payment (check multiple possible status values)
       const completedApps = response.filter(app => {
         const paymentStatus = app.payment?.status;
-        const isCompleted = paymentStatus === 'completed' || 
-                          paymentStatus === 'payment_completed' || 
-                          paymentStatus === 'success';
-        
-        if (app.courseType === 'bpharm') {
-          console.log(`BPharm App ${app.applicationNumber}: Payment status = ${paymentStatus}, IsCompleted = ${isCompleted}`);
-        }
-        
-        return isCompleted;
+        return (paymentStatus === 'completed' || 
+                paymentStatus === 'payment_completed' || 
+                paymentStatus === 'success') && 
+               app.courseType === courseType;
       });
       
-      console.log('🔍 Completed applications found:', completedApps.length);
-      console.log('🔍 BPharm completed:', completedApps.filter(app => app.courseType === 'bpharm').length);
-      console.log('🔍 MPharm completed:', completedApps.filter(app => app.courseType === 'mpharm').length);
-      
       setApplications(completedApps);
-      setAllApplications(response); // Store all applications for debugging
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
@@ -62,7 +49,7 @@ const InvigilatorSheetsSection = () => {
     
     // If it's just a filename, construct S3 URL (fallback)
     if (!path.includes('/')) {
-      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${path}`;
+      return `https://selfky-applications-2025.s3.eu-north-1.amazonaws.com/${filename}`;
     }
     
     // If it's a local path, extract filename and construct S3 URL (fallback)
@@ -74,16 +61,14 @@ const InvigilatorSheetsSection = () => {
     window.print();
   };
 
-  const filteredApplications = applications.filter(app => {
-    if (activeTab === 'bpharm') return app.courseType === 'bpharm';
-    if (activeTab === 'mpharm') return app.courseType === 'mpharm';
-    return true;
-  });
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB'); // dd/mm/yyyy format
+  };
+
+  const getCourseTitle = () => {
+    return courseType === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025';
   };
 
   if (loading) {
@@ -95,114 +80,32 @@ const InvigilatorSheetsSection = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      {/* Header */}
-      <div className="mb-6 print:hidden">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Invigilator Verification Sheets</h2>
-        <p className="text-gray-600">
-          Download and print verification sheets for exam day. Each sheet contains applicant information, photos, and signature verification boxes.
-        </p>
-        
-        {/* Debug Information */}
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="font-semibold text-blue-900 mb-2">Debug Information:</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p><strong>Total Applications:</strong> {applications.length}</p>
-              <p><strong>BPharm Applications:</strong> {applications.filter(app => app.courseType === 'bpharm').length}</p>
-              <p><strong>MPharm Applications:</strong> {applications.filter(app => app.courseType === 'mpharm').length}</p>
-            </div>
-            <div>
-              <p><strong>Expected BPharm:</strong> 89</p>
-              <p><strong>Missing BPharm:</strong> {89 - applications.filter(app => app.courseType === 'bpharm').length}</p>
-              <p><strong>Active Tab:</strong> {activeTab}</p>
-            </div>
-          </div>
-          
-          {/* Additional Debug Info */}
-          <div className="mt-3 pt-3 border-t border-blue-200">
-            <h4 className="font-medium text-blue-800 mb-2">All Applications (Including Non-Completed):</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p><strong>Total All:</strong> {allApplications.length}</p>
-                <p><strong>BPharm All:</strong> {allApplications.filter(app => app.courseType === 'bpharm').length}</p>
-                <p><strong>MPharm All:</strong> {allApplications.filter(app => app.courseType === 'mpharm').length}</p>
-              </div>
-              <div>
-                <p><strong>Payment Statuses:</strong></p>
-                <p className="text-xs">
-                  {[...new Set(allApplications.map(app => app.payment?.status))].join(', ') || 'None'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Course Tabs */}
-      <div className="mb-6 print:hidden">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('bpharm')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'bpharm'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              BPharm ({applications.filter(app => app.courseType === 'bpharm').length} applicants)
-            </button>
-            <button
-              onClick={() => setActiveTab('mpharm')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'mpharm'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              MPharm ({applications.filter(app => app.courseType === 'mpharm').length} applicants)
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Print Button */}
-      <div className="mb-6 print:hidden">
+    <div className="bg-white min-h-screen">
+      {/* Print Button - Only visible when not printing */}
+      <div className="p-4 print:hidden">
         <button
           onClick={handlePrint}
           className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
         >
           🖨️ Print Verification Sheet
         </button>
-        
-        {/* Open in New Tab Buttons */}
-        <div className="mt-4 flex gap-4">
-          <button
-            onClick={() => window.open(`/invigilator-sheet/bpharm`, '_blank')}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
-          >
-            📄 Open BPharm Sheet in New Tab
-          </button>
-          <button
-            onClick={() => window.open(`/invigilator-sheet/mpharm`, '_blank')}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-          >
-            📄 Open MPharm Sheet in New Tab
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/admin')}
+          className="ml-4 bg-gray-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
+        >
+          ← Back to Admin Panel
+        </button>
       </div>
 
       {/* Verification Sheet */}
-      <div className="print:block">
+      <div className="print:block px-6 py-4">
         {/* Sheet Header */}
         <div className="text-center mb-8 print:mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 print:text-2xl">INVIGILATOR VERIFICATION SHEET</h1>
-          <p className="text-xl text-gray-700 print:text-lg">
-            {activeTab === 'bpharm' ? 'Bachelor of Pharmacy (Ayurveda) 2025' : 'Master of Pharmacy (Ayurveda) 2025'}
-          </p>
+          <p className="text-xl text-gray-700 print:text-lg">{getCourseTitle()}</p>
           <p className="text-lg text-gray-600 print:text-base">Examination Date: 31-08-2025</p>
           <p className="text-base text-gray-500 print:text-sm">Center: NLT Institute of Medical Sciences BHU</p>
+          <p className="text-base text-gray-500 print:text-sm">Total Applicants: {applications.length}</p>
         </div>
 
         {/* Table */}
@@ -222,7 +125,7 @@ const InvigilatorSheetsSection = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredApplications.map((application, index) => (
+              {applications.map((application, index) => (
                 <tr key={application._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   {/* Applicant Information */}
                   <td className="border border-gray-300 px-4 py-3 text-sm">
@@ -252,7 +155,7 @@ const InvigilatorSheetsSection = () => {
                     </div>
                   </td>
 
-                  {/* Photo & Signature */}
+                  {/* Photo & Signature - Side by Side */}
                   <td className="border border-gray-300 px-4 py-3 text-sm">
                     <div className="flex items-start space-x-4">
                       {/* Photo */}
@@ -375,4 +278,4 @@ const InvigilatorSheetsSection = () => {
   );
 };
 
-export default InvigilatorSheetsSection;
+export default InvigilatorSheetPage;
