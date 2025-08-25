@@ -90,22 +90,31 @@ const AdmitCard = () => {
         setAdmitCardData({
           applicationNumber: admitCardData.applicationNumber,
           examDate: admitCardData.examDate,
-          examTime: admitCardData.examTime,
           examCenter: admitCardData.examCenter,
-          examCenterAddress: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001',
-          rollNumber: 'RN' + Math.floor(Math.random() * 10000),
+          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
           instructions: [
             'Please arrive at the exam center 1 hour before the exam time',
             'Carry this admit card and a valid photo ID proof',
             'No electronic devices are allowed in the examination hall',
-            'Follow all COVID-19 protocols as per government guidelines',
-            'Bring your own stationery (pen, pencil, eraser)',
-            'Dress code: Formal attire'
+            'Follow all COVID-19 safety protocols as per institute guidelines',
+            'Report to the examination hall 30 minutes before the exam starts'
           ]
         });
-        setLoading(false);
       } else {
-        generateAdmitCard(applicationDataFromAPI);
+        // Set default admit card data
+        setAdmitCardData({
+          applicationNumber: application.applicationNumber,
+          examDate: '31-08-2025',
+          examCenter: 'NLT Institute of Medical Sciences BHU',
+          examCenterAddress: 'BHU, Varanasi, Uttar Pradesh - 221005',
+          instructions: [
+            'Please arrive at the exam center 1 hour before the exam time',
+            'Carry this admit card and a valid photo ID proof',
+            'No electronic devices are allowed in the examination hall',
+            'Follow all COVID-19 safety protocols as per institute guidelines',
+            'Report to the examination hall 30 minutes before the exam starts'
+          ]
+        });
       }
     } catch (error) {
       console.error('Error loading application data:', error);
@@ -440,10 +449,6 @@ const AdmitCard = () => {
                     <span className="font-semibold text-[#101418]">{admitCardData.applicationNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Roll Number:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.rollNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Full Name:</span>
                     <span className="font-semibold text-[#101418]">{applicationData.formData?.fullName}</span>
                   </div>
@@ -457,7 +462,12 @@ const AdmitCard = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Date of Birth:</span>
-                    <span className="font-semibold text-[#101418]">{applicationData.formData?.dateOfBirth}</span>
+                    <span className="font-semibold text-[#101418]">
+                      {applicationData.formData?.dateOfBirth ? 
+                        new Date(applicationData.formData.dateOfBirth).toLocaleDateString('en-GB') : 
+                        'N/A'
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
@@ -468,14 +478,6 @@ const AdmitCard = () => {
                   <div className="flex justify-between">
                     <span className="font-medium text-[#5c728a]">Exam Date:</span>
                     <span className="font-semibold text-[#101418]">{admitCardData.examDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Exam Time:</span>
-                    <span className="font-semibold text-[#101418]">{admitCardData.examTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-[#5c728a]">Transaction ID:</span>
-                    <span className="font-semibold text-[#101418]">{applicationData.transactionId}</span>
                   </div>
                 </div>
               </div>

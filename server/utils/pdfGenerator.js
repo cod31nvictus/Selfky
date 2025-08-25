@@ -83,11 +83,10 @@ class PDFGenerator {
 
         const details = [
           ['Application Number:', applicationData.applicationNumber],
-          ['Roll Number:', admitCardData.rollNumber],
           ['Full Name:', applicationData.personalDetails.fullName],
           ['Father\'s Name:', applicationData.personalDetails.fathersName],
           ['Category:', applicationData.personalDetails.category],
-          ['Date of Birth:', new Date(applicationData.personalDetails.dateOfBirth).toLocaleDateString()],
+          ['Date of Birth:', new Date(applicationData.personalDetails.dateOfBirth).toLocaleDateString('en-GB')],
           ['Course:', applicationData.courseType === 'bpharm' ? 'BPharm (Ay.)' : 'MPharm (Ay.)']
         ];
 
@@ -111,10 +110,9 @@ class PDFGenerator {
           .moveDown(1);
 
         const examDetails = [
-          ['Exam Date:', new Date(admitCardData.examDate).toLocaleDateString()],
-          ['Exam Time:', admitCardData.examTime],
-          ['Exam Center:', admitCardData.examCenter],
-          ['Center Address:', admitCardData.examCenterAddress]
+          ['Exam Date:', '31-08-2025'],
+          ['Exam Center:', 'NLT Institute of Medical Sciences BHU'],
+          ['Center Address:', 'BHU, Varanasi, Uttar Pradesh - 221005']
         ];
 
         examDetails.forEach(([label, value]) => {

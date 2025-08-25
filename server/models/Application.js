@@ -42,16 +42,15 @@ const applicationSchema = new mongoose.Schema({
     paymentDate: Date
   },
   admitCard: {
-    rollNumber: String,
-    examDate: { type: Date, default: () => new Date('2025-03-15') },
-    examTime: { type: String, default: '10:00 AM - 01:00 PM' },
+    examDate: { type: Date, default: () => new Date('2025-08-31') },
+    examTime: { type: String, default: '11:00 am to 1:00 pm' },
     examCenter: { 
       type: String, 
-      default: 'Selfky Institute of Pharmacy, Lucknow' 
+      default: 'NLT Institute of Medical Sciences BHU' 
     },
     examCenterAddress: { 
       type: String, 
-      default: '123, Pharmacy Road, Lucknow, Uttar Pradesh - 226001' 
+      default: 'BHU, Varanasi, Uttar Pradesh - 221005' 
     }
   },
   status: { 
