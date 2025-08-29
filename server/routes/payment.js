@@ -131,6 +131,7 @@ router.post('/verify-payment', async (req, res) => {
         const application = await Application.findById(applicationId);
         if (application) {
           application.status = 'payment_completed';
+          application.payment.status = 'completed'; // Fix: Also update payment.status
           await application.save();
 
           // Send payment completed email
