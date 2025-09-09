@@ -69,6 +69,27 @@
   overflow: hidden;
 }
 
+.payments-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 0 20px;
+}
+
+.download-csv-btn {
+  background-color: #0a7cff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.download-csv-btn:hover {
+  background-color: #086ada;
+}
+
 .payments-table-container h3 {
   padding: 20px 20px 0 20px;
   margin: 0;

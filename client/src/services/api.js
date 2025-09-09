@@ -271,6 +271,22 @@ export const adminAPI = {
   
   getPaymentStatistics: () => adminApiCall('/payment/admin/statistics'),
 
+  // Download payments CSV
+  downloadPaymentsCsv: async () => {
+    const adminToken = getAdminToken();
+    const response = await fetch(`${API_BASE_URL}/payment/admin/payments/csv`, {
+      method: 'GET',
+      headers: {
+        'X-Admin-Token': adminToken
+      }
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || 'Failed to download CSV');
+    }
+    return response.blob();
+  },
+
   // Analytics
   getAnalytics: () => adminApiCall('/admin/analytics'),
 

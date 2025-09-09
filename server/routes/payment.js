@@ -235,6 +235,71 @@ router.get('/admin/payments', async (req, res) => {
   }
 });
 
+// Download payments as CSV for admin
+router.get('/admin/payments/csv', async (req, res) => {
+  try {
+    // Reuse the same data shape as the JSON endpoint with additional safety null checks
+    const payments = await Payment.find({})
+      .populate('applicationId', 'applicationNumber courseType')
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    // CSV headers
+    const headers = [
+      'razorpay_payment_id',
+      'razorpay_order_id',
+      'status',
+      'amount',
+      'currency',
+      'date',
+      'application_id',
+      'application_number',
+      'course_type',
+      'user_id',
+      'applicant_name',
+      'applicant_email',
+      'receipt',
+      'error_message'
+    ];
+
+    const escapeCsv = (value) => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      // Escape quotes and wrap in quotes if needed
+      if (/[",\n]/.test(str)) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
+
+    const rows = payments.map(p => [
+      p.razorpayPaymentId || '',
+      p.razorpayOrderId || '',
+      p.status || '',
+      p.amount != null ? p.amount : '',
+      p.currency || 'INR',
+      p.createdAt ? p.createdAt.toISOString() : '',
+      p.applicationId?._id || '',
+      p.applicationId?.applicationNumber || '',
+      p.applicationId?.courseType || '',
+      p.userId?._id || '',
+      p.userId?.name || '',
+      p.userId?.email || '',
+      p.receipt || '',
+      p.errorMessage || ''
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.map(escapeCsv).join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="payments.csv"');
+    return res.status(200).send(csv);
+  } catch (error) {
+    console.error('Error generating payments CSV:', error);
+    res.status(500).json({ error: 'Failed to generate payments CSV' });
+  }
+});
+
 // Get payment statistics for admin
 router.get('/admin/statistics', async (req, res) => {
   try {

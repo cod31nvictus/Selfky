@@ -68,6 +68,23 @@ const TransactionsSection = () => {
     }).format(amount);
   };
 
+  const downloadCsv = async () => {
+    try {
+      const blob = await adminAPI.downloadPaymentsCsv();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'payments.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to download CSV', e);
+      setError('Failed to download CSV');
+    }
+  };
+
   if (loading) {
     return (
       <div className="transactions-section">
@@ -121,7 +138,10 @@ const TransactionsSection = () => {
 
       {/* Payments Table */}
       <div className="payments-table-container">
-        <h3>Recent Payments</h3>
+        <div className="payments-header-row">
+          <h3>Recent Payments</h3>
+          <button className="download-csv-btn" onClick={downloadCsv}>Download CSV</button>
+        </div>
         {payments.length === 0 ? (
           <p className="no-payments">No payments found</p>
         ) : (
